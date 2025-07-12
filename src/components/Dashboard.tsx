@@ -8,7 +8,7 @@ import { EditorModal } from './EditorModal';
 import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
-  const { prompts, addPrompt, updatePrompt } = usePrompts();
+  const { prompts, addPrompt, updatePrompt, deletePrompt } = usePrompts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | undefined>();
 
@@ -106,6 +106,7 @@ export function Dashboard() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onSave={handleSavePrompt}
+          onDelete={deletePrompt}
           prompt={editingPrompt}
         />
       </div>

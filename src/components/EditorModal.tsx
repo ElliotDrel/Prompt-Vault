@@ -12,10 +12,11 @@ interface EditorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
+  onDelete?: (promptId: string) => void;
   prompt?: Prompt; // If provided, we're editing; otherwise creating
 }
 
-export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProps) {
+export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: EditorModalProps) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [variables, setVariables] = useState<string[]>([]);
@@ -72,6 +73,21 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
     }
   };
 
+  const handleDelete = () => {
+    if (prompt && onDelete) {
+      onDelete(prompt.id);
+      onClose();
+    }
+  };
+
+  // Get variables referenced in the body
+  const getReferencedVariables = () => {
+    const matches = body.match(/\{([^}]+)\}/g) || [];
+    return matches.map(match => match.slice(1, -1));
+  };
+
+  const referencedVariables = getReferencedVariables();
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -115,9 +131,9 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
                   <Label htmlFor="title" className="text-sm font-medium">
                     Title
                   </Label>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs">
                       <p>A short, memorable title for your prompt. Example: "Email greeting pitch"</p>
@@ -138,11 +154,11 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="body" className="text-sm font-medium">
-                    Body
+                    Prompt
                   </Label>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
                        <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline, or list variables below to append them in XML format after the prompt.</p>
@@ -165,9 +181,9 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
                   <Label className="text-sm font-medium">
                     Variables
                   </Label>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
                        <p>Define variable names. Use {`{variable}`} in the body for inline placement, or variables will be appended in XML format like &lt;variable&gt;value&lt;/variable&gt;.</p>
@@ -178,20 +194,27 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
                 {/* Variable chips */}
                 {variables.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {variables.map(variable => (
-                      <div
-                        key={variable}
-                        className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
-                      >
-                        <span>{variable}</span>
-                        <button
-                          onClick={() => removeVariable(variable)}
-                          className="text-muted-foreground hover:text-foreground ml-1"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+                     {variables.map(variable => {
+                       const isReferenced = referencedVariables.includes(variable);
+                       return (
+                         <div
+                           key={variable}
+                           className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+                             isReferenced 
+                               ? 'bg-primary/20 text-primary border border-primary/30' 
+                               : 'bg-secondary text-secondary-foreground'
+                           }`}
+                         >
+                           <span>{variable}</span>
+                           <button
+                             onClick={() => removeVariable(variable)}
+                             className="text-muted-foreground hover:text-foreground ml-1"
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </button>
+                         </div>
+                       );
+                     })}
                   </div>
                 )}
 
@@ -218,17 +241,32 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={!title.trim() || !body.trim()}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {isEditing ? 'Update' : 'Create'}
-              </Button>
+            <div className="flex justify-between items-center mt-8 pt-6 border-t">
+              {isEditing && onDelete ? (
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                  className="text-destructive-foreground"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              ) : (
+                <div />
+              )}
+              
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={!title.trim() || !body.trim()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {isEditing ? 'Update' : 'Create'}
+                </Button>
+              </div>
             </div>
           </motion.div>
         </div>

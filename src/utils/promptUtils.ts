@@ -14,15 +14,17 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
     // Replace {variable} with <variable>value</variable>
     prompt.variables.forEach(variable => {
       const value = variableValues[variable] || '';
-      const regex = new RegExp(`\\{${variable}\\}`, 'g');
-      payload = payload.replace(regex, `<${variable}>${value}</${variable}>`);
+      const xmlVariableName = variable.replace(/\s+/g, '');
+      const regex = new RegExp(`\\{${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g');
+      payload = payload.replace(regex, `<${xmlVariableName}>${value}</${xmlVariableName}>`);
     });
   } else {
     // Append variables in XML format after the prompt
     const xmlVariables = prompt.variables
       .map(variable => {
         const value = variableValues[variable] || '';
-        return `<${variable}>${value}</${variable}>`;
+        const xmlVariableName = variable.replace(/\s+/g, '');
+        return `<${xmlVariableName}>${value}</${xmlVariableName}>`;
       })
       .join('');
     

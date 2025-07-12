@@ -23,6 +23,37 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
     }));
   };
 
+  // Get variables referenced in the body
+  const getReferencedVariables = () => {
+    const matches = prompt.body.match(/\{([^}]+)\}/g) || [];
+    return matches.map(match => match.slice(1, -1));
+  };
+
+  const referencedVariables = getReferencedVariables();
+
+  // Render prompt text with highlighted variables
+  const renderPromptWithHighlights = () => {
+    if (referencedVariables.length === 0) {
+      return <span className="text-sm text-muted-foreground line-clamp-2">{prompt.body}</span>;
+    }
+
+    const parts = prompt.body.split(/(\{[^}]+\})/);
+    return (
+      <span className="text-sm text-muted-foreground line-clamp-2">
+        {parts.map((part, index) => {
+          if (part.match(/^\{[^}]+\}$/)) {
+            return (
+              <span key={index} className="text-primary font-medium bg-primary/10 px-1 rounded">
+                {part}
+              </span>
+            );
+          }
+          return part;
+        })}
+      </span>
+    );
+  };
+
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     
@@ -47,34 +78,53 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
       className="prompt-card p-6 cursor-pointer flex flex-col gap-4"
       onClick={onClick}
     >
-      {/* Header with title and timestamp */}
-      <div className="flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-card-foreground line-clamp-2">
-          {prompt.title}
-        </h3>
-        <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+      {/* Header with timestamp and title */}
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-muted-foreground">
           Last updated: {formatRelativeTime(prompt.updatedAt)}
         </span>
+        <h3 className="text-lg font-semibold text-card-foreground line-clamp-2 w-full">
+          {prompt.title}
+        </h3>
+      </div>
+
+      {/* Prompt preview */}
+      <div className="flex flex-col gap-2">
+        {renderPromptWithHighlights()}
       </div>
 
       {/* Variable inputs */}
       {prompt.variables.length > 0 && (
         <div className="flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-          {prompt.variables.map(variable => (
-            <div key={variable} className="space-y-1">
-              <Label htmlFor={`${prompt.id}-${variable}`} className="text-sm text-muted-foreground">
-                {variable}
-              </Label>
-              <Input
-                id={`${prompt.id}-${variable}`}
-                type="text"
-                placeholder={`Enter ${variable}...`}
-                value={variableValues[variable] || ''}
-                onChange={(e) => handleVariableChange(variable, e.target.value)}
-                className="text-sm"
-              />
-            </div>
-          ))}
+          {prompt.variables.map(variable => {
+            const isReferenced = referencedVariables.includes(variable);
+            return (
+              <div key={variable} className="space-y-1">
+                <Label 
+                  htmlFor={`${prompt.id}-${variable}`} 
+                  className={`text-sm ${
+                    isReferenced 
+                      ? 'text-primary font-medium' 
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {variable}
+                </Label>
+                <Input
+                  id={`${prompt.id}-${variable}`}
+                  type="text"
+                  placeholder={`Enter ${variable}...`}
+                  value={variableValues[variable] || ''}
+                  onChange={(e) => handleVariableChange(variable, e.target.value)}
+                  className={`text-sm ${
+                    isReferenced 
+                      ? 'border-primary/50 focus:border-primary' 
+                      : ''
+                  }`}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 
