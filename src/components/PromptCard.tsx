@@ -1,0 +1,92 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Copy } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Prompt, VariableValues } from '@/types/prompt';
+import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils/promptUtils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+interface PromptCardProps {
+  prompt: Prompt;
+  onClick: () => void;
+}
+
+export function PromptCard({ prompt, onClick }: PromptCardProps) {
+  const [variableValues, setVariableValues] = useState<VariableValues>({});
+
+  const handleVariableChange = (variable: string, value: string) => {
+    setVariableValues(prev => ({
+      ...prev,
+      [variable]: value
+    }));
+  };
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    
+    const payload = buildPromptPayload(prompt, variableValues);
+    const success = await copyToClipboard(payload);
+    
+    if (success) {
+      const message = payload.length > 50000 
+        ? 'Copied (Prompt duplicated because limit exceeded)'
+        : 'Copied';
+      toast.success(message);
+    } else {
+      toast.error('Failed to copy to clipboard');
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      className="prompt-card p-6 cursor-pointer flex flex-col gap-4"
+      onClick={onClick}
+    >
+      {/* Header with title and timestamp */}
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-card-foreground line-clamp-2">
+          {prompt.title}
+        </h3>
+        <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+          Last updated: {formatRelativeTime(prompt.updatedAt)}
+        </span>
+      </div>
+
+      {/* Variable inputs */}
+      {prompt.variables.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {prompt.variables.map(variable => (
+            <div key={variable} className="space-y-1">
+              <Label htmlFor={`${prompt.id}-${variable}`} className="text-sm text-muted-foreground">
+                {variable}
+              </Label>
+              <Input
+                id={`${prompt.id}-${variable}`}
+                type="text"
+                placeholder={`Enter ${variable}...`}
+                value={variableValues[variable] || ''}
+                onChange={(e) => handleVariableChange(variable, e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Copy button */}
+      <Button
+        onClick={handleCopy}
+        className="w-full mt-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+      >
+        <Copy className="h-4 w-4 mr-2" />
+        Copy
+      </Button>
+    </motion.div>
+  );
+}
