@@ -144,19 +144,19 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
                     <TooltipTrigger asChild>
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs">
-                      <p>The main prompt text with variables in angle brackets. Example: "Hello &lt;name&gt;, I'd like to discuss &lt;topic&gt; with your team."</p>
-                    </TooltipContent>
+                     <TooltipContent side="right" className="max-w-xs">
+                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline, or list variables below to append them in XML format after the prompt.</p>
+                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <Textarea
-                  id="body"
-                  placeholder="Your prompt text with <variables> in angle brackets"
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  rows={8}
-                  className="text-sm resize-none"
-                />
+                 <Textarea
+                   id="body"
+                   placeholder="Your prompt text with {variables} in curly braces"
+                   value={body}
+                   onChange={(e) => setBody(e.target.value)}
+                   rows={8}
+                   className="text-sm resize-none"
+                 />
               </div>
 
               {/* Variables field */}
@@ -169,9 +169,9 @@ export function EditorModal({ isOpen, onClose, onSave, prompt }: EditorModalProp
                     <TooltipTrigger asChild>
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs">
-                      <p>Variable names that appear in your prompt body. Each variable will become an input field on the card. Example: "name", "company", "topic"</p>
-                    </TooltipContent>
+                     <TooltipContent side="right" className="max-w-xs">
+                       <p>Define variable names. Use {`{variable}`} in the body for inline placement, or variables will be appended in XML format like &lt;variable&gt;value&lt;/variable&gt;.</p>
+                     </TooltipContent>
                   </Tooltip>
                 </div>
                 

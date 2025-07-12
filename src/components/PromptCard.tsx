@@ -59,7 +59,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
 
       {/* Variable inputs */}
       {prompt.variables.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
           {prompt.variables.map(variable => (
             <div key={variable} className="space-y-1">
               <Label htmlFor={`${prompt.id}-${variable}`} className="text-sm text-muted-foreground">
@@ -71,7 +71,6 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
                 placeholder={`Enter ${variable}...`}
                 value={variableValues[variable] || ''}
                 onChange={(e) => handleVariableChange(variable, e.target.value)}
-                onClick={(e) => e.stopPropagation()}
                 className="text-sm"
               />
             </div>

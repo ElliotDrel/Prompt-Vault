@@ -5,16 +5,35 @@ const CHARACTER_LIMIT = 50000;
 export function buildPromptPayload(prompt: Prompt, variableValues: VariableValues): string {
   let payload = prompt.body;
   
-  // Replace variables in the body
-  prompt.variables.forEach(variable => {
-    const value = variableValues[variable] || `<${variable}>`;
-    const regex = new RegExp(`<${variable}>`, 'g');
-    payload = payload.replace(regex, value);
-  });
+  // Check if body contains {variable} patterns
+  const hasVariablePlaceholders = prompt.variables.some(variable => 
+    payload.includes(`{${variable}}`)
+  );
+  
+  if (hasVariablePlaceholders) {
+    // Replace {variable} with <variable>value</variable>
+    prompt.variables.forEach(variable => {
+      const value = variableValues[variable] || '';
+      const regex = new RegExp(`\\{${variable}\\}`, 'g');
+      payload = payload.replace(regex, `<${variable}>${value}</${variable}>`);
+    });
+  } else {
+    // Append variables in XML format after the prompt
+    const xmlVariables = prompt.variables
+      .map(variable => {
+        const value = variableValues[variable] || '';
+        return `<${variable}>${value}</${variable}>`;
+      })
+      .join('');
+    
+    if (xmlVariables) {
+      payload = payload + ' ' + xmlVariables;
+    }
+  }
   
   // Apply character guard - duplicate if exceeds limit
   if (payload.length > CHARACTER_LIMIT) {
-    payload = payload + '\n\n' + payload;
+    payload = payload + ' ' + payload;
   }
   
   return payload;
