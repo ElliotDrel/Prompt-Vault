@@ -2,6 +2,32 @@ import { Prompt, VariableValues } from '@/types/prompt';
 
 const CHARACTER_LIMIT = 50000;
 
+// Helper function to check if there are non-space characters within 3 characters
+function hasNonSpaceCharactersWithin3(text: string, variableRegex: RegExp): boolean {
+  const matches = Array.from(text.matchAll(new RegExp(variableRegex.source, 'g')));
+  
+  for (const match of matches) {
+    if (match.index === undefined) continue;
+    
+    const startIndex = match.index;
+    const endIndex = startIndex + match[0].length;
+    
+    // Check 3 characters before
+    const before = text.substring(Math.max(0, startIndex - 3), startIndex);
+    if (before.match(/[^\s]/)) {
+      return true;
+    }
+    
+    // Check 3 characters after
+    const after = text.substring(endIndex, Math.min(text.length, endIndex + 3));
+    if (after.match(/[^\s]/)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 export function buildPromptPayload(prompt: Prompt, variableValues: VariableValues): string {
   let payload = prompt.body;
   
@@ -10,7 +36,7 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
   const referencedVariables = variableMatches.map(match => match.slice(1, -1));
   
   if (referencedVariables.length > 0) {
-    // Replace {variable} with <variable>value</variable>
+    // Replace {variable} with value or <variable>value</variable> based on proximity rule
     referencedVariables.forEach(referencedVar => {
       // Find matching variable (supports both spaced and non-spaced)
       const matchingVariable = prompt.variables.find(variable => {
@@ -23,7 +49,15 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
         const value = variableValues[matchingVariable] || '';
         const xmlVariableName = matchingVariable.replace(/\s+/g, '');
         const regex = new RegExp(`\\{${referencedVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g');
-        payload = payload.replace(regex, `<${xmlVariableName}>${value}</${xmlVariableName}>`);
+        
+        // Check if there are non-space characters within 3 characters before or after
+        const shouldUseXML = !hasNonSpaceCharactersWithin3(payload, regex);
+        
+        if (shouldUseXML) {
+          payload = payload.replace(regex, `<${xmlVariableName}>${value}</${xmlVariableName}>`);
+        } else {
+          payload = payload.replace(regex, value);
+        }
       }
     });
   } else {

@@ -141,7 +141,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     return parts.map((part, index) => {
       if (part.match(/^\{[^}]+\}$/)) {
         return (
-          <span key={index} className="text-primary font-medium bg-primary/10 px-1 rounded">
+          <span key={index} className="bg-primary/20 text-primary rounded px-1">
             {part}
           </span>
         );
@@ -223,18 +223,27 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
-                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline, or list variables below to append them in XML format after the prompt.</p>
+                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline. Variables will be formatted as plain text if there are non-space characters within 3 characters, otherwise they'll be wrapped in XML tags.</p>
                      </TooltipContent>
                   </Tooltip>
                 </div>
-                 <Textarea
-                   id="body"
-                   placeholder="Your prompt text with {variables} in curly braces"
-                   value={body}
-                   onChange={(e) => setBody(e.target.value)}
-                   rows={8}
-                   className="text-sm resize-none"
-                 />
+                 <div className="relative">
+                   <Textarea
+                     id="body"
+                     placeholder="Your prompt text with {variables} in curly braces"
+                     value={body}
+                     onChange={(e) => setBody(e.target.value)}
+                     rows={8}
+                     className="text-sm resize-none"
+                   />
+                   {/* Overlay for highlighting */}
+                   <div 
+                     className="absolute inset-0 pointer-events-none p-3 text-sm whitespace-pre-wrap break-words overflow-hidden text-transparent"
+                     style={{ fontFamily: 'inherit', fontSize: 'inherit', lineHeight: 'inherit' }}
+                   >
+                     {renderPromptWithHighlights()}
+                   </div>
+                 </div>
               </div>
 
               {/* Variables field */}
@@ -248,7 +257,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
-                       <p>Define variable names. Use {`{variable}`} in the body for inline placement, or variables will be appended in XML format like &lt;variable&gt;value&lt;/variable&gt;.</p>
+                       <p>Define variable names. Variables referenced as {`{variable}`} in the prompt will be highlighted. They'll be formatted as plain text if there are non-space characters within 3 characters, otherwise wrapped in XML tags.</p>
                      </TooltipContent>
                   </Tooltip>
                 </div>
