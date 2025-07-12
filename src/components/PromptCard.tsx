@@ -7,6 +7,7 @@ import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { usePrompts } from '@/contexts/PromptsContext';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -14,6 +15,7 @@ interface PromptCardProps {
 }
 
 export function PromptCard({ prompt, onClick }: PromptCardProps) {
+  const { incrementCopyCount } = usePrompts();
   const [variableValues, setVariableValues] = useState<VariableValues>({});
 
   const handleVariableChange = (variable: string, value: string) => {
@@ -23,37 +25,6 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
     }));
   };
 
-  // Get variables referenced in the body
-  const getReferencedVariables = () => {
-    const matches = prompt.body.match(/\{([^}]+)\}/g) || [];
-    return matches.map(match => match.slice(1, -1));
-  };
-
-  const referencedVariables = getReferencedVariables();
-
-  // Render prompt text with highlighted variables
-  const renderPromptWithHighlights = () => {
-    if (referencedVariables.length === 0) {
-      return <span className="text-sm text-muted-foreground line-clamp-2">{prompt.body}</span>;
-    }
-
-    const parts = prompt.body.split(/(\{[^}]+\})/);
-    return (
-      <span className="text-sm text-muted-foreground line-clamp-2">
-        {parts.map((part, index) => {
-          if (part.match(/^\{[^}]+\}$/)) {
-            return (
-              <span key={index} className="text-primary font-medium bg-primary/10 px-1 rounded">
-                {part}
-              </span>
-            );
-          }
-          return part;
-        })}
-      </span>
-    );
-  };
-
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     
@@ -61,6 +32,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
     const success = await copyToClipboard(payload);
     
     if (success) {
+      incrementCopyCount();
       const message = payload.length > 50000 
         ? 'Copied (Prompt duplicated because limit exceeded)'
         : 'Copied';
@@ -88,43 +60,27 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
         </h3>
       </div>
 
-      {/* Prompt preview */}
-      <div className="flex flex-col gap-2">
-        {renderPromptWithHighlights()}
-      </div>
-
       {/* Variable inputs */}
       {prompt.variables.length > 0 && (
         <div className="flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-          {prompt.variables.map(variable => {
-            const isReferenced = referencedVariables.includes(variable);
-            return (
-              <div key={variable} className="space-y-1">
-                <Label 
-                  htmlFor={`${prompt.id}-${variable}`} 
-                  className={`text-sm ${
-                    isReferenced 
-                      ? 'text-primary font-medium' 
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {variable}
-                </Label>
-                <Input
-                  id={`${prompt.id}-${variable}`}
-                  type="text"
-                  placeholder={`Enter ${variable}...`}
-                  value={variableValues[variable] || ''}
-                  onChange={(e) => handleVariableChange(variable, e.target.value)}
-                  className={`text-sm ${
-                    isReferenced 
-                      ? 'border-primary/50 focus:border-primary' 
-                      : ''
-                  }`}
-                />
-              </div>
-            );
-          })}
+          {prompt.variables.map(variable => (
+            <div key={variable} className="space-y-1">
+              <Label 
+                htmlFor={`${prompt.id}-${variable}`} 
+                className="text-sm text-muted-foreground"
+              >
+                {variable}
+              </Label>
+              <Input
+                id={`${prompt.id}-${variable}`}
+                type="text"
+                placeholder={`Enter ${variable}...`}
+                value={variableValues[variable] || ''}
+                onChange={(e) => handleVariableChange(variable, e.target.value)}
+                className="text-sm"
+              />
+            </div>
+          ))}
         </div>
       )}
 

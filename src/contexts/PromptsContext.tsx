@@ -7,11 +7,18 @@ interface PromptsContextType {
   addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
   updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
   deletePrompt: (id: string) => void;
+  stats: {
+    totalPrompts: number;
+    totalCopies: number;
+    timeSavedMinutes: number;
+  };
+  incrementCopyCount: () => void;
 }
 
 const PromptsContext = createContext<PromptsContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'prompts';
+const STATS_KEY = 'promptStats';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -19,6 +26,11 @@ function generateId(): string {
 
 export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [stats, setStats] = useState({
+    totalPrompts: 0,
+    totalCopies: 0,
+    timeSavedMinutes: 0,
+  });
 
   // Load prompts from localStorage on mount
   useEffect(() => {
@@ -38,14 +50,36 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Load stats from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedStats = localStorage.getItem(STATS_KEY);
+      if (storedStats) {
+        setStats(JSON.parse(storedStats));
+      }
+    } catch (error) {
+      console.error('Failed to load stats from localStorage:', error);
+    }
+  }, []);
+
   // Save prompts to localStorage whenever prompts change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+      setStats(prev => ({ ...prev, totalPrompts: prompts.length }));
     } catch (error) {
       console.error('Failed to save prompts to localStorage:', error);
     }
   }, [prompts]);
+
+  // Save stats to localStorage whenever stats change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    } catch (error) {
+      console.error('Failed to save stats to localStorage:', error);
+    }
+  }, [stats]);
 
   const addPrompt = (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
     const newPrompt: Prompt = {
@@ -70,8 +104,23 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     setPrompts(prev => prev.filter(prompt => prompt.id !== id));
   };
 
+  const incrementCopyCount = () => {
+    setStats(prev => ({
+      ...prev,
+      totalCopies: prev.totalCopies + 1,
+      timeSavedMinutes: prev.timeSavedMinutes + 5,
+    }));
+  };
+
   return (
-    <PromptsContext.Provider value={{ prompts, addPrompt, updatePrompt, deletePrompt }}>
+    <PromptsContext.Provider value={{ 
+      prompts, 
+      addPrompt, 
+      updatePrompt, 
+      deletePrompt, 
+      stats, 
+      incrementCopyCount 
+    }}>
       {children}
     </PromptsContext.Provider>
   );

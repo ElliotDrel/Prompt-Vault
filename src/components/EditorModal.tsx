@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import toast from 'react-hot-toast';
 
 interface EditorModalProps {
   isOpen: boolean;
@@ -21,6 +23,9 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   const [body, setBody] = useState('');
   const [variables, setVariables] = useState<string[]>([]);
   const [newVariable, setNewVariable] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUnsavedChanges, setShowUnsavedChanges] = useState(false);
+  const [originalData, setOriginalData] = useState<{ title: string; body: string; variables: string[] } | null>(null);
 
   const isEditing = !!prompt;
 
@@ -31,14 +36,38 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
         setTitle(prompt.title);
         setBody(prompt.body);
         setVariables([...prompt.variables]);
+        setOriginalData({
+          title: prompt.title,
+          body: prompt.body,
+          variables: [...prompt.variables]
+        });
       } else {
         setTitle('');
         setBody('');
         setVariables([]);
+        setOriginalData({ title: '', body: '', variables: [] });
       }
       setNewVariable('');
     }
   }, [isOpen, prompt]);
+
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = () => {
+    if (!originalData) return false;
+    return (
+      title !== originalData.title ||
+      body !== originalData.body ||
+      JSON.stringify(variables) !== JSON.stringify(originalData.variables)
+    );
+  };
+
+  const handleClose = () => {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedChanges(true);
+    } else {
+      onClose();
+    }
+  };
 
   const handleSave = () => {
     if (!title.trim() || !body.trim()) {
@@ -56,10 +85,15 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
 
   const addVariable = () => {
     const trimmed = newVariable.trim();
-    if (trimmed && !variables.includes(trimmed)) {
-      setVariables(prev => [...prev, trimmed]);
-      setNewVariable('');
+    if (!trimmed) return;
+    
+    if (variables.includes(trimmed)) {
+      toast.error('Variable already exists');
+      return;
     }
+    
+    setVariables(prev => [...prev, trimmed]);
+    setNewVariable('');
   };
 
   const removeVariable = (variable: string) => {
@@ -88,6 +122,34 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
 
   const referencedVariables = getReferencedVariables();
 
+  // Check if a variable is referenced (supports both spaced and non-spaced)
+  const isVariableReferenced = (variable: string) => {
+    return referencedVariables.some(referencedVar => {
+      const normalizedRef = referencedVar.replace(/\s+/g, '');
+      const normalizedVar = variable.replace(/\s+/g, '');
+      return normalizedRef === normalizedVar;
+    });
+  };
+
+  // Render prompt text with highlighted variables
+  const renderPromptWithHighlights = () => {
+    if (referencedVariables.length === 0) {
+      return body;
+    }
+
+    const parts = body.split(/(\{[^}]+\})/);
+    return parts.map((part, index) => {
+      if (part.match(/^\{[^}]+\}$/)) {
+        return (
+          <span key={index} className="text-primary font-medium bg-primary/10 px-1 rounded">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -98,7 +160,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="modal-backdrop"
-            onClick={onClose}
+            onClick={handleClose}
           />
           
           {/* Modal content */}
@@ -117,7 +179,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
+                onClick={handleClose}
                 className="h-8 w-8 p-0"
               >
                 <X className="h-4 w-4" />
@@ -195,16 +257,16 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                 {variables.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                      {variables.map(variable => {
-                       const isReferenced = referencedVariables.includes(variable);
-                       return (
-                         <div
-                           key={variable}
-                           className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
-                             isReferenced 
-                               ? 'bg-primary/20 text-primary border border-primary/30' 
-                               : 'bg-secondary text-secondary-foreground'
-                           }`}
-                         >
+                        const isReferenced = isVariableReferenced(variable);
+                        return (
+                          <div
+                            key={variable}
+                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+                              isReferenced 
+                                ? 'bg-primary/20 text-primary border border-primary/30' 
+                                : 'bg-secondary text-secondary-foreground'
+                            }`}
+                          >
                            <span>{variable}</span>
                            <button
                              onClick={() => removeVariable(variable)}
@@ -243,20 +305,37 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
             {/* Footer */}
             <div className="flex justify-between items-center mt-8 pt-6 border-t">
               {isEditing && onDelete ? (
-                <Button 
-                  variant="destructive" 
-                  onClick={handleDelete}
-                  className="text-destructive-foreground"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      className="text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this prompt? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : (
                 <div />
               )}
               
               <div className="flex gap-3">
-                <Button variant="outline" onClick={onClose}>
+                <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
                 <Button
@@ -271,6 +350,32 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
           </motion.div>
         </div>
       )}
+
+      {/* Unsaved Changes Dialog */}
+      <AlertDialog open={showUnsavedChanges} onOpenChange={setShowUnsavedChanges}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Do you want to save them before closing?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowUnsavedChanges(false);
+              onClose();
+            }}>
+              Discard Changes
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowUnsavedChanges(false);
+              handleSave();
+            }}>
+              Save Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AnimatePresence>
   );
 }

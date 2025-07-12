@@ -5,18 +5,26 @@ const CHARACTER_LIMIT = 50000;
 export function buildPromptPayload(prompt: Prompt, variableValues: VariableValues): string {
   let payload = prompt.body;
   
-  // Check if body contains {variable} patterns
-  const hasVariablePlaceholders = prompt.variables.some(variable => 
-    payload.includes(`{${variable}}`)
-  );
+  // Get all variable patterns in the body
+  const variableMatches = payload.match(/\{([^}]+)\}/g) || [];
+  const referencedVariables = variableMatches.map(match => match.slice(1, -1));
   
-  if (hasVariablePlaceholders) {
+  if (referencedVariables.length > 0) {
     // Replace {variable} with <variable>value</variable>
-    prompt.variables.forEach(variable => {
-      const value = variableValues[variable] || '';
-      const xmlVariableName = variable.replace(/\s+/g, '');
-      const regex = new RegExp(`\\{${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g');
-      payload = payload.replace(regex, `<${xmlVariableName}>${value}</${xmlVariableName}>`);
+    referencedVariables.forEach(referencedVar => {
+      // Find matching variable (supports both spaced and non-spaced)
+      const matchingVariable = prompt.variables.find(variable => {
+        const normalizedRef = referencedVar.replace(/\s+/g, '');
+        const normalizedVar = variable.replace(/\s+/g, '');
+        return normalizedRef === normalizedVar;
+      });
+      
+      if (matchingVariable) {
+        const value = variableValues[matchingVariable] || '';
+        const xmlVariableName = matchingVariable.replace(/\s+/g, '');
+        const regex = new RegExp(`\\{${referencedVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g');
+        payload = payload.replace(regex, `<${xmlVariableName}>${value}</${xmlVariableName}>`);
+      }
     });
   } else {
     // Append variables in XML format after the prompt

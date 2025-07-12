@@ -5,6 +5,7 @@ import { usePrompts } from '@/contexts/PromptsContext';
 import { Prompt } from '@/types/prompt';
 import { PromptCard } from './PromptCard';
 import { EditorModal } from './EditorModal';
+import { StatsCounter } from './StatsCounter';
 import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
@@ -55,6 +56,9 @@ export function Dashboard() {
             <Plus className="h-6 w-6" />
           </Button>
         </div>
+
+        {/* Stats Counter */}
+        <StatsCounter />
 
         {/* Prompts grid */}
         {prompts.length === 0 ? (
