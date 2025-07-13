@@ -5,7 +5,7 @@ import { Prompt } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { HighlightedTextarea } from '@/components/ui/highlighted-textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrompts } from '@/contexts/PromptsContext';
@@ -122,17 +122,6 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     }
   };
 
-  // Check if a variable is referenced (supports both spaced and non-spaced)
-  const isVariableReferenced = (variable: string) => {
-    const matches = body.match(/\{([^}]+)\}/g) || [];
-    const referencedVariables = matches.map(match => match.slice(1, -1));
-    
-    return referencedVariables.some(referencedVar => {
-      const normalizedRef = referencedVar.replace(/\s+/g, '');
-      const normalizedVar = variable.replace(/\s+/g, '');
-      return normalizedRef === normalizedVar;
-    });
-  };
 
   return (
     <AnimatePresence>
@@ -207,17 +196,16 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
-                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline. Variables will be highlighted in real-time as you type.</p>
+                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline.</p>
                      </TooltipContent>
                   </Tooltip>
                 </div>
-                <HighlightedTextarea
+                <Textarea
                   id="body"
                   placeholder="Your prompt text with {variables} in curly braces"
                   value={body}
-                  onChange={setBody}
+                  onChange={(e) => setBody(e.target.value)}
                   rows={8}
-                  variables={variables}
                   className="text-sm resize-none"
                 />
               </div>
@@ -233,7 +221,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
-                       <p>Define variable names. Variables referenced as {`{variable}`} in the prompt will be highlighted in real-time in the text area above.</p>
+                       <p>Define variable names that can be used in your prompt with {`{variable}`} syntax.</p>
                      </TooltipContent>
                   </Tooltip>
                 </div>
@@ -241,16 +229,10 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                 {/* Variable chips */}
                 {variables.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                     {variables.map(variable => {
-                        const isReferenced = isVariableReferenced(variable);
-                        return (
+                     {variables.map(variable => (
                           <div
                             key={variable}
-                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
-                              isReferenced 
-                                ? 'bg-primary/20 text-primary border border-primary/30' 
-                                : 'bg-secondary text-secondary-foreground'
-                            }`}
+                            className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground"
                           >
                            <span>{variable}</span>
                            <button
@@ -260,8 +242,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                              <Trash2 className="h-3 w-3" />
                            </button>
                          </div>
-                       );
-                     })}
+                       ))}
                   </div>
                 )}
 
