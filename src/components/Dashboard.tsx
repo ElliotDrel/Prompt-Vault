@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, ArrowUp, ArrowDown } from 'lucide-react';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { Prompt } from '@/types/prompt';
 import { PromptCard } from './PromptCard';
@@ -8,14 +8,14 @@ import { EditorModal } from './EditorModal';
 import { StatsCounter } from './StatsCounter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Dashboard() {
   const { prompts, addPrompt, updatePrompt, deletePrompt } = usePrompts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'lastUpdated'>('lastUpdated');
+  const [sortBy, setSortBy] = useState<'name' | 'lastUpdated' | 'usage'>('lastUpdated');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Filter and sort prompts
   const filteredAndSortedPrompts = useMemo(() => {
@@ -30,15 +30,20 @@ export function Dashboard() {
       if (!a.isPinned && b.isPinned) return 1;
       
       // Then sort by selected criteria
+      let comparison = 0;
       if (sortBy === 'name') {
-        return a.title.localeCompare(b.title);
+        comparison = a.title.localeCompare(b.title);
+      } else if (sortBy === 'usage') {
+        comparison = (a.timesUsed || 0) - (b.timesUsed || 0);
       } else {
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
       }
+      
+      return sortDirection === 'desc' ? -comparison : comparison;
     });
 
     return filtered;
-  }, [prompts, searchTerm, sortBy]);
+  }, [prompts, searchTerm, sortBy, sortDirection]);
 
   const handleCreatePrompt = () => {
     setEditingPrompt(undefined);
@@ -61,6 +66,17 @@ export function Dashboard() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingPrompt(undefined);
+  };
+
+  const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
+    if (sortBy === newSortBy) {
+      // Toggle direction if same sort option is clicked
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new sort option with default direction
+      setSortBy(newSortBy);
+      setSortDirection(newSortBy === 'name' ? 'asc' : 'desc');
+    }
   };
 
   return (
@@ -94,17 +110,39 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Sort dropdown */}
-          <Select value={sortBy} onValueChange={(value: 'name' | 'lastUpdated') => setSortBy(value)}>
-            <SelectTrigger className="w-48">
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="lastUpdated">Last Updated</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Sort buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant={sortBy === 'lastUpdated' ? 'default' : 'outline'}
+              onClick={() => handleSort('lastUpdated')}
+              className="flex items-center gap-1"
+            >
+              Last Updated
+              {sortBy === 'lastUpdated' && (
+                sortDirection === 'desc' ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              variant={sortBy === 'name' ? 'default' : 'outline'}
+              onClick={() => handleSort('name')}
+              className="flex items-center gap-1"
+            >
+              Name
+              {sortBy === 'name' && (
+                sortDirection === 'desc' ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              variant={sortBy === 'usage' ? 'default' : 'outline'}
+              onClick={() => handleSort('usage')}
+              className="flex items-center gap-1"
+            >
+              Usage
+              {sortBy === 'usage' && (
+                sortDirection === 'desc' ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Prompts grid */}
