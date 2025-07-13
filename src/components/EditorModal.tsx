@@ -5,7 +5,7 @@ import { Prompt } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { HighlightedTextarea } from '@/components/ui/highlighted-textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrompts } from '@/contexts/PromptsContext';
@@ -122,39 +122,15 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     }
   };
 
-  // Get variables referenced in the body
-  const getReferencedVariables = () => {
-    const matches = body.match(/\{([^}]+)\}/g) || [];
-    return matches.map(match => match.slice(1, -1));
-  };
-
-  const referencedVariables = getReferencedVariables();
-
   // Check if a variable is referenced (supports both spaced and non-spaced)
   const isVariableReferenced = (variable: string) => {
+    const matches = body.match(/\{([^}]+)\}/g) || [];
+    const referencedVariables = matches.map(match => match.slice(1, -1));
+    
     return referencedVariables.some(referencedVar => {
       const normalizedRef = referencedVar.replace(/\s+/g, '');
       const normalizedVar = variable.replace(/\s+/g, '');
       return normalizedRef === normalizedVar;
-    });
-  };
-
-  // Render prompt text with highlighted variables
-  const renderPromptWithHighlights = () => {
-    if (referencedVariables.length === 0) {
-      return body;
-    }
-
-    const parts = body.split(/(\{[^}]+\})/);
-    return parts.map((part, index) => {
-      if (part.match(/^\{[^}]+\}$/)) {
-        return (
-          <span key={index} className="bg-primary/20 text-primary rounded px-1">
-            {part}
-          </span>
-        );
-      }
-      return part;
     });
   };
 
@@ -231,29 +207,19 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
-                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline. Variables will be formatted as plain text if there are non-space characters within 3 characters, otherwise they'll be wrapped in XML tags.</p>
+                       <p>Add the main content of your prompt. Use {`{variable}`} syntax to place variables inline. Variables will be highlighted in real-time as you type.</p>
                      </TooltipContent>
                   </Tooltip>
                 </div>
-                <Textarea
+                <HighlightedTextarea
                   id="body"
                   placeholder="Your prompt text with {variables} in curly braces"
                   value={body}
-                  onChange={(e) => setBody(e.target.value)}
+                  onChange={setBody}
                   rows={8}
+                  variables={variables}
                   className="text-sm resize-none"
                 />
-                {/* Preview with highlighted variables */}
-                {referencedVariables.length > 0 && (
-                  <div className="mt-2 p-3 bg-muted/50 rounded-md border">
-                    <Label className="text-xs font-medium text-muted-foreground mb-2 block">
-                      Preview with highlighted variables:
-                    </Label>
-                    <div className="text-sm whitespace-pre-wrap break-words">
-                      {renderPromptWithHighlights()}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Variables field */}
@@ -267,7 +233,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                       <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
                     </TooltipTrigger>
                      <TooltipContent side="right" className="max-w-xs">
-                       <p>Define variable names. Variables referenced as {`{variable}`} in the prompt will be highlighted. They'll be formatted as plain text if there are non-space characters within 3 characters, otherwise wrapped in XML tags.</p>
+                       <p>Define variable names. Variables referenced as {`{variable}`} in the prompt will be highlighted in real-time in the text area above.</p>
                      </TooltipContent>
                   </Tooltip>
                 </div>
