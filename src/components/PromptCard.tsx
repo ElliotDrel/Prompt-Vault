@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePrompts } from '@/contexts/PromptsContext';
+import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -16,6 +17,7 @@ interface PromptCardProps {
 
 export function PromptCard({ prompt, onClick }: PromptCardProps) {
   const { incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
+  const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>({});
 
   const handleVariableChange = (variable: string, value: string) => {
@@ -34,6 +36,15 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
     if (success) {
       incrementCopyCount();
       incrementPromptUsage(prompt.id);
+      
+      // Track the copy event
+      addCopyEvent({
+        promptId: prompt.id,
+        promptTitle: prompt.title,
+        variableValues: { ...variableValues },
+        copiedText: payload,
+      });
+      
       const message = payload.length > 50000 
         ? 'Copied (Prompt duplicated because limit exceeded)'
         : 'Copied';
