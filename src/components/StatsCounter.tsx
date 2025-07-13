@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePrompts } from '@/contexts/PromptsContext';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function StatsCounter() {
   const { stats } = usePrompts();
+  const [activeStatDialog, setActiveStatDialog] = useState<string | null>(null);
   
   const formatTime = (minutes: number) => {
     if (minutes < 60) {
@@ -13,20 +16,59 @@ export function StatsCounter() {
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
+  const statsData = [
+    {
+      id: 'prompts',
+      label: 'Total Prompts',
+      value: stats.totalPrompts,
+      explanation: 'The total number of prompts you have saved in your vault.'
+    },
+    {
+      id: 'copies',
+      label: 'Times Copied',
+      value: stats.totalCopies,
+      explanation: 'The total number of times you have copied prompts to your clipboard.'
+    },
+    {
+      id: 'time',
+      label: 'Time Saved',
+      value: formatTime(stats.timeSavedMinutes),
+      explanation: 'On average, you would spend 5 minutes updating a prompt with proper variables, rewriting it, or finding it. This shows the cumulative time saved by using the Prompt Vault.'
+    }
+  ];
+
   return (
-    <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-foreground">{stats.totalPrompts}</span>
-        <span>prompts</span>
+    <>
+      <div className="flex gap-4 mb-6">
+        {statsData.map((stat) => (
+          <Card 
+            key={stat.id}
+            className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setActiveStatDialog(stat.id)}
+          >
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
+              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+            </div>
+          </Card>
+        ))}
       </div>
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-foreground">{stats.totalCopies}</span>
-        <span>copied</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-foreground">{formatTime(stats.timeSavedMinutes)}</span>
-        <span>saved</span>
-      </div>
-    </div>
+
+      {/* Stat explanation dialogs */}
+      {statsData.map((stat) => (
+        <Dialog 
+          key={`dialog-${stat.id}`}
+          open={activeStatDialog === stat.id} 
+          onOpenChange={(open) => !open && setActiveStatDialog(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{stat.label}</DialogTitle>
+            </DialogHeader>
+            <p className="text-muted-foreground">{stat.explanation}</p>
+          </DialogContent>
+        </Dialog>
+      ))}
+    </>
   );
 }

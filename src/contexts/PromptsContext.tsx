@@ -7,12 +7,14 @@ interface PromptsContextType {
   addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
   updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
   deletePrompt: (id: string) => void;
+  togglePinPrompt: (id: string) => void;
   stats: {
     totalPrompts: number;
     totalCopies: number;
     timeSavedMinutes: number;
   };
   incrementCopyCount: () => void;
+  incrementPromptUsage: (promptId: string) => void;
 }
 
 const PromptsContext = createContext<PromptsContextType | undefined>(undefined);
@@ -112,14 +114,41 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
+  const togglePinPrompt = (id: string) => {
+    setPrompts(prev =>
+      prev.map(prompt =>
+        prompt.id === id
+          ? { ...prompt, isPinned: !prompt.isPinned, updatedAt: new Date().toISOString() }
+          : prompt
+      )
+    );
+  };
+
+  const incrementPromptUsage = (promptId: string) => {
+    setPrompts(prev =>
+      prev.map(prompt =>
+        prompt.id === promptId
+          ? { 
+              ...prompt, 
+              timesUsed: (prompt.timesUsed || 0) + 1,
+              timeSavedMinutes: (prompt.timeSavedMinutes || 0) + 5,
+              updatedAt: new Date().toISOString()
+            }
+          : prompt
+      )
+    );
+  };
+
   return (
     <PromptsContext.Provider value={{ 
       prompts, 
       addPrompt, 
       updatePrompt, 
       deletePrompt, 
+      togglePinPrompt,
       stats, 
-      incrementCopyCount 
+      incrementCopyCount,
+      incrementPromptUsage
     }}>
       {children}
     </PromptsContext.Provider>

@@ -4,6 +4,9 @@ export interface Prompt {
   body: string;
   variables: string[];
   updatedAt: string;
+  isPinned?: boolean;
+  timesUsed?: number;
+  timeSavedMinutes?: number;
 }
 
 export interface VariableValues {

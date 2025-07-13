@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Info, Plus, Trash2 } from 'lucide-react';
+import { X, Info, Plus, Trash2, Pin } from 'lucide-react';
 import { Prompt } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { usePrompts } from '@/contexts/PromptsContext';
 import toast from 'react-hot-toast';
 
 interface EditorModalProps {
@@ -19,6 +20,7 @@ interface EditorModalProps {
 }
 
 export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: EditorModalProps) {
+  const { togglePinPrompt } = usePrompts();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [variables, setVariables] = useState<string[]>([]);
@@ -104,6 +106,12 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     if (e.key === 'Enter' && newVariable.trim()) {
       e.preventDefault();
       addVariable();
+    }
+  };
+
+  const handlePin = () => {
+    if (prompt) {
+      togglePinPrompt(prompt.id);
     }
   };
 
@@ -235,11 +243,20 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                      onChange={(e) => setBody(e.target.value)}
                      rows={8}
                      className="text-sm resize-none"
+                     style={{
+                       color: 'transparent',
+                       caretColor: 'hsl(var(--foreground))',
+                     }}
                    />
-                   {/* Overlay for highlighting */}
+                   {/* Styled overlay showing highlighted text */}
                    <div 
-                     className="absolute inset-0 pointer-events-none p-3 text-sm whitespace-pre-wrap break-words overflow-hidden text-transparent"
-                     style={{ fontFamily: 'inherit', fontSize: 'inherit', lineHeight: 'inherit' }}
+                     className="absolute inset-0 pointer-events-none p-3 text-sm whitespace-pre-wrap break-words overflow-hidden"
+                     style={{ 
+                       fontFamily: 'inherit', 
+                       fontSize: 'inherit', 
+                       lineHeight: 'inherit',
+                       color: 'hsl(var(--foreground))'
+                     }}
                    >
                      {renderPromptWithHighlights()}
                    </div>
@@ -344,6 +361,20 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
               )}
               
               <div className="flex gap-3">
+                {isEditing && (
+                  <Button
+                    onClick={handlePin}
+                    variant="outline"
+                    className={`${
+                      prompt?.isPinned 
+                        ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200' 
+                        : 'hover:bg-yellow-50'
+                    }`}
+                  >
+                    <Pin className={`h-4 w-4 mr-2 ${prompt?.isPinned ? 'fill-current' : ''}`} />
+                    {prompt?.isPinned ? 'Unpin' : 'Pin'}
+                  </Button>
+                )}
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
