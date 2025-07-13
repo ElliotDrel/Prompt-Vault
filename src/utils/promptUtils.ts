@@ -3,6 +3,7 @@ import { Prompt, VariableValues } from '@/types/prompt';
 const CHARACTER_LIMIT = 50000;
 
 // Helper function to check if there are non-space characters within 3 characters
+// Newlines count as 3 spaces when checking proximity
 function hasNonSpaceCharactersWithin3(text: string, variableRegex: RegExp): boolean {
   const matches = Array.from(text.matchAll(new RegExp(variableRegex.source, 'g')));
   
@@ -13,15 +14,39 @@ function hasNonSpaceCharactersWithin3(text: string, variableRegex: RegExp): bool
     const endIndex = startIndex + match[0].length;
     
     // Check 3 characters before
-    const before = text.substring(Math.max(0, startIndex - 3), startIndex);
-    if (before.match(/[^\s]/)) {
-      return true;
+    const beforeText = text.substring(Math.max(0, startIndex - 3), startIndex);
+    let beforeDistance = 0;
+    for (let i = beforeText.length - 1; i >= 0; i--) {
+      const char = beforeText[i];
+      if (char === '\n') {
+        beforeDistance += 3; // Newline counts as 3 spaces
+      } else if (char !== ' ' && char !== '\t' && char !== '\r') {
+        // Found non-space character, check if it's within effective distance
+        if (beforeDistance + (beforeText.length - 1 - i) <= 3) {
+          return true;
+        }
+        break;
+      } else {
+        beforeDistance += 1; // Regular space or tab
+      }
     }
     
     // Check 3 characters after
-    const after = text.substring(endIndex, Math.min(text.length, endIndex + 3));
-    if (after.match(/[^\s]/)) {
-      return true;
+    const afterText = text.substring(endIndex, Math.min(text.length, endIndex + 3));
+    let afterDistance = 0;
+    for (let i = 0; i < afterText.length; i++) {
+      const char = afterText[i];
+      if (char === '\n') {
+        afterDistance += 3; // Newline counts as 3 spaces
+      } else if (char !== ' ' && char !== '\t' && char !== '\r') {
+        // Found non-space character, check if it's within effective distance
+        if (afterDistance + i <= 3) {
+          return true;
+        }
+        break;
+      } else {
+        afterDistance += 1; // Regular space or tab
+      }
     }
   }
   
