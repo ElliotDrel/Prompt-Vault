@@ -103,22 +103,9 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  /* Fix for blue text selection overlay issue */
-  ::selection {
-    background-color: hsl(var(--primary) / 0.2);
-    color: inherit;
-  }
-
-  /* Ensure selections clear properly */
-  *:not(:focus)::selection {
-    background-color: transparent;
-  }
-
   body {
     @apply bg-background text-foreground font-medium;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    /* Prevent text selection artifacts */
-    -webkit-tap-highlight-color: transparent;
   }
 
   /* Card styling with large radius and subtle shadow */
