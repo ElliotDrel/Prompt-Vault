@@ -235,32 +235,25 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                      </TooltipContent>
                   </Tooltip>
                 </div>
-                 <div className="relative">
-                   <Textarea
-                     id="body"
-                     placeholder="Your prompt text with {variables} in curly braces"
-                     value={body}
-                     onChange={(e) => setBody(e.target.value)}
-                     rows={8}
-                     className="text-sm resize-none"
-                     style={{
-                       color: 'transparent',
-                       caretColor: 'hsl(var(--foreground))',
-                     }}
-                   />
-                   {/* Styled overlay showing highlighted text */}
-                   <div 
-                     className="absolute inset-0 pointer-events-none p-3 text-sm whitespace-pre-wrap break-words overflow-hidden"
-                     style={{ 
-                       fontFamily: 'inherit', 
-                       fontSize: 'inherit', 
-                       lineHeight: 'inherit',
-                       color: 'hsl(var(--foreground))'
-                     }}
-                   >
-                     {renderPromptWithHighlights()}
-                   </div>
-                 </div>
+                <Textarea
+                  id="body"
+                  placeholder="Your prompt text with {variables} in curly braces"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  rows={8}
+                  className="text-sm resize-none"
+                />
+                {/* Preview with highlighted variables */}
+                {referencedVariables.length > 0 && (
+                  <div className="mt-2 p-3 bg-muted/50 rounded-md border">
+                    <Label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Preview with highlighted variables:
+                    </Label>
+                    <div className="text-sm whitespace-pre-wrap break-words">
+                      {renderPromptWithHighlights()}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Variables field */}
