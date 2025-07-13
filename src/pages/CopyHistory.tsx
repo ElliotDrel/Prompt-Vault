@@ -36,8 +36,19 @@ const CopyHistory = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const truncateText = (text: string, maxLength: number = 50) => {
+  const truncateText = (text: string, maxLength: number = 100) => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  const getVariablePreview = (variableValues: Record<string, string>) => {
+    const entries = Object.entries(variableValues);
+    if (entries.length === 0) return 'No variables used';
+    
+    const preview = entries.slice(0, 2).map(([key, value]) => 
+      `${key}: ${truncateText(value, 40)}`
+    ).join(' • ');
+    
+    return entries.length > 2 ? `${preview} • +${entries.length - 2} more` : preview;
   };
 
   return (
@@ -179,15 +190,45 @@ const CopyHistory = () => {
                 </CardHeader>
                 
                 <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {Object.entries(event.variableValues).map(([key, value]) => (
-                      <div key={key} className="flex items-start gap-2">
-                        <Badge variant="outline" className="text-xs mt-0.5">{key}</Badge>
-                        <span className="text-sm text-muted-foreground flex-1">
-                          {truncateText(value)}
-                        </span>
+                  <div className="space-y-3">
+                    {/* Variables Section */}
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                        Variables Used 
+                        <Badge variant="secondary" className="text-xs">
+                          {Object.keys(event.variableValues).length}
+                        </Badge>
+                      </h4>
+                      {Object.keys(event.variableValues).length === 0 ? (
+                        <p className="text-sm text-muted-foreground italic">No variables used</p>
+                      ) : (
+                        <div className="grid gap-2">
+                          {Object.entries(event.variableValues).slice(0, 3).map(([key, value]) => (
+                            <div key={key} className="flex items-start gap-2 p-2 bg-muted/50 rounded border">
+                              <Badge variant="outline" className="text-xs mt-0.5 shrink-0">{key}</Badge>
+                              <span className="text-sm text-muted-foreground flex-1 break-words">
+                                {truncateText(value, 80)}
+                              </span>
+                            </div>
+                          ))}
+                          {Object.keys(event.variableValues).length > 3 && (
+                            <p className="text-xs text-muted-foreground ml-2">
+                              +{Object.keys(event.variableValues).length - 3} more variables (click View to see all)
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Copied Text Preview */}
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-2">Final Output Preview</h4>
+                      <div className="p-3 bg-muted/30 rounded border text-sm text-muted-foreground">
+                        <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
+                          {truncateText(event.copiedText, 200)}
+                        </pre>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
