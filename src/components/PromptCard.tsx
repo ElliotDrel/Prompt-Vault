@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Copy, Pin } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Copy, Pin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Prompt, VariableValues } from '@/types/prompt';
 import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils/promptUtils';
@@ -19,6 +19,8 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
   const { incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>({});
+  const [isCopied, setIsCopied] = useState(false);
+  const [showSuccessEffect, setShowSuccessEffect] = useState(false);
 
   const handleVariableChange = (variable: string, value: string) => {
     setVariableValues(prev => ({
@@ -44,6 +46,19 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
         variableValues: { ...variableValues },
         copiedText: payload,
       });
+      
+      // Trigger visual feedback
+      setIsCopied(true);
+      setShowSuccessEffect(true);
+      
+      // Reset visual feedback after delay
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 1500);
+      
+      setTimeout(() => {
+        setShowSuccessEffect(false);
+      }, 2000);
       
       const message = payload.length > 50000 
         ? 'Copied (Prompt duplicated because limit exceeded)'
@@ -133,11 +148,42 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
       {/* Copy button */}
       <Button
         onClick={handleCopy}
-        className="w-full mt-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+        className={`w-full mt-auto font-medium transition-all duration-300 ${
+          isCopied 
+            ? 'bg-white text-gray-800 border border-gray-200 hover:bg-white' 
+            : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+        }`}
       >
-        <Copy className="h-4 w-4 mr-2" />
-        Copy
+        {isCopied ? (
+          <Check className="h-4 w-4 mr-2" />
+        ) : (
+          <Copy className="h-4 w-4 mr-2" />
+        )}
+        {isCopied ? 'Copied!' : 'Copy'}
       </Button>
+      
+      {/* Success effect overlay */}
+      <AnimatePresence>
+        {showSuccessEffect && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 pointer-events-none rounded-lg border-2 border-green-400 bg-green-50/20"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg"
+            >
+              ✓ Copied successfully
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
