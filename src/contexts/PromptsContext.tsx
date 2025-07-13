@@ -118,7 +118,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     setPrompts(prev =>
       prev.map(prompt =>
         prompt.id === id
-          ? { ...prompt, isPinned: !prompt.isPinned, updatedAt: new Date().toISOString() }
+          ? { ...prompt, isPinned: !prompt.isPinned }
           : prompt
       )
     );
@@ -131,8 +131,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
           ? { 
               ...prompt, 
               timesUsed: (prompt.timesUsed || 0) + 1,
-              timeSavedMinutes: (prompt.timeSavedMinutes || 0) + 5,
-              updatedAt: new Date().toISOString()
+              timeSavedMinutes: (prompt.timeSavedMinutes || 0) + 5
             }
           : prompt
       )
