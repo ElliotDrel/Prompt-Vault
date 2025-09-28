@@ -11,7 +11,15 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Environment Variables
+.env
+
+# Claude Seetings
 settings.local.json
+
+# Lock Files
+package-lock.json
 
 # Editor directories and files
 .vscode/*
