@@ -1,153 +1,270 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Prompt } from '@/types/prompt';
-import { samplePrompts } from '@/data/samplePrompts';
+import { createStorageAdapter, StorageAdapter } from '@/lib/storage';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PromptsContextType {
   prompts: Prompt[];
-  addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
-  updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
-  deletePrompt: (id: string) => void;
-  togglePinPrompt: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
+  updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
+  deletePrompt: (id: string) => Promise<void>;
+  togglePinPrompt: (id: string) => Promise<void>;
   stats: {
     totalPrompts: number;
     totalCopies: number;
     timeSavedMinutes: number;
   };
-  incrementCopyCount: () => void;
-  incrementPromptUsage: (promptId: string) => void;
+  statsLoading: boolean;
+  incrementCopyCount: () => Promise<void>;
+  incrementPromptUsage: (promptId: string) => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 const PromptsContext = createContext<PromptsContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'prompts';
-const STATS_KEY = 'promptStats';
-
-function generateId(): string {
-  return crypto.randomUUID();
-}
+const defaultStats = {
+  totalPrompts: 0,
+  totalCopies: 0,
+  timeSavedMinutes: 0,
+};
 
 export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [stats, setStats] = useState({
-    totalPrompts: 0,
-    totalCopies: 0,
-    timeSavedMinutes: 0,
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState(defaultStats);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [storageAdapter, setStorageAdapter] = useState<StorageAdapter | null>(null);
 
-  // Load prompts from localStorage on mount
-  useEffect(() => {
+  const { user, loading: authLoading } = useAuth();
+
+  const loadPrompts = useCallback(async (adapter: StorageAdapter) => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsedPrompts = JSON.parse(stored);
-        setPrompts(parsedPrompts);
-      } else {
-        // If no stored prompts, initialize with sample prompts
-        setPrompts(samplePrompts);
-      }
-    } catch (error) {
-      console.error('Failed to load prompts from localStorage:', error);
-      // Fallback to sample prompts if localStorage fails
-      setPrompts(samplePrompts);
+      setLoading(true);
+      setError(null);
+      const promptsData = await adapter.prompts.getPrompts();
+      setPrompts(promptsData);
+    } catch (err) {
+      console.error('Failed to load prompts:', err);
+      setError('Failed to load prompts');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  // Load stats from localStorage on mount
-  useEffect(() => {
+  const loadStats = useCallback(async (adapter: StorageAdapter) => {
     try {
-      const storedStats = localStorage.getItem(STATS_KEY);
-      if (storedStats) {
-        setStats(JSON.parse(storedStats));
-      }
-    } catch (error) {
-      console.error('Failed to load stats from localStorage:', error);
+      setStatsLoading(true);
+      const statsData = await adapter.stats.getStats();
+      setStats(statsData);
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+    } finally {
+      setStatsLoading(false);
     }
   }, []);
 
-  // Save prompts to localStorage whenever prompts change
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
-      setStats(prev => ({ ...prev, totalPrompts: prompts.length }));
-    } catch (error) {
-      console.error('Failed to save prompts to localStorage:', error);
+    if (authLoading) {
+      return;
     }
-  }, [prompts]);
 
-  // Save stats to localStorage whenever stats change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-    } catch (error) {
-      console.error('Failed to save stats to localStorage:', error);
-    }
-  }, [stats]);
+    let isMounted = true;
+    let unsubscribe: (() => void) | undefined;
 
-  const addPrompt = (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
-    const newPrompt: Prompt = {
-      ...promptData,
-      id: generateId(),
-      updatedAt: new Date().toISOString(),
-    };
-    setPrompts(prev => [newPrompt, ...prev]);
-  };
+    const initAdapter = async () => {
+      try {
+        const adapter = await createStorageAdapter();
+        if (!isMounted) {
+          return;
+        }
 
-  const updatePrompt = (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
-    setPrompts(prev =>
-      prev.map(prompt =>
-        prompt.id === id
-          ? { ...promptData, id, updatedAt: new Date().toISOString() }
-          : prompt
-      )
-    );
-  };
+        setStorageAdapter(adapter);
 
-  const deletePrompt = (id: string) => {
-    setPrompts(prev => prev.filter(prompt => prompt.id !== id));
-  };
-
-  const incrementCopyCount = () => {
-    setStats(prev => ({
-      ...prev,
-      totalCopies: prev.totalCopies + 1,
-      timeSavedMinutes: prev.timeSavedMinutes + 5,
-    }));
-  };
-
-  const togglePinPrompt = (id: string) => {
-    setPrompts(prev =>
-      prev.map(prompt =>
-        prompt.id === id
-          ? { ...prompt, isPinned: !prompt.isPinned }
-          : prompt
-      )
-    );
-  };
-
-  const incrementPromptUsage = (promptId: string) => {
-    setPrompts(prev =>
-      prev.map(prompt =>
-        prompt.id === promptId
-          ? { 
-              ...prompt, 
-              timesUsed: (prompt.timesUsed || 0) + 1,
-              timeSavedMinutes: (prompt.timeSavedMinutes || 0) + 5
+        if (adapter.subscribe) {
+          unsubscribe = adapter.subscribe((type) => {
+            if (!isMounted) {
+              return;
             }
-          : prompt
-      )
-    );
-  };
+
+            if (type === 'prompts') {
+              loadPrompts(adapter).catch((err) => {
+                console.error('Failed to refresh prompts via subscription:', err);
+              });
+            } else if (type === 'copyEvents' || type === 'stats') {
+              loadStats(adapter).catch((err) => {
+                console.error('Failed to refresh stats via subscription:', err);
+              });
+            }
+          });
+        }
+      } catch (err) {
+        if (!isMounted) {
+          return;
+        }
+        console.error('Failed to initialize storage adapter:', err);
+        setError('Failed to initialize storage');
+      }
+    };
+
+    initAdapter();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [authLoading, user, loadPrompts, loadStats]);
+
+  useEffect(() => {
+    if (!storageAdapter) {
+      setPrompts([]);
+      setStats(defaultStats);
+      return;
+    }
+
+    loadPrompts(storageAdapter).catch((err) => {
+      console.error('Failed to load prompts for adapter:', err);
+    });
+    loadStats(storageAdapter).catch((err) => {
+      console.error('Failed to load stats for adapter:', err);
+    });
+  }, [storageAdapter, loadPrompts, loadStats]);
+
+  const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
+    if (!storageAdapter) {
+      setError('Storage not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      const newPrompt = await storageAdapter.prompts.addPrompt(promptData);
+      setPrompts((prev) => [newPrompt, ...prev]);
+      await loadStats(storageAdapter);
+    } catch (err) {
+      console.error('Failed to add prompt:', err);
+      setError('Failed to add prompt');
+      throw err;
+    }
+  }, [storageAdapter, loadStats]);
+
+  const updatePrompt = useCallback(async (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
+    if (!storageAdapter) {
+      setError('Storage not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      const updatedPrompt = await storageAdapter.prompts.updatePrompt(id, promptData);
+      setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? updatedPrompt : prompt)));
+      await loadStats(storageAdapter);
+    } catch (err) {
+      console.error('Failed to update prompt:', err);
+      setError('Failed to update prompt');
+      throw err;
+    }
+  }, [storageAdapter, loadStats]);
+
+  const deletePrompt = useCallback(async (id: string) => {
+    if (!storageAdapter) {
+      setError('Storage not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      await storageAdapter.prompts.deletePrompt(id);
+      setPrompts((prev) => prev.filter((prompt) => prompt.id !== id));
+      await loadStats(storageAdapter);
+    } catch (err) {
+      console.error('Failed to delete prompt:', err);
+      setError('Failed to delete prompt');
+      throw err;
+    }
+  }, [storageAdapter, loadStats]);
+
+  const togglePinPrompt = useCallback(async (id: string) => {
+    if (!storageAdapter) {
+      setError('Storage not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      const updatedPrompt = await storageAdapter.prompts.togglePinPrompt(id);
+      setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? updatedPrompt : prompt)));
+    } catch (err) {
+      console.error('Failed to toggle pin:', err);
+      setError('Failed to toggle pin');
+      throw err;
+    }
+  }, [storageAdapter]);
+
+  const incrementPromptUsage = useCallback(async (promptId: string) => {
+    if (!storageAdapter) {
+      setError('Storage not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      const updatedPrompt = await storageAdapter.prompts.incrementPromptUsage(promptId);
+      setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? updatedPrompt : prompt)));
+      await loadStats(storageAdapter);
+    } catch (err) {
+      console.error('Failed to increment usage:', err);
+      setError('Failed to increment usage');
+      throw err;
+    }
+  }, [storageAdapter, loadStats]);
+
+  const incrementCopyCount = useCallback(async () => {
+    if (!storageAdapter) {
+      setError('Storage not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      await storageAdapter.stats.incrementCopyCount();
+      await loadStats(storageAdapter);
+    } catch (err) {
+      console.error('Failed to increment copy count:', err);
+      setError('Failed to increment copy count');
+      throw err;
+    }
+  }, [storageAdapter, loadStats]);
+
+  const refreshData = useCallback(async () => {
+    if (!storageAdapter) {
+      return;
+    }
+
+    await Promise.all([
+      loadPrompts(storageAdapter),
+      loadStats(storageAdapter),
+    ]);
+  }, [storageAdapter, loadPrompts, loadStats]);
 
   return (
-    <PromptsContext.Provider value={{ 
-      prompts, 
-      addPrompt, 
-      updatePrompt, 
-      deletePrompt, 
+    <PromptsContext.Provider value={{
+      prompts,
+      loading,
+      error,
+      addPrompt,
+      updatePrompt,
+      deletePrompt,
       togglePinPrompt,
-      stats, 
+      stats,
+      statsLoading,
       incrementCopyCount,
-      incrementPromptUsage
+      incrementPromptUsage,
+      refreshData,
     }}>
       {children}
     </PromptsContext.Provider>
