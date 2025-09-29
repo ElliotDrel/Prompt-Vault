@@ -14,8 +14,8 @@ import toast from 'react-hot-toast';
 interface EditorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => void;
-  onDelete?: (promptId: string) => void;
+  onSave: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
+  onDelete?: (promptId: string) => Promise<void>;
   prompt?: Prompt; // If provided, we're editing; otherwise creating
 }
 
@@ -25,8 +25,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   const [body, setBody] = useState('');
   const [variables, setVariables] = useState<string[]>([]);
   const [newVariable, setNewVariable] = useState('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showUnsavedChanges, setShowUnsavedChanges] = useState(false);
+   const [showUnsavedChanges, setShowUnsavedChanges] = useState(false);
   const [originalData, setOriginalData] = useState<{ title: string; body: string; variables: string[] } | null>(null);
 
   const isEditing = !!prompt;
@@ -71,18 +70,22 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim() || !body.trim()) {
       return;
     }
 
-    onSave({
-      title: title.trim(),
-      body: body.trim(),
-      variables: variables.filter(v => v.trim()),
-    });
-
-    onClose();
+    try {
+      await onSave({
+        title: title.trim(),
+        body: body.trim(),
+        variables: variables.filter((value) => value.trim()),
+      });
+      onClose();
+    } catch (err) {
+      console.error('Failed to save prompt:', err);
+      toast.error('Failed to save prompt');
+    }
   };
 
   const addVariable = () => {
@@ -109,16 +112,31 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     }
   };
 
-  const handlePin = () => {
-    if (prompt) {
-      togglePinPrompt(prompt.id);
+  const handlePin = async () => {
+    if (!prompt) {
+      return;
+    }
+
+    try {
+      await togglePinPrompt(prompt.id);
+    } catch (err) {
+      console.error('Failed to toggle pin state:', err);
+      toast.error('Failed to update pin state');
     }
   };
 
-  const handleDelete = () => {
-    if (prompt && onDelete) {
-      onDelete(prompt.id);
+  const handleDelete = async () => {
+    if (!prompt || !onDelete) {
+      return;
+    }
+
+    try {
+      await onDelete(prompt.id);
       onClose();
+      toast.success('Prompt deleted');
+    } catch (err) {
+      console.error('Failed to delete prompt:', err);
+      toast.error('Failed to delete prompt');
     }
   };
 
@@ -347,9 +365,9 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
             }}>
               Discard Changes
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
+            <AlertDialogAction onClick={async () => {
               setShowUnsavedChanges(false);
-              handleSave();
+              await handleSave();
             }}>
               Save Changes
             </AlertDialogAction>

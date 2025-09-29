@@ -21,14 +21,24 @@ const CopyHistory = () => {
     )
   );
 
-  const handleClearHistory = () => {
-    clearHistory();
-    toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
+  const handleClearHistory = async () => {
+    try {
+      await clearHistory();
+      toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
+    } catch (err) {
+      console.error('Failed to clear copy history:', err);
+      toast.error('Failed to clear copy history');
+    }
   };
 
-  const handleDeleteEvent = (id: string) => {
-    deleteCopyEvent(id);
-    toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await deleteCopyEvent(id);
+      toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
+    } catch (err) {
+      console.error('Failed to delete copy event:', err);
+      toast.error('Failed to delete copy event');
+    }
   };
 
   const formatDate = (timestamp: string) => {

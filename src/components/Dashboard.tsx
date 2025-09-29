@@ -19,7 +19,7 @@ export function Dashboard() {
 
   // Filter and sort prompts
   const filteredAndSortedPrompts = useMemo(() => {
-    let filtered = prompts.filter(prompt =>
+    const filtered = prompts.filter(prompt =>
       prompt.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -55,11 +55,11 @@ export function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const handleSavePrompt = (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
+  const handleSavePrompt = async (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
     if (editingPrompt) {
-      updatePrompt(editingPrompt.id, promptData);
+      await updatePrompt(editingPrompt.id, promptData);
     } else {
-      addPrompt(promptData);
+      await addPrompt(promptData);
     }
   };
 

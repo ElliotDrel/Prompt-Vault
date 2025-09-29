@@ -23,55 +23,68 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
   const [showSuccessEffect, setShowSuccessEffect] = useState(false);
 
   const handleVariableChange = (variable: string, value: string) => {
-    setVariableValues(prev => ({
+    setVariableValues((prev) => ({
       ...prev,
-      [variable]: value
+      [variable]: value,
     }));
   };
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    
-    const payload = buildPromptPayload(prompt, variableValues);
-    const success = await copyToClipboard(payload);
-    
-    if (success) {
-      incrementCopyCount();
-      incrementPromptUsage(prompt.id);
-      
-      // Track the copy event
-      addCopyEvent({
+
+    try {
+      const payload = buildPromptPayload(prompt, variableValues);
+      const success = await copyToClipboard(payload);
+
+      if (!success) {
+        toast.error('Failed to copy to clipboard');
+        return;
+      }
+
+      await Promise.all([
+        incrementCopyCount(),
+        incrementPromptUsage(prompt.id),
+      ]);
+
+      await addCopyEvent({
         promptId: prompt.id,
         promptTitle: prompt.title,
         variableValues: { ...variableValues },
         copiedText: payload,
       });
-      
+
       // Trigger visual feedback
       setIsCopied(true);
       setShowSuccessEffect(true);
-      
+
       // Reset visual feedback after delay
       setTimeout(() => {
         setIsCopied(false);
       }, 1500);
-      
+
       setTimeout(() => {
         setShowSuccessEffect(false);
       }, 2000);
-      
-      const message = payload.length > 50000 
+
+      const message = payload.length > 50000
         ? 'Copied (Prompt duplicated because limit exceeded)'
         : 'Copied';
       toast.success(message);
-    } else {
-      toast.error('Failed to copy to clipboard');
+    } catch (err) {
+      console.error('Failed to handle prompt copy:', err);
+      toast.error('Failed to record copy event');
     }
   };
 
-  const handlePin = (e: React.MouseEvent) => {
+  const handlePin = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    togglePinPrompt(prompt.id);
+
+    try {
+      await togglePinPrompt(prompt.id);
+    } catch (err) {
+      console.error('Failed to toggle pin state:', err);
+      toast.error('Failed to update pin state');
+    }
   };
 
   const formatTime = (minutes: number) => {
@@ -117,11 +130,11 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
 
       {/* Variable inputs */}
       {prompt.variables.length > 0 && (
-        <div className="flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-          {prompt.variables.map(variable => (
+        <div className="flex flex-col gap-3" onClick={(event) => event.stopPropagation()}>
+          {prompt.variables.map((variable) => (
             <div key={variable} className="space-y-1">
-              <Label 
-                htmlFor={`${prompt.id}-${variable}`} 
+              <Label
+                htmlFor={`${prompt.id}-${variable}`}
                 className="text-sm text-muted-foreground"
               >
                 {variable}
@@ -131,7 +144,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
                 type="text"
                 placeholder={`Enter ${variable}...`}
                 value={variableValues[variable] || ''}
-                onChange={(e) => handleVariableChange(variable, e.target.value)}
+                onChange={(event) => handleVariableChange(variable, event.target.value)}
                 className="text-sm"
               />
             </div>
@@ -149,8 +162,8 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
       <Button
         onClick={handleCopy}
         className={`w-full mt-auto font-medium transition-all duration-300 ${
-          isCopied 
-            ? 'bg-white text-gray-800 border border-gray-200 hover:bg-white' 
+          isCopied
+            ? 'bg-white text-gray-800 border border-gray-200 hover:bg-white'
             : 'bg-primary hover:bg-primary/90 text-primary-foreground'
         }`}
       >
@@ -161,7 +174,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
         )}
         {isCopied ? 'Copied!' : 'Copy'}
       </Button>
-      
+
       {/* Success effect overlay */}
       <AnimatePresence>
         {showSuccessEffect && (
@@ -179,7 +192,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
               transition={{ duration: 0.3, delay: 0.1 }}
               className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg"
             >
-              ✓ Copied successfully
+              ?o" Copied successfully
             </motion.div>
           </motion.div>
         )}
