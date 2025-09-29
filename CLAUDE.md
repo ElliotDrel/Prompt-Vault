@@ -2,63 +2,77 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with the Prompt Vault codebase.
 
-## Mandatory: Read This File First
-- Always read this document before writing or modifying code.
-- Inspect existing components, hooks, and contexts to match established patterns.
-- Confirm the current project status and open tasks.
-- Follow the workflows in this guide instead of inventing new ones mid-stream.
-- **CLI-First Rule**: Research CLI automation capabilities thoroughly before recommending manual steps.
-- **Template Validation Rule**: Always validate generated code (SQL, TypeScript, etc.) against specific technology choices before applying.
+## 🚨 MANDATORY: Read This File FIRST
 
-## Documentation-First Approach
-- Review official docs for Supabase, Vercel, React Router, shadcn/ui, Tailwind CSS, and Playwright before touching those areas.
-- Use the Context7 MCP to fetch current library documentation (`mcp__context7__resolve-library-id` then `mcp__context7__get-library-docs`) when you need API references.
-- Only propose alternative tooling after confirming it aligns with this document and existing architecture.
+**CRITICAL RULE**: Before making ANY assumptions about tools, workflows, or architecture:
+1. **READ this entire CLAUDE.md file thoroughly**
+2. **CHECK existing code patterns and imports**
+3. **VERIFY current project status and phase completion**
+4. **UNDERSTAND the established workflows before suggesting alternatives**
 
-## Supabase Development Workflow
-- Supabase is managed exclusively with the Supabase CLI. Do **not** run `supabase start` or any Docker services.
-- All work targets the hosted Supabase project; keep configuration in version control under `supabase/`.
-- Auth settings live in `supabase/config.toml`. Database schema lives in SQL migrations under `supabase/migrations/`.
-- Deploy schema changes with `npx supabase db push` after migrations are committed.
-- Never edit the remote database by hand. Every change must come from a migration.
+**Failure to read documentation first leads to:**
+- Wasted time on incorrect approaches
+- Contradicting established workflows
+- Making assumptions about missing tools that actually exist
+- Implementing solutions that conflict with existing architecture
 
-### Required CLI Commands
+**Core Rules:**
+- **CLI-First Rule**: Research CLI automation capabilities thoroughly before recommending manual steps
+- **Documentation-First Rule**: Use Context7 MCP (`mcp__context7__resolve-library-id` → `mcp__context7__get-library-docs`) for current library docs
+- **Template Validation Rule**: Always validate generated code against specific technology choices
+
+## ⚠️ CRITICAL: Supabase Development Workflow
+
+**CLI-Only Development Rule**: This project uses Supabase CLI exclusively for schema and configuration management against the deployed/hosted Supabase project. **NO local Docker setup or `supabase start` commands.**
+
+### Required Supabase Workflow:
+1. **Project Management**: Work against deployed Supabase projects only
+2. **Configuration**: All auth settings, database schema, and project config managed via `supabase/config.toml`
+3. **Deployment**: Use `supabase db push` to deploy changes to remote project
+4. **No Local Services**: Never use `supabase start`, Docker containers, or local database instances
+
+### CLI Commands for Development:
 ```bash
-npx supabase init                      # generate supabase/config.toml and folders
-npx supabase login                     # authenticate your CLI session
-npx supabase link --project-ref <ref>  # link to the hosted project
+# Project setup (run with npx prefix)
+npx supabase init                    # Initialize config files
+npx supabase login                   # Authenticate with Supabase
+npx supabase link --project-ref <id> # Link to hosted project
 
-npx supabase migrate new name_here     # scaffold a new migration
-npx supabase db push                   # apply local migrations to remote
-npx supabase db pull                   # sync remote changes locally
-npx supabase db reset                  # rebuild remote db (careful!)
+# Configuration management
+npx supabase db push                 # Deploy local config to remote
+npx supabase db pull                 # Pull remote config changes
+npx supabase validate               # Validate config before deployment
+npx supabase status                 # Verify CLI is linked before pushing
+
+# Migration management
+npx supabase migrate new name_here   # Create new migration
 npx supabase gen types typescript --linked --schema public > src/lib/database.types.ts
-npx supabase status                                                       # verify CLI is linked before pushing
+
+# Auth configuration via config.toml only
+# Database schema via migrations only
+# No dashboard clicking for configuration
 ```
 
-### Database Migration Best Practices
-- Keep every migration ASCII-only; emojis or smart quotes break deployments.
-- Enable required extensions explicitly (e.g., `CREATE EXTENSION IF NOT EXISTS "pgcrypto";`) before using `gen_random_uuid()`.
-- Use `gen_random_uuid()` for IDs; avoid deprecated extensions.
-- Apply changes incrementally: separate schema adjustments from data backfills.
-- Document dependencies inside migration files so rollbacks follow the correct order (tables, policies, functions, triggers).
-- Include RLS policies, grants, and helper functions in the same migration that depends on them.
-- **VALIDATION RULE**: For UUID tables, never reference auto-increment sequences (`table_id_seq`) in GRANT statements.
-- **CONSISTENCY CHECK**: Verify all SQL references match the chosen ID strategy (UUID vs auto-increment) before applying.
-- Test migrations through the CLI before committing.
+### Database Migration Best Practices:
+- **Use modern PostgreSQL functions**: `gen_random_uuid()` instead of `uuid_generate_v4()`
+- **Handle Unicode/emojis carefully**: Test emoji storage in JSONB fields
+- **CRITICAL: Use ASCII-only in SQL files**: Unicode characters (✅⚠️) cause deployment failures
+- **Document object dependencies**: Track triggers → policies → functions → tables → enums for removal order
+- **Test end-to-end workflows**: Ensure navigation works after database changes
+- **Use incremental migrations**: Separate schema changes from data fixes
+- **Always verify CLI is linked**: Check project connection before pushing migrations
+- **Preserve migration history**: Never delete migration files, even for removed features
+
+**Rationale**: This approach ensures all changes are version-controlled, reproducible, and eliminates dependency on local Docker setup while maintaining full control over project configuration.
 
 ## Project Commands
-### Development
-- `npm run dev` - start Vite dev server on port 5173.
-- `npm run build` - production build.
-- `npm run build:dev` - development build.
-- `npm run lint` - run ESLint.
-- `npm run preview` - preview the production build.
-
-### Setup
 ```bash
-npm install
-npm run dev
+npm install        # setup dependencies
+npm run dev        # start Vite dev server (port 5173)
+npm run build      # production build
+npm run build:dev  # development build
+npm run lint       # run ESLint
+npm run preview    # preview production build
 ```
 
 ## Architecture Overview
@@ -69,105 +83,189 @@ npm run dev
 - **Persistence**: Hybrid storage adapter (Supabase when authenticated, localStorage fallback otherwise) lives under `src/lib/storage/`.
 - **Realtime**: Supabase realtime subscriptions trigger prompt/history refresh when supported by the adapter.
 
-### Application Structure
-- `src/main.tsx` bootstraps and wraps the app in providers.
-- `src/App.tsx` wires the router, authentication, and core providers.
-- `src/pages/Auth.tsx` implements the Supabase magic-link flow and must keep its effects memoised to satisfy lint rules.
-- `src/pages/Index.tsx` renders the dashboard; `CopyHistory.tsx` exposes usage history.
-- Core UI elements live under `src/components/` (dashboard, modal editor, cards, stats counters).
-- Prompt utilities (variable detection, payload building) live in `src/utils/promptUtils.ts`.
+### File Structure & Key Paths
+```
+src/
+├── main.tsx                    # App bootstrap with providers
+├── App.tsx                     # Router, auth, core providers
+├── pages/
+│   ├── Auth.tsx               # Magic-link auth flow (memoized effects)
+│   ├── Index.tsx              # Dashboard
+│   └── CopyHistory.tsx        # Usage history
+├── components/                 # UI components (dashboard, modal, cards, stats)
+├── contexts/                   # PromptsContext, CopyHistoryContext, AuthContext
+├── lib/
+│   ├── storage/               # Hybrid storage adapters
+│   ├── supabaseClient.ts      # Supabase client config
+│   └── database.types.ts      # Generated Supabase types
+├── utils/
+│   └── promptUtils.ts         # Variable detection, payload building
+└── components/ui/             # shadcn/ui components (auto-generated)
 
-## Implementation Planning & Architecture Changes
-- **Holistic Change Planning**: When refactoring core APIs (e.g., contexts from sync to async), systematically identify and plan updates for ALL consuming components, not just the core implementation.
-- **Incremental Integration Testing**: Test each major architectural change before proceeding to the next (e.g., test storage adapters → test context refactoring → test component integration).
-- **Component Integration Checklist**: When updating context APIs, audit all components that consume those contexts and update their error handling, loading states, and async patterns.
-- **Error Boundary Strategy**: Add error boundaries around async operations, especially when transitioning from synchronous to asynchronous patterns.
-
-## Async Context & Storage Guidelines
-- Storage adapters return Promises; every call site must `await` context methods (`addPrompt`, `incrementCopyCount`, `clearHistory`, etc.) and handle rejections to surface user feedback.
-- Define `useCallback` helpers before any `useEffect` that references them in its dependency array to avoid temporal-dead-zone runtime errors.
-- When updating prompts, always merge with the existing record so metadata such as pin state, usage counters, and timestamps are preserved.
-- Supabase adapters should map rows through shared helpers; avoid calling unsupported helpers such as `supabase.sql`. Use standard PostgREST updates or RPCs instead.
-- Clean up realtime subscriptions in effects; always capture and call the unsubscribe function on teardown to prevent duplicate listeners after adapter switches.
-- **Integration Impact Rule**: When refactoring contexts to async, ensure ALL consuming components handle the new loading states and error conditions.
-
-## Lint & Tooling Expectations
-- The repo enforces `@typescript-eslint/no-empty-object-type`; prefer `type Foo = Bar` (or add members) instead of declaring empty `interface Foo extends Bar {}`.
-- ESM is required in configuration files�use `import tailwindcssAnimate from "tailwindcss-animate"` rather than `require()` in `tailwind.config.ts`.
-- Fast Refresh warnings stemming from shared helpers are acknowledged; do not silence them unless the project owner requests it.
-
-## Supabase Integration Roadmap
-We are adopting the same Supabase architecture used in `personal-knowledge-vault`.
-
-1. **Supabase project wiring**
-   - Commit `supabase/config.toml` tuned for this codebase.
-   - Create migrations for a `prompts` table (`id`, `user_id`, `title`, `body`, `variables`, flags, timestamps) and a `prompt_stats` table or computed view.
-   - Add triggers to maintain `updated_at` and to seed default prompt templates for new users if needed.
-   - Enable row level security and policies limiting access to `auth.uid()` scoped data.
-   - Grant `authenticated` role privileges; keep migrations ASCII-only.
-
-2. **Client integration**
-   - `src/lib/supabaseClient.ts` MUST throw if `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` are missing; this prevents silent fallback to insecure modes.
-   - `AuthContext`, `useAuth`, and `RequireAuth` manage magic-link sessions; ensure loading states are respected before rendering gated routes.
-   - Maintain the `Auth` page magic-link flow (`supabase.auth.signInWithOtp`, `exchangeCodeForSession`, redirect support) with memoised handlers.
-   - Gate existing routes behind `RequireAuth`, defaulting unauthenticated users to the auth page.
-
-3. **Storage layer upgrade**
-   - Hybrid storage adapter pattern is live: local storage adapter for anonymous users, Supabase adapter for authenticated users.
-   - Keep adapters async, strongly typed, and responsible for realtime subscriptions.
-   - Refactor contexts to use the adapters only�no direct `localStorage` or Supabase calls from components.
-   - Update UI loading and error states to handle async storage consistently.
-
-4. **Environment and typing**
-   - Document required env vars in `.env.example`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
-   - Regenerate database types via `npx supabase gen types` whenever migrations change the schema.
-
-5. **Testing and rollout**
-   - Validate migrations through the CLI before linking to production.
-   - Smoke-test auth, prompt CRUD, stats updates, and real-time refresh in both authenticated and fallback modes.
-
-## Known Gotchas
-- Keep SQL migrations ASCII-only to avoid the emoji corruption seen in the reference repo.
-- Ensure `supabase/config.toml` `site_url` matches the app host; the magic link redirect depends on it.
-- Always call `supabase.auth.getSession()`/`getUser()` before assuming a session exists; React components must handle loading states.
-- When adding new fields to prompt metadata, update migrations, adapters, context typing, and the Supabase row-to-model mapper together.
-- Do not bypass the storage adapters�no direct `localStorage` mutations or raw Supabase client calls from UI components.
-- Event handlers must stay `async` and `await` context methods; unhandled Promise rejections will surface as console errors and break the UX.
-- Tailwind config, ESLint config, and other tooling files are ESM�avoid `require()` to keep lint happy.
-
-## Testing Strategy & Quality Assurance
-
-### Incremental Testing Protocol
-1. **Per-Component Testing**: Test each major component (storage adapters, contexts, auth) in isolation before integration
-2. **Build Validation**: Run `npm run build` after each significant change to catch TypeScript errors early
-3. **Lint Compliance**: Address ESLint errors immediately to prevent accumulation
-4. **Integration Testing**: Test the complete user flow only after all components are individually validated
-
-### Testing After Changes
-```bash
-npm install        # keep dependencies in sync
-npm run lint       # static analysis - fix errors immediately
-npm run build      # ensure production build still succeeds
-npm run dev        # manual exploratory testing
+supabase/
+├── config.toml                # Auth & project configuration
+├── migrations/                # Database schema migrations
+└── functions/                 # Edge functions (if any)
 ```
 
-### Template & Code Validation Checklist
-- [ ] All SQL references match chosen ID strategy (UUID vs auto-increment)
-- [ ] All TypeScript interfaces properly extend or define members (no empty interfaces)
-- [ ] All async operations have proper error handling and loading states
-- [ ] All useCallback dependencies are correctly specified
-- [ ] All components consuming updated contexts handle new async patterns
+## Implementation Guidelines
+- **Holistic Planning**: When refactoring core APIs, update ALL consuming components
+- **Incremental Testing**: Test each architectural change before proceeding
+- **Integration Impact**: Audit all context consumers when updating APIs
 
-**Manual Verification Checklist**
-1. Authenticate with a magic link, confirm redirect to the dashboard.
-2. Create, edit, pin, copy, and delete prompts; verify data persists across refresh.
-3. Confirm prompt usage and time-saved counters update correctly and stay user-specific.
-4. Exercise copy history views and ensure stats sync.
-5. Test unauthenticated mode: remove the session and confirm localStorage fallback still works until Supabase is available.
-6. Validate Supabase RLS by attempting cross-user access (should be denied).
-7. Confirm real-time updates propagate across two browser sessions when authenticated.
+## Critical Implementation Patterns
 
-## Development Status
-- **Current**: Hybrid storage adapters with Supabase authentication and realtime refresh are implemented; contexts and components are fully async.
-- **Next**: Expand Supabase-backed features (sharing, collaboration), ensure extensive testing, and polish error handling.
-- **Future**: Production hardening, deployment automation, and collaboration features once Supabase storage is proven stable.
+### Async Context & Storage Guidelines (Core Pattern)
+```typescript
+// ✅ CORRECT - Use async storage adapter with proper error handling
+import { usePromptsContext } from '@/contexts/PromptsContext';
+
+const Component = () => {
+  const { addPrompt } = usePromptsContext();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreatePrompt = async (promptData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await addPrompt(promptData);
+      // Success handling
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+};
+
+// ❌ WRONG - Never use storage layers directly
+import { supabase } from '@/lib/supabaseClient';
+// Direct Supabase calls from components
+```
+
+**Core Guidelines:**
+- Always `await` context methods and handle rejections with loading/error states
+- Define `useCallback` helpers before `useEffect` dependencies
+- Merge with existing records to preserve metadata (pin state, counters, timestamps)
+- Use standard PostgREST updates, avoid unsupported helpers
+- Clean up realtime subscriptions in effects
+- **NEVER import storage adapters directly** - always use contexts
+- **Context Pattern**: `usePromptsContext()`, `useCopyHistoryContext()`, `useAuth()`
+
+## Lint & Tooling
+- Use `type Foo = Bar` instead of empty interfaces
+- ESM required: use `import` not `require()` in config files
+- Fast Refresh warnings are acknowledged
+
+## Supabase Integration Status
+**Architecture**: Hybrid storage (Supabase + localStorage fallback)
+
+**Environment Variables** (required in `.env`):
+```bash
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+**Database Schema**:
+- `prompts` table: id (uuid), user_id (uuid), title, body, variables (jsonb), is_pinned, copy_count, created_at, updated_at
+- `copy_history` table: id (uuid), user_id (uuid), prompt_id (uuid), copied_at, time_saved
+- RLS policies: Users can only access their own data
+
+**Auth Flow**: Magic-link email → `exchangeCodeForSession` → dashboard redirect
+
+## Common Issues & Solutions
+
+### Critical Errors to Avoid
+- **SQL migrations**: Keep ASCII-only (emojis break deployment)
+- **Auth state**: Always check session before assuming user exists
+- **Storage bypass**: Never use direct `localStorage` or Supabase calls from components
+- **Context imports**: Never import `src/lib/storage/*` directly - use contexts only
+- **Async errors**: Always implement loading/error states with `try/catch`
+- **Provider errors**: Verify context hierarchy in App.tsx
+- **Build errors**: Use ESM imports, proper TypeScript types
+
+### Debugging Steps
+1. **Auth Issues**: Check browser dev tools → Application → Local Storage for session
+2. **Database Issues**: Verify `npx supabase status` shows linked project
+3. **Context Issues**: Ensure components are wrapped in proper providers
+4. **Type Issues**: Regenerate types with `npx supabase gen types typescript --linked`
+5. **Build Issues**: Clear node_modules and reinstall, check ESLint output
+
+## Testing Protocol
+1. Test components in isolation before integration
+2. Run `npm run lint` and `npm run build` after changes
+3. Test complete user flows last
+
+## 🚨 CRITICAL: Implementation Quality Standards
+
+**MANDATORY before claiming any feature "complete":**
+1. **No placeholders** - Real endpoints, auth tokens, UI elements (no `??` or `TODO`)
+2. **Cross-system sync** - When changing shared utilities, update ALL consumers
+3. **Quality gates** - Pass `npm run lint`, `npm run build`
+4. **End-to-end test** - Complete user workflow works with real data
+
+**Warning signs to STOP and fix:**
+- `any` types, ESLint suppressions, or dependency array warnings
+- Components work in isolation but fail when integrated
+- Authentication bypasses or hard-coded credentials
+- Unhandled Promise rejections in async operations
+
+### Quality Checklist
+- [ ] SQL references match ID strategy (UUID vs auto-increment)
+- [ ] No empty interfaces, proper TypeScript types
+- [ ] Async operations have loading/error states
+- [ ] useCallback dependencies correct
+- [ ] No direct storage imports (use contexts)
+- [ ] Subscription cleanup in effects
+- [ ] Environment variables documented in `.env.example`
+- [ ] Magic-link redirect URL matches `supabase/config.toml`
+- [ ] RLS policies prevent cross-user access
+- [ ] Real-time subscriptions work for authenticated users
+- [ ] localStorage fallback works for unauthenticated users
+
+**Manual Testing**
+1. Auth flow: magic link → dashboard redirect
+2. CRUD: create, edit, pin, copy, delete prompts
+3. Persistence: data survives refresh
+4. Dual mode: authenticated (Supabase) + fallback (localStorage)
+5. RLS: cross-user access denied
+6. Real-time: updates across browser sessions
+
+## Development Status & Roadmap
+
+**✅ Completed**:
+- Hybrid storage architecture (Supabase + localStorage)
+- Magic-link authentication with session management
+- Async contexts with loading/error states
+- Real-time prompt synchronization
+- Copy history tracking
+- Pin/unpin functionality
+
+**🔄 Current Focus**:
+- Testing & quality assurance
+- Error handling improvements
+- Performance optimization
+
+**🚀 Future**:
+- Sharing & collaboration features
+- Advanced prompt organization
+- Export/import functionality
+- Production deployment automation
+
+## Emergency Troubleshooting
+
+**If build fails**:
+1. `rm -rf node_modules package-lock.json`
+2. `npm install`
+3. Check for ESLint errors: `npm run lint`
+
+**If auth breaks**:
+1. Check environment variables in `.env`
+2. Verify `supabase/config.toml` site_url matches dev server
+3. Clear browser localStorage and retry auth flow
+
+**If database breaks**:
+1. `npx supabase status` (should show linked project)
+2. `npx supabase db push` (apply pending migrations)
+3. Check Supabase dashboard for table existence and RLS policies
