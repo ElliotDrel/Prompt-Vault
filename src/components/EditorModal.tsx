@@ -12,6 +12,7 @@ import { usePrompts } from '@/contexts/PromptsContext';
 import toast from 'react-hot-toast';
 import { HighlightedTextarea } from './HighlightedTextarea';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK, parseVariableReferences } from '@/utils/colorUtils';
+import { sanitizeVariables } from '@/utils/variableUtils';
 
 interface EditorModalProps {
   isOpen: boolean;
@@ -81,13 +82,14 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   useEffect(() => {
     if (isOpen) {
       if (prompt) {
+        const sanitizedVars = sanitizeVariables(prompt.variables ?? []);
         setTitle(prompt.title);
         setBody(prompt.body);
-        setVariables([...prompt.variables]);
+        setVariables(sanitizedVars);
         setOriginalData({
           title: prompt.title,
           body: prompt.body,
-          variables: [...prompt.variables]
+          variables: sanitizedVars
         });
       } else {
         setTitle('');
@@ -119,15 +121,21 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   };
 
   const handleSave = async () => {
-    if (!title.trim() || !body.trim()) {
+    const trimmedTitle = title.trim();
+    const trimmedBody = body.trim();
+
+    if (!trimmedTitle || !trimmedBody) {
       return;
     }
 
+    const sanitizedVars = sanitizeVariables(variables);
+    setVariables(sanitizedVars);
+
     try {
       await onSave({
-        title: title.trim(),
-        body: body.trim(),
-        variables: variables.filter((value) => value.trim()),
+        title: trimmedTitle,
+        body: trimmedBody,
+        variables: sanitizedVars,
       });
       onClose();
     } catch (err) {
@@ -145,12 +153,12 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
       return;
     }
     
-    setVariables(prev => [...prev, trimmed]);
+    setVariables(prev => sanitizeVariables([...prev, trimmed]));
     setNewVariable('');
   };
 
   const removeVariable = (variable: string) => {
-    setVariables(prev => prev.filter(v => v !== variable));
+    setVariables(prev => sanitizeVariables(prev.filter(v => v !== variable)));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -191,15 +199,26 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   const handleAddUndefinedVariables = () => {
     // Add all undefined variables to the variables list
     const newVars = [...variables];
+    let addedCount = 0;
+
     undefinedVariables.forEach(uv => {
-      if (!newVars.includes(uv)) {
-        newVars.push(uv);
+      const normalized = uv.trim();
+      if (!normalized || newVars.includes(normalized)) {
+        return;
       }
+
+      newVars.push(normalized);
+      addedCount++;
     });
-    setVariables(newVars);
+
+    setVariables(sanitizeVariables(newVars));
     setUndefinedVariables([]);
     setShowUndefinedDialog(false);
-    toast.success(`Added ${undefinedVariables.length} variable${undefinedVariables.length > 1 ? 's' : ''}`);
+    toast.success(
+      addedCount > 0
+        ? `Added ${addedCount} variable${addedCount > 1 ? 's' : ''}`
+        : 'All variables are already defined'
+    );
   };
 
   const handleDismissUndefinedDialog = () => {
@@ -317,14 +336,14 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                 {/* Variable chips */}
                 {variables.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                     {variables.map(variable => {
+                     {variables.map((variable, index) => {
                        const color = variableColors.get(variable) || getGreyColor();
                        const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
                        const textColor = isGrey ? undefined : getContrastTextColor(color);
                        
                        return (
                           <div
-                            key={variable}
+                            key={variable || `unnamed-${index}`}
                             className={isGrey ? "flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground" : "flex items-center gap-1 px-3 py-1 rounded-full text-sm"}
                             style={!isGrey ? { backgroundColor: color, color: textColor } : {}}
                           >
@@ -468,7 +487,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                   Found {undefinedVariables.length} undefined variables in your prompt:{' '}
                   <span className="block mt-2">
                     {undefinedVariables.map((v, i) => (
-                      <code key={v} className="px-2 py-1 bg-muted rounded text-sm font-mono mr-2 mb-2 inline-block">
+                      <code key={v || `undefined-${i}`} className="px-2 py-1 bg-muted rounded text-sm font-mono mr-2 mb-2 inline-block">
                         {v}
                       </code>
                     ))}

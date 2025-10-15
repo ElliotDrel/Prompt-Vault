@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Prompt } from '@/types/prompt';
 import { createStorageAdapter, StorageAdapter } from '@/lib/storage';
+import { sanitizeVariables } from '@/utils/variableUtils';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PromptsContextType {
@@ -45,7 +46,12 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       const promptsData = await adapter.prompts.getPrompts();
-      setPrompts(promptsData);
+      setPrompts(
+        promptsData.map((promptItem) => ({
+          ...promptItem,
+          variables: sanitizeVariables(promptItem.variables ?? []),
+        }))
+      );
     } catch (err) {
       console.error('Failed to load prompts:', err);
       setError('Failed to load prompts');
@@ -143,7 +149,11 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       const newPrompt = await storageAdapter.prompts.addPrompt(promptData);
-      setPrompts((prev) => [newPrompt, ...prev]);
+      const sanitizedPrompt = {
+        ...newPrompt,
+        variables: sanitizeVariables(newPrompt.variables ?? []),
+      };
+      setPrompts((prev) => [sanitizedPrompt, ...prev]);
       await loadStats(storageAdapter);
     } catch (err) {
       console.error('Failed to add prompt:', err);
@@ -161,7 +171,11 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       const updatedPrompt = await storageAdapter.prompts.updatePrompt(id, promptData);
-      setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? updatedPrompt : prompt)));
+      const sanitizedPrompt = {
+        ...updatedPrompt,
+        variables: sanitizeVariables(updatedPrompt.variables ?? []),
+      };
+      setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
       await loadStats(storageAdapter);
     } catch (err) {
       console.error('Failed to update prompt:', err);
@@ -197,7 +211,11 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       const updatedPrompt = await storageAdapter.prompts.togglePinPrompt(id);
-      setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? updatedPrompt : prompt)));
+      const sanitizedPrompt = {
+        ...updatedPrompt,
+        variables: sanitizeVariables(updatedPrompt.variables ?? []),
+      };
+      setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
     } catch (err) {
       console.error('Failed to toggle pin:', err);
       setError('Failed to toggle pin');
@@ -214,7 +232,11 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       const updatedPrompt = await storageAdapter.prompts.incrementPromptUsage(promptId);
-      setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? updatedPrompt : prompt)));
+      const sanitizedPrompt = {
+        ...updatedPrompt,
+        variables: sanitizeVariables(updatedPrompt.variables ?? []),
+      };
+      setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? sanitizedPrompt : prompt)));
       await loadStats(storageAdapter);
     } catch (err) {
       console.error('Failed to increment usage:', err);
