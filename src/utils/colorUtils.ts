@@ -45,14 +45,15 @@ export function parseVariableReferences(text: string): Set<string> {
   // Match {variableName} patterns, capturing the variable name
   const regex = /\{([^}]+)\}/g;
   let match;
-  
+
   while ((match = regex.exec(text)) !== null) {
     const variableName = match[1].trim();
     if (variableName) {
       references.add(variableName);
     }
   }
-  
+
+  console.log('🔍 parseVariableReferences:', { text, references: Array.from(references) });
   return references;
 }
 
@@ -72,6 +73,13 @@ export function isVariableMentioned(variable: string, promptBody: string): boole
   // Check if any reference matches (also normalize references)
   for (const ref of references) {
     const normalizedRef = ref.replace(/\s+/g, '').toLowerCase();
+    console.log('🔎 Comparing:', {
+      variable,
+      normalizedVariable,
+      ref,
+      normalizedRef,
+      match: normalizedRef === normalizedVariable
+    });
     if (normalizedRef === normalizedVariable) {
       return true;
     }
@@ -95,22 +103,27 @@ export function assignVariableColors(
   const colorMap = new Map<string, string>();
   let colorIndex = 0;
   const greyColor = getGreyColor();
-  
+
+  console.log('🎨 assignVariableColors called:', { variables, promptBody });
+
   // First pass: assign colors to mentioned variables
   for (const variable of variables) {
     const mentioned = isVariableMentioned(variable, promptBody);
-    
+
     if (mentioned) {
       // Assign a color from the palette (cycle if we have more variables than colors)
       const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
       colorMap.set(variable, color);
+      console.log(`✅ "${variable}" mentioned → ${color}`);
       colorIndex++;
     } else {
       // Variable not mentioned - use grey
       colorMap.set(variable, greyColor);
+      console.log(`⚪ "${variable}" NOT mentioned → grey`);
     }
   }
-  
+
+  console.log('🎨 Final colorMap:', Object.fromEntries(colorMap));
   return colorMap;
 }
 
