@@ -65,18 +65,18 @@ export function parseVariableReferences(text: string): Set<string> {
  */
 export function isVariableMentioned(variable: string, promptBody: string): boolean {
   const references = parseVariableReferences(promptBody);
-  
-  // Normalize variable name (remove extra spaces)
-  const normalizedVariable = variable.replace(/\s+/g, '');
-  
+
+  // Normalize variable name (remove extra spaces and lowercase for case-insensitive matching)
+  const normalizedVariable = variable.replace(/\s+/g, '').toLowerCase();
+
   // Check if any reference matches (also normalize references)
   for (const ref of references) {
-    const normalizedRef = ref.replace(/\s+/g, '');
+    const normalizedRef = ref.replace(/\s+/g, '').toLowerCase();
     if (normalizedRef === normalizedVariable) {
       return true;
     }
   }
-  
+
   return false;
 }
 

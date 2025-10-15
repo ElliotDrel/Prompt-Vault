@@ -69,10 +69,10 @@ export function HighlightedTextarea({
         );
       }
 
-      // Find the matching variable (supports whitespace normalization)
-      const normalizedMatch = variableName.replace(/\s+/g, '');
+      // Find the matching variable (supports whitespace normalization and case-insensitive matching)
+      const normalizedMatch = variableName.replace(/\s+/g, '').toLowerCase();
       const matchingVariable = variables.find(v => {
-        const normalizedVar = v.replace(/\s+/g, '');
+        const normalizedVar = v.replace(/\s+/g, '').toLowerCase();
         return normalizedVar === normalizedMatch;
       });
 
