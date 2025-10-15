@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Search, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { Prompt } from '@/types/prompt';
 import { PromptCard } from './PromptCard';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export function Dashboard() {
-  const { prompts, addPrompt, updatePrompt, deletePrompt } = usePrompts();
+  const { prompts, loading, addPrompt, updatePrompt, deletePrompt } = usePrompts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,7 +146,12 @@ export function Dashboard() {
         </div>
 
         {/* Prompts grid */}
-        {filteredAndSortedPrompts.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-lg text-muted-foreground">Loading your prompts...</p>
+          </div>
+        ) : filteredAndSortedPrompts.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
