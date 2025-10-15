@@ -228,9 +228,10 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
 
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             key="modal-backdrop"
@@ -343,7 +344,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                        
                        return (
                           <div
-                            key={variable || `unnamed-${index}`}
+                            key={`${variable || 'unnamed'}-${index}`}
                             className={isGrey ? "flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground" : "flex items-center gap-1 px-3 py-1 rounded-full text-sm"}
                             style={!isGrey ? { backgroundColor: color, color: textColor } : {}}
                           >
@@ -444,7 +445,8 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
             </div>
           </motion.div>
         </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Unsaved Changes Dialog */}
       <AlertDialog open={showUnsavedChanges} onOpenChange={setShowUnsavedChanges}>
@@ -487,7 +489,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                   Found {undefinedVariables.length} undefined variables in your prompt:{' '}
                   <span className="block mt-2">
                     {undefinedVariables.map((v, i) => (
-                      <code key={v || `undefined-${i}`} className="px-2 py-1 bg-muted rounded text-sm font-mono mr-2 mb-2 inline-block">
+                      <code key={`${v || 'undefined'}-${i}`} className="px-2 py-1 bg-muted rounded text-sm font-mono mr-2 mb-2 inline-block">
                         {v}
                       </code>
                     ))}
@@ -507,6 +509,6 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AnimatePresence>
+    </>
   );
 }
