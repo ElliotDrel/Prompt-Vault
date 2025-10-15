@@ -50,24 +50,24 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
       }
 
       const references = parseVariableReferences(body);
-      const undefined: string[] = [];
+      const undefinedVars: string[] = [];
 
       references.forEach(ref => {
-        const normalizedRef = ref.replace(/\s+/g, '');
+        const normalizedRef = ref.replace(/\s+/g, '').toLowerCase();
         const isDefined = variables.some(v => {
-          const normalizedVar = v.replace(/\s+/g, '');
+          const normalizedVar = v.replace(/\s+/g, '').toLowerCase();
           return normalizedVar === normalizedRef;
         });
 
-        if (!isDefined && !undefined.includes(ref)) {
-          undefined.push(ref);
+        if (!isDefined && !undefinedVars.includes(ref)) {
+          undefinedVars.push(ref);
         }
       });
 
-      if (undefined.length > 0 && !showUndefinedDialog) {
-        setUndefinedVariables(undefined);
+      if (undefinedVars.length > 0 && !showUndefinedDialog) {
+        setUndefinedVariables(undefinedVars);
         setShowUndefinedDialog(true);
-      } else if (undefined.length === 0) {
+      } else if (undefinedVars.length === 0) {
         setUndefinedVariables([]);
       }
     }, 1500); // 1.5 second debounce
