@@ -3,6 +3,8 @@
  * Provides color assignment and variable reference parsing
  */
 
+import { parseVariableReferences, isVariableReferenced } from '@/config/variableRules';
+
 // Vibrant color palette using HSL format for light/dark mode compatibility
 // These colors are distinct and work well as highlights
 export const COLOR_PALETTE = [
@@ -34,28 +36,8 @@ export function getGreyColor(): string {
   return isDark ? GREY_COLOR_DARK : GREY_COLOR_LIGHT;
 }
 
-/**
- * Parse variable references from text
- * Extracts all {variableName} patterns from the given text
- * @param text - The text to parse
- * @returns Set of variable names found in the text
- */
-export function parseVariableReferences(text: string): Set<string> {
-  const references = new Set<string>();
-  // Match {variableName} patterns, capturing the variable name
-  const regex = /\{([^}]+)\}/g;
-  let match;
-
-  while ((match = regex.exec(text)) !== null) {
-    const variableName = match[1].trim();
-    if (variableName) {
-      references.add(variableName);
-    }
-  }
-
-  console.log('🔍 parseVariableReferences:', { text, references: Array.from(references) });
-  return references;
-}
+// Re-export parsing functions from centralized config for backward compatibility
+export { parseVariableReferences };
 
 /**
  * Check if a specific variable is mentioned in the prompt body
@@ -65,27 +47,9 @@ export function parseVariableReferences(text: string): Set<string> {
  * @returns true if the variable is mentioned
  */
 export function isVariableMentioned(variable: string, promptBody: string): boolean {
-  const references = parseVariableReferences(promptBody);
-
-  // Normalize variable name (remove extra spaces and lowercase for case-insensitive matching)
-  const normalizedVariable = variable.replace(/\s+/g, '').toLowerCase();
-
-  // Check if any reference matches (also normalize references)
-  for (const ref of references) {
-    const normalizedRef = ref.replace(/\s+/g, '').toLowerCase();
-    console.log('🔎 Comparing:', {
-      variable,
-      normalizedVariable,
-      ref,
-      normalizedRef,
-      match: normalizedRef === normalizedVariable
-    });
-    if (normalizedRef === normalizedVariable) {
-      return true;
-    }
-  }
-
-  return false;
+  const mentioned = isVariableReferenced(variable, promptBody);
+  console.log('🔎 isVariableMentioned:', { variable, promptBody, mentioned });
+  return mentioned;
 }
 
 /**

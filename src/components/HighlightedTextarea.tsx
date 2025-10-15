@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { assignVariableColors, parseVariableReferences, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
+import { VARIABLE_PATTERN, findMatchingVariable } from '@/config/variableRules';
 import { cn } from '@/lib/utils';
 
 interface HighlightedTextareaProps {
@@ -53,7 +54,7 @@ export function HighlightedTextarea({
 
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    const regex = /\{([^}]+)\}/g;
+    const regex = new RegExp(VARIABLE_PATTERN.source, 'g');
     let match;
     let keyCounter = 0;
 
@@ -71,18 +72,12 @@ export function HighlightedTextarea({
         );
       }
 
-      // Find the matching variable (supports whitespace normalization and case-insensitive matching)
-      const normalizedMatch = variableName.replace(/\s+/g, '').toLowerCase();
-      const matchingVariable = variables.find(v => {
-        const normalizedVar = v.replace(/\s+/g, '').toLowerCase();
-        console.log('🔍 HighlightedTextarea matching:', {
-          variableName,
-          normalizedMatch,
-          definedVar: v,
-          normalizedVar,
-          match: normalizedVar === normalizedMatch
-        });
-        return normalizedVar === normalizedMatch;
+      // Find the matching variable using centralized matching logic
+      const matchingVariable = findMatchingVariable(variableName, variables);
+      console.log('🔍 HighlightedTextarea matching:', {
+        variableName,
+        matchingVariable,
+        variables
       });
 
       // Add the highlighted variable or plain text if not found
