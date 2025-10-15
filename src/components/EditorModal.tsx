@@ -55,9 +55,9 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
       const undefinedVars: string[] = [];
 
       references.forEach(ref => {
-        const normalizedRef = ref.replace(/\s+/g, '').toLowerCase();
+        const normalizedRef = ref.replace(/[\s_]+/g, '').toLowerCase();
         const isDefined = variables.some(v => {
-          const normalizedVar = v.replace(/\s+/g, '').toLowerCase();
+          const normalizedVar = v.replace(/[\s_]+/g, '').toLowerCase();
           return normalizedVar === normalizedRef;
         });
 
