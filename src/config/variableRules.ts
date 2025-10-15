@@ -62,7 +62,7 @@ export function createVariableRegex(variableName: string): RegExp {
  * normalizeVariableName("UserName") // "username"
  */
 export function normalizeVariableName(variableName: string): string {
-  return variableName.replace(/\s+/g, '').toLowerCase();
+  return variableName.replace(/[\s_]+/g, '').toLowerCase();
 }
 
 /**
