@@ -10,6 +10,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrompts } from '@/contexts/PromptsContext';
 import toast from 'react-hot-toast';
+import { HighlightedTextarea } from './HighlightedTextarea';
+import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK, parseVariableReferences } from '@/utils/colorUtils';
 
 interface EditorModalProps {
   isOpen: boolean;
@@ -27,8 +29,51 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   const [newVariable, setNewVariable] = useState('');
    const [showUnsavedChanges, setShowUnsavedChanges] = useState(false);
   const [originalData, setOriginalData] = useState<{ title: string; body: string; variables: string[] } | null>(null);
+  const [variableColors, setVariableColors] = useState<Map<string, string>>(new Map());
+  const [undefinedVariables, setUndefinedVariables] = useState<string[]>([]);
+  const [showUndefinedDialog, setShowUndefinedDialog] = useState(false);
 
   const isEditing = !!prompt;
+
+  // Update colors when variables or body changes
+  useEffect(() => {
+    const colors = assignVariableColors(variables, body);
+    setVariableColors(colors);
+  }, [variables, body]);
+
+  // Detect undefined variables with debounce to avoid interrupting typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (!body.trim()) {
+        setUndefinedVariables([]);
+        return;
+      }
+
+      const references = parseVariableReferences(body);
+      const undefined: string[] = [];
+
+      references.forEach(ref => {
+        const normalizedRef = ref.replace(/\s+/g, '');
+        const isDefined = variables.some(v => {
+          const normalizedVar = v.replace(/\s+/g, '');
+          return normalizedVar === normalizedRef;
+        });
+
+        if (!isDefined && !undefined.includes(ref)) {
+          undefined.push(ref);
+        }
+      });
+
+      if (undefined.length > 0 && !showUndefinedDialog) {
+        setUndefinedVariables(undefined);
+        setShowUndefinedDialog(true);
+      } else if (undefined.length === 0) {
+        setUndefinedVariables([]);
+      }
+    }, 1500); // 1.5 second debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [body, variables, showUndefinedDialog]);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -140,6 +185,25 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     }
   };
 
+  const handleAddUndefinedVariables = () => {
+    // Add all undefined variables to the variables list
+    const newVars = [...variables];
+    undefinedVariables.forEach(uv => {
+      if (!newVars.includes(uv)) {
+        newVars.push(uv);
+      }
+    });
+    setVariables(newVars);
+    setUndefinedVariables([]);
+    setShowUndefinedDialog(false);
+    toast.success(`Added ${undefinedVariables.length} variable${undefinedVariables.length > 1 ? 's' : ''}`);
+  };
+
+  const handleDismissUndefinedDialog = () => {
+    setUndefinedVariables([]);
+    setShowUndefinedDialog(false);
+  };
+
 
   return (
     <AnimatePresence>
@@ -218,11 +282,12 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                      </TooltipContent>
                   </Tooltip>
                 </div>
-                <Textarea
+                <HighlightedTextarea
                   id="body"
                   placeholder="Your prompt text with {variables} in curly braces"
                   value={body}
-                  onChange={(e) => setBody(e.target.value)}
+                  onChange={(value) => setBody(value)}
+                  variables={variables}
                   rows={8}
                   className="text-sm resize-none"
                 />
@@ -247,20 +312,28 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                 {/* Variable chips */}
                 {variables.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
-                     {variables.map(variable => (
+                     {variables.map(variable => {
+                       const color = variableColors.get(variable) || getGreyColor();
+                       const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
+                       const textColor = isGrey ? undefined : getContrastTextColor(color);
+                       
+                       return (
                           <div
                             key={variable}
-                            className="flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground"
+                            className={isGrey ? "flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground" : "flex items-center gap-1 px-3 py-1 rounded-full text-sm"}
+                            style={!isGrey ? { backgroundColor: color, color: textColor } : {}}
                           >
                            <span>{variable}</span>
                            <button
                              onClick={() => removeVariable(variable)}
-                             className="text-muted-foreground hover:text-foreground ml-1"
+                             className={isGrey ? "text-muted-foreground hover:text-foreground ml-1" : "hover:opacity-80 ml-1"}
+                             style={!isGrey ? { color: textColor } : {}}
                            >
                              <Trash2 className="h-3 w-3" />
                            </button>
                          </div>
-                       ))}
+                       );
+                     })}
                   </div>
                 )}
 
@@ -370,6 +443,42 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
               await handleSave();
             }}>
               Save Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Undefined Variables Dialog */}
+      <AlertDialog open={showUndefinedDialog} onOpenChange={setShowUndefinedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add Undefined Variables?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {undefinedVariables.length === 1 ? (
+                <>
+                  Found variable <code className="px-2 py-1 bg-muted rounded text-sm font-mono">{undefinedVariables[0]}</code> in your prompt that hasn't been defined yet. Would you like to add it to your variables?
+                </>
+              ) : (
+                <>
+                  Found {undefinedVariables.length} undefined variables in your prompt:{' '}
+                  <span className="block mt-2">
+                    {undefinedVariables.map((v, i) => (
+                      <code key={v} className="px-2 py-1 bg-muted rounded text-sm font-mono mr-2 mb-2 inline-block">
+                        {v}
+                      </code>
+                    ))}
+                  </span>
+                  Would you like to add them to your variables?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDismissUndefinedDialog}>
+              Ignore
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleAddUndefinedVariables}>
+              Add Variable{undefinedVariables.length > 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
