@@ -176,6 +176,13 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 
 ## Common Issues & Solutions
 
+### React Rendering Pitfalls
+- Sanitize prompt variable arrays (trim and dedupe) before rendering chips or inputs so React keys never fall back to empty strings
+- When mapping over user-provided identifiers, compose keys with a stable fallback (e.g. `${value || 'fallback'}-${index}`) instead of relying on the raw value
+- Framer Motion `AnimatePresence` must wrap a single keyed element; render auxiliary dialogs or overlays outside the animated block
+- Clear temporary `console.log` debugging before finishing so the console only reflects actionable issues
+- Browser extensions can inject false-positive console errors; re-check in an extension-free window before treating them as app bugs
+
 ### Critical Errors to Avoid
 - **SQL migrations**: Keep ASCII-only (emojis break deployment)
 - **Auth state**: Always check session before assuming user exists
@@ -216,8 +223,11 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - [ ] No empty interfaces, proper TypeScript types
 - [ ] Async operations have loading/error states
 - [ ] useCallback dependencies correct
+- [ ] Dynamic lists use stable, non-empty keys even when user input is blank
+- [ ] Framer Motion blocks follow the single-child `AnimatePresence` contract
 - [ ] No direct storage imports (use contexts)
 - [ ] Subscription cleanup in effects
+- [ ] Debug logging removed or behind feature-flagged utilities
 - [ ] Environment variables documented in `.env.example`
 - [ ] Magic-link redirect URL matches `supabase/config.toml`
 - [ ] RLS policies prevent cross-user access
