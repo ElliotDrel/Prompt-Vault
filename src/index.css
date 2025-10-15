@@ -124,7 +124,8 @@ All colors MUST be HSL.
 
   /* Highlighted textarea styles */
   .highlighted-textarea-wrapper mark {
-    transition: background-color 0.2s ease, color 0.2s ease;
+    color: transparent !important;
+    transition: background-color 0.2s ease;
   }
 
   /* Ensure text selection is visible over highlights */

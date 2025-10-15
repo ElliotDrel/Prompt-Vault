@@ -47,9 +47,7 @@ export { parseVariableReferences };
  * @returns true if the variable is mentioned
  */
 export function isVariableMentioned(variable: string, promptBody: string): boolean {
-  const mentioned = isVariableReferenced(variable, promptBody);
-  console.log('🔎 isVariableMentioned:', { variable, promptBody, mentioned });
-  return mentioned;
+  return isVariableReferenced(variable, promptBody);
 }
 
 /**
@@ -68,8 +66,6 @@ export function assignVariableColors(
   let colorIndex = 0;
   const greyColor = getGreyColor();
 
-  console.log('🎨 assignVariableColors called:', { variables, promptBody });
-
   // First pass: assign colors to mentioned variables
   for (const variable of variables) {
     const mentioned = isVariableMentioned(variable, promptBody);
@@ -78,16 +74,13 @@ export function assignVariableColors(
       // Assign a color from the palette (cycle if we have more variables than colors)
       const color = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
       colorMap.set(variable, color);
-      console.log(`✅ "${variable}" mentioned → ${color}`);
       colorIndex++;
     } else {
       // Variable not mentioned - use grey
       colorMap.set(variable, greyColor);
-      console.log(`⚪ "${variable}" NOT mentioned → grey`);
     }
   }
 
-  console.log('🎨 Final colorMap:', Object.fromEntries(colorMap));
   return colorMap;
 }
 
