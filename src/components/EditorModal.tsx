@@ -32,6 +32,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   const [variableColors, setVariableColors] = useState<Map<string, string>>(new Map());
   const [undefinedVariables, setUndefinedVariables] = useState<string[]>([]);
   const [showUndefinedDialog, setShowUndefinedDialog] = useState(false);
+  const [hasShownUndefinedDialog, setHasShownUndefinedDialog] = useState(false);
 
   const isEditing = !!prompt;
 
@@ -64,16 +65,17 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
         }
       });
 
-      if (undefinedVars.length > 0 && !showUndefinedDialog) {
+      if (undefinedVars.length > 0 && !hasShownUndefinedDialog) {
         setUndefinedVariables(undefinedVars);
         setShowUndefinedDialog(true);
+        setHasShownUndefinedDialog(true);
       } else if (undefinedVars.length === 0) {
         setUndefinedVariables([]);
       }
     }, 1500); // 1.5 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [body, variables, showUndefinedDialog]);
+  }, [body, variables, hasShownUndefinedDialog]);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -94,6 +96,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
         setOriginalData({ title: '', body: '', variables: [] });
       }
       setNewVariable('');
+      setHasShownUndefinedDialog(false); // Reset dialog flag for new modal session
     }
   }, [isOpen, prompt]);
 
