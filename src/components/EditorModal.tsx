@@ -214,15 +214,17 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
+            key="modal-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="modal-backdrop"
             onClick={handleClose}
           />
-          
+
           {/* Modal content */}
           <motion.div
+            key="modal-content"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
