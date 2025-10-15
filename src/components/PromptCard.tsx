@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Pin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
+import { sanitizeVariables } from '@/utils/variableUtils';
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -21,6 +22,11 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
   const [variableValues, setVariableValues] = useState<VariableValues>({});
   const [isCopied, setIsCopied] = useState(false);
   const [showSuccessEffect, setShowSuccessEffect] = useState(false);
+  const sanitizedVariables = useMemo(() => sanitizeVariables(prompt.variables), [prompt.variables]);
+  const sanitizedPrompt = useMemo(
+    () => ({ ...prompt, variables: sanitizedVariables }),
+    [prompt, sanitizedVariables]
+  );
 
   const handleVariableChange = (variable: string, value: string) => {
     setVariableValues((prev) => ({
@@ -33,7 +39,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
     e.stopPropagation(); // Prevent card click
 
     try {
-      const payload = buildPromptPayload(prompt, variableValues);
+      const payload = buildPromptPayload(sanitizedPrompt, variableValues);
       const success = await copyToClipboard(payload);
 
       if (!success) {
@@ -129,9 +135,9 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
       </div>
 
       {/* Variable inputs */}
-      {prompt.variables.length > 0 && (
+      {sanitizedVariables.length > 0 && (
         <div className="flex flex-col gap-3" onClick={(event) => event.stopPropagation()}>
-          {prompt.variables.map((variable) => (
+          {sanitizedVariables.map((variable) => (
             <div key={variable} className="space-y-1">
               <Label
                 htmlFor={`${prompt.id}-${variable}`}
