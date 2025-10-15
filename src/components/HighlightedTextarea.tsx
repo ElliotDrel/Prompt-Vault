@@ -50,8 +50,6 @@ export function HighlightedTextarea({
       return [];
     }
 
-    console.log('🖍️ getHighlightedText rendering:', { value, variables, variableColors: Object.fromEntries(variableColors) });
-
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     const regex = new RegExp(VARIABLE_PATTERN.source, 'g');
@@ -74,11 +72,6 @@ export function HighlightedTextarea({
 
       // Find the matching variable using centralized matching logic
       const matchingVariable = findMatchingVariable(variableName, variables);
-      console.log('🔍 HighlightedTextarea matching:', {
-        variableName,
-        matchingVariable,
-        variables
-      });
 
       // Add the highlighted variable or plain text if not found
       if (matchingVariable) {
@@ -86,24 +79,14 @@ export function HighlightedTextarea({
 
         // Only highlight if the variable has a color and is not grey (is used)
         const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
-        console.log('🎨 Highlighting decision:', {
-          matchingVariable,
-          color,
-          isGrey,
-          willHighlight: color && !isGrey,
-          GREY_COLOR_LIGHT,
-          GREY_COLOR_DARK
-        });
         if (color && !isGrey) {
           parts.push(
             <mark
               key={`highlight-${keyCounter++}`}
               style={{
                 backgroundColor: color,
-                color: 'white',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                fontWeight: '500',
+                padding: '2px 0',
+                borderRadius: '2px',
               }}
             >
               {match[0]}
