@@ -27,6 +27,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - Keep sanitizers aligned with normalization rules—dedupe using `normalizeVariableName` (or an equivalent helper) to prevent hard-to-debug collisions during payload construction.
 - For layered UI components, audit both layers before tweaking styles; remove redundant decoration from background overlays instead of altering the interactive surface.
 - Large files can trigger command timeouts; use `Get-Content -TotalCount` or scoped `rg` queries to gather context quickly before editing.
+- **Context dependencies**: Use primitive values (`user?.id`) not objects (`user`) to prevent re-renders on token refresh
+- **Background refresh**: Add optional `silent` parameter to load functions; use separate `loading` and `isBackgroundRefresh` flags
+- **Realtime subscriptions**: Always use silent mode for background updates to avoid spinner/unmount cycles
 
 ## ⚠️ CRITICAL: Supabase Development Workflow
 
@@ -71,6 +74,14 @@ npx supabase gen types typescript --linked --schema public > src/lib/database.ty
 - **Preserve migration history**: Never delete migration files, even for removed features
 
 **Rationale**: This approach ensures all changes are version-controlled, reproducible, and eliminates dependency on local Docker setup while maintaining full control over project configuration.
+
+### Supabase Realtime Setup:
+- **Enable first**: Dashboard → Database → Publications → `supabase_realtime` → Toggle tables ON
+- **Verify RLS**: SELECT policy must exist for `auth.uid() = user_id`
+- **Subscribe pattern**: Use `channel.subscribe((status) => {...})` NOT `await channel.subscribe()`
+- **Race condition symptom**: Code works with console.logs but breaks without them → missing callback
+- **Debug checklist**: Publication enabled? RLS policy exists? User authenticated? Callback handles status?
+- **Test**: Two tabs logged in, edit in Tab A, Tab B updates instantly
 
 ## Project Commands
 ```bash
@@ -177,6 +188,11 @@ import { supabase } from '@/lib/supabaseClient';
 - Reset flag when modal opens in `useEffect(() => { if (isOpen) setHasShown(false) }, [isOpen])`
 - Check flag before showing to prevent spam
 
+### Form State Persistence
+- Use sessionStorage for work-in-progress inputs (survives unmount, cleared on browser close)
+- Pattern: Lazy init from storage → auto-save on change → clear after submit
+- Storage decision: Component state (UI-only) → Session (WIP) → Local (preferences) → Server (truth)
+
 ### Debug Logging
 - Remove all `console.log` before commit unless feature-flagged
 - Search codebase for `console.log/warn/error` before finishing
@@ -227,11 +243,14 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - **Build errors**: Use ESM imports, proper TypeScript types
 
 ### Debugging Steps
-1. **Auth Issues**: Check browser dev tools → Application → Local Storage for session
-2. **Database Issues**: Verify `npx supabase status` shows linked project
-3. **Context Issues**: Ensure components are wrapped in proper providers
-4. **Type Issues**: Regenerate types with `npx supabase gen types typescript --linked`
-5. **Build Issues**: Clear node_modules and reinstall, check ESLint output
+1. **Configuration first**: Verify Supabase realtime/RLS/publications, check `.env`, verify CLI linked, check auth session
+2. **Auth Issues**: Check browser dev tools → Application → Local Storage for session
+3. **Database Issues**: Verify `npx supabase status` shows linked project
+4. **Context Issues**: Ensure components wrapped in proper providers
+5. **Type Issues**: Regenerate types with `npx supabase gen types typescript --linked`
+6. **Build Issues**: Clear node_modules and reinstall, check ESLint output
+7. **Race conditions**: If console.logs "fix" the bug → missing callback or wrong async pattern
+8. **Test incrementally**: One change → test → verify → next change (never batch architectural changes)
 
 ## Testing Protocol
 1. Test components in isolation before integration
@@ -282,18 +301,14 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - Hybrid storage architecture (Supabase + localStorage)
 - Magic-link authentication with session management
 - Async contexts with loading/error states
-- Real-time prompt synchronization
+- Real-time prompt synchronization (WebSocket, background refresh, stabilized dependencies)
 - Copy history tracking
 - Pin/unpin functionality
-- Variable highlighting in prompt editor
-  - Color-coded variable references
-  - Case-insensitive matching
-  - Undefined variable detection with auto-add dialog
-  - Overlay-based syntax highlighting
+- Variable highlighting (color-coded, case-insensitive, auto-add dialog, overlay-based)
+- Work-in-progress form persistence (sessionStorage, survives unmounts)
 
 **🔄 Current Focus**:
 - Testing & quality assurance
-- Error handling improvements
 - Performance optimization
 
 **🚀 Future**:
