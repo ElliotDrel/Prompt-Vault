@@ -45,7 +45,7 @@ export const VARIABLE_PATTERN = /\{([^}]+)\}/g;
  */
 export function createVariableRegex(variableName: string): RegExp {
   const escaped = variableName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`\\{${escaped}\\}`, 'g');
+  return new RegExp(`\\{\\s*${escaped}\\s*\\}`, 'g');
 }
 
 // ============================================================================
