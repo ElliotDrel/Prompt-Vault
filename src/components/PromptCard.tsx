@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Pin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -11,6 +11,35 @@ import { usePrompts } from '@/contexts/PromptsContext';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { sanitizeVariables } from '@/utils/variableUtils';
 
+// SessionStorage helpers for persisting variable inputs
+const STORAGE_KEY_PREFIX = 'prompt-variables-';
+
+const loadVariableValues = (promptId: string): VariableValues => {
+  try {
+    const stored = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}${promptId}`);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    // Gracefully degrade if sessionStorage is unavailable or data is corrupted
+    return {};
+  }
+};
+
+const saveVariableValues = (promptId: string, values: VariableValues): void => {
+  try {
+    sessionStorage.setItem(`${STORAGE_KEY_PREFIX}${promptId}`, JSON.stringify(values));
+  } catch {
+    // Ignore quota errors or privacy mode restrictions
+  }
+};
+
+const clearVariableValues = (promptId: string): void => {
+  try {
+    sessionStorage.removeItem(`${STORAGE_KEY_PREFIX}${promptId}`);
+  } catch {
+    // Ignore errors
+  }
+};
+
 interface PromptCardProps {
   prompt: Prompt;
   onClick: () => void;
@@ -19,7 +48,7 @@ interface PromptCardProps {
 export function PromptCard({ prompt, onClick }: PromptCardProps) {
   const { incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
-  const [variableValues, setVariableValues] = useState<VariableValues>({});
+  const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
   const [isCopied, setIsCopied] = useState(false);
   const [showSuccessEffect, setShowSuccessEffect] = useState(false);
   const sanitizedVariables = useMemo(() => sanitizeVariables(prompt.variables), [prompt.variables]);
@@ -27,6 +56,11 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
     () => ({ ...prompt, variables: sanitizedVariables }),
     [prompt, sanitizedVariables]
   );
+
+  // Auto-save variable values to sessionStorage whenever they change
+  useEffect(() => {
+    saveVariableValues(prompt.id, variableValues);
+  }, [prompt.id, variableValues]);
 
   const handleVariableChange = (variable: string, value: string) => {
     setVariableValues((prev) => ({
@@ -58,6 +92,10 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
         variableValues: { ...variableValues },
         copiedText: payload,
       });
+
+      // Clear saved values after successful copy (transaction complete)
+      clearVariableValues(prompt.id);
+      setVariableValues({});
 
       // Trigger visual feedback
       setIsCopied(true);

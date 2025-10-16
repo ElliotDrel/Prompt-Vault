@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export function Dashboard() {
-  const { prompts, loading, addPrompt, updatePrompt, deletePrompt } = usePrompts();
+  const { prompts, loading, isBackgroundRefresh, addPrompt, updatePrompt, deletePrompt } = usePrompts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -146,7 +146,7 @@ export function Dashboard() {
         </div>
 
         {/* Prompts grid */}
-        {loading ? (
+        {loading && !isBackgroundRefresh ? (
           <div className="text-center py-20">
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-lg text-muted-foreground">Loading your prompts...</p>
