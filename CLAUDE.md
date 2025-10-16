@@ -21,6 +21,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - **Documentation-First Rule**: Use Context7 MCP (`mcp__context7__resolve-library-id` → `mcp__context7__get-library-docs`) for current library docs
 - **Template Validation Rule**: Always validate generated code against specific technology choices
 
+## Codex Agent Notes (2025-10-16)
+
+- When fixing placeholder substitution, adjust shared helpers (such as `createVariableRegex`) so every consumer stays consistent and proximity checks retain their matching semantics.
+- Keep sanitizers aligned with normalization rules—dedupe using `normalizeVariableName` (or an equivalent helper) to prevent hard-to-debug collisions during payload construction.
+- For layered UI components, audit both layers before tweaking styles; remove redundant decoration from background overlays instead of altering the interactive surface.
+- Large files can trigger command timeouts; use `Get-Content -TotalCount` or scoped `rg` queries to gather context quickly before editing.
+
 ## ⚠️ CRITICAL: Supabase Development Workflow
 
 **CLI-Only Development Rule**: This project uses Supabase CLI exclusively for schema and configuration management against the deployed/hosted Supabase project. **NO local Docker setup or `supabase start` commands.**
