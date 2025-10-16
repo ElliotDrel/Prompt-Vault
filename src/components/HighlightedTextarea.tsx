@@ -146,7 +146,7 @@ export function HighlightedTextarea({
           'absolute inset-0 overflow-auto',
           'pointer-events-none',
           'bg-transparent text-transparent',
-          'border border-input rounded-md'
+          'rounded-md'
         )}
         style={{
           wordWrap: 'break-word',
