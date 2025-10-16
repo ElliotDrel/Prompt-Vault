@@ -15,10 +15,11 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
   // Get all variable patterns in the body using centralized pattern
   const variableMatches = payload.match(new RegExp(VARIABLE_PATTERN.source, 'g')) || [];
   const referencedVariables = variableMatches.map(match => extractVariableName(match));
-  
-  if (referencedVariables.length > 0) {
+  const uniqueReferencedVariables = Array.from(new Set(referencedVariables));
+
+  if (uniqueReferencedVariables.length > 0) {
     // Replace {variable} with value or <variable>value</variable> based on proximity rule
-    referencedVariables.forEach(referencedVar => {
+    uniqueReferencedVariables.forEach(referencedVar => {
       // Find matching variable using centralized matching logic
       const matchingVariable = findMatchingVariable(referencedVar, prompt.variables);
       
