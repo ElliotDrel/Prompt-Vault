@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { assignVariableColors, parseVariableReferences, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
+import { assignVariableColors, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
 import { VARIABLE_PATTERN, findMatchingVariable } from '@/config/variableRules';
 import { cn } from '@/lib/utils';
 
