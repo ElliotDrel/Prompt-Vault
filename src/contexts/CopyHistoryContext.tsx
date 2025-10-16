@@ -7,6 +7,7 @@ interface CopyHistoryContextType {
   copyHistory: CopyEvent[];
   loading: boolean;
   error: string | null;
+  isBackgroundRefresh: boolean;
   addCopyEvent: (event: Omit<CopyEvent, 'id' | 'timestamp'>) => Promise<void>;
   clearHistory: () => Promise<void>;
   deleteCopyEvent: (id: string) => Promise<void>;
@@ -31,13 +32,18 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
   const [copyHistory, setCopyHistory] = useState<CopyEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
   const [storageAdapter, setStorageAdapter] = useState<StorageAdapter | null>(null);
 
   const { user, loading: authLoading } = useAuth();
 
-  const loadCopyHistory = useCallback(async (adapter: StorageAdapter) => {
+  const loadCopyHistory = useCallback(async (adapter: StorageAdapter, silent = false) => {
     try {
-      setLoading(true);
+      if (silent) {
+        setIsBackgroundRefresh(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       const historyData = await adapter.copyEvents.getCopyEvents();
       setCopyHistory(historyData);
@@ -46,6 +52,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
       setError('Failed to load copy history');
     } finally {
       setLoading(false);
+      setIsBackgroundRefresh(false);
     }
   }, []);
 
@@ -73,7 +80,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
             }
 
             if (type === 'copyEvents') {
-              loadCopyHistory(adapter).catch((err) => {
+              loadCopyHistory(adapter, true).catch((err) => {
                 console.error('Failed to refresh copy history via subscription:', err);
               });
             }
@@ -96,7 +103,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
         unsubscribe();
       }
     };
-  }, [authLoading, user, loadCopyHistory]);
+  }, [authLoading, user?.id, loadCopyHistory]);
 
   useEffect(() => {
     if (!storageAdapter) {
@@ -173,6 +180,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
       copyHistory,
       loading,
       error,
+      isBackgroundRefresh,
       addCopyEvent,
       clearHistory,
       deleteCopyEvent,

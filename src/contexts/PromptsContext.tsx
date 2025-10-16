@@ -8,6 +8,7 @@ interface PromptsContextType {
   prompts: Prompt[];
   loading: boolean;
   error: string | null;
+  isBackgroundRefresh: boolean;
   addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
   updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
   deletePrompt: (id: string) => Promise<void>;
@@ -35,15 +36,20 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
   const [stats, setStats] = useState(defaultStats);
   const [statsLoading, setStatsLoading] = useState(true);
   const [storageAdapter, setStorageAdapter] = useState<StorageAdapter | null>(null);
 
   const { user, loading: authLoading } = useAuth();
 
-  const loadPrompts = useCallback(async (adapter: StorageAdapter) => {
+  const loadPrompts = useCallback(async (adapter: StorageAdapter, silent = false) => {
     try {
-      setLoading(true);
+      if (silent) {
+        setIsBackgroundRefresh(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       const promptsData = await adapter.prompts.getPrompts();
       setPrompts(
@@ -57,6 +63,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setError('Failed to load prompts');
     } finally {
       setLoading(false);
+      setIsBackgroundRefresh(false);
     }
   }, []);
 
@@ -96,7 +103,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
             }
 
             if (type === 'prompts') {
-              loadPrompts(adapter).catch((err) => {
+              loadPrompts(adapter, true).catch((err) => {
                 console.error('Failed to refresh prompts via subscription:', err);
               });
             } else if (type === 'copyEvents' || type === 'stats') {
@@ -123,7 +130,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
         unsubscribe();
       }
     };
-  }, [authLoading, user, loadPrompts, loadStats]);
+  }, [authLoading, user?.id, loadPrompts, loadStats]);
 
   useEffect(() => {
     if (!storageAdapter) {
@@ -278,6 +285,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       prompts,
       loading,
       error,
+      isBackgroundRefresh,
       addPrompt,
       updatePrompt,
       deletePrompt,
