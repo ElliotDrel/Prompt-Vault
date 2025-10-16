@@ -153,10 +153,37 @@ import { supabase } from '@/lib/supabaseClient';
 - **NEVER import storage adapters directly** - always use contexts
 - **Context Pattern**: `usePromptsContext()`, `useCopyHistoryContext()`, `useAuth()`
 
+## Additional Implementation Patterns
+
+### Overlay UI (Syntax Highlighting)
+- Use `color: transparent !important` in CSS for overlay text (browser `<mark>` defaults override parent classes)
+- Both layers must have identical font, padding, line-height for pixel-perfect alignment
+- Synchronize scroll between background and foreground layers
+
+### String Normalization
+- Normalize consistently across ALL comparison points: `.replace(/[\s_]+/g, '').toLowerCase()`
+- Grep for all locations where string type is compared and update together
+- Centralize normalization in utilities, don't scatter it
+
+### One-Time Dialogs
+- Use session-scoped flag: `const [hasShown, setHasShown] = useState(false)`
+- Reset flag when modal opens in `useEffect(() => { if (isOpen) setHasShown(false) }, [isOpen])`
+- Check flag before showing to prevent spam
+
+### Debug Logging
+- Remove all `console.log` before commit unless feature-flagged
+- Search codebase for `console.log/warn/error` before finishing
+- Console should only show actionable warnings in production
+
+### AnimatePresence Keys
+- Always provide explicit `key` props on `motion.div` children: `<motion.div key="backdrop" />`
+- Render auxiliary dialogs outside `AnimatePresence` blocks to avoid key conflicts
+
 ## Lint & Tooling
 - Use `type Foo = Bar` instead of empty interfaces
 - ESM required: use `import` not `require()` in config files
 - Fast Refresh warnings are acknowledged
+- **CRITICAL**: Always read `package.json`, `vite.config.ts`, etc. BEFORE assuming problems
 
 ## Supabase Integration Status
 **Architecture**: Hybrid storage (Supabase + localStorage fallback)
@@ -251,6 +278,11 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - Real-time prompt synchronization
 - Copy history tracking
 - Pin/unpin functionality
+- Variable highlighting in prompt editor
+  - Color-coded variable references
+  - Case-insensitive matching
+  - Undefined variable detection with auto-add dialog
+  - Overlay-based syntax highlighting
 
 **🔄 Current Focus**:
 - Testing & quality assurance
