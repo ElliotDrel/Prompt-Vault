@@ -198,7 +198,10 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
               transition={{ duration: 0.3, delay: 0.1 }}
               className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg"
             >
-              ?o" Copied successfully
+              <div className="flex items-center gap-1">
+                <Check className="h-3 w-3 text-white" aria-hidden="true" />
+                <span>Copied successfully</span>
+              </div>
             </motion.div>
           </motion.div>
         )}
