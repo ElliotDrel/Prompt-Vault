@@ -358,7 +358,23 @@ export class SupabaseAdapter implements StorageAdapter {
         });
 
       this.channel = channel;
-      await channel.subscribe();
+
+      // Subscribe with status callback to ensure connection establishes
+      channel.subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Realtime subscription active');
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription error:', err);
+          console.error('Channel state:', channel);
+        }
+        if (status === 'TIMED_OUT') {
+          console.error('⏱️ Realtime subscription timed out');
+        }
+        if (status === 'CLOSED') {
+          console.warn('🔌 Realtime subscription closed');
+        }
+      });
     };
 
     setupSubscription().catch((err) => {
