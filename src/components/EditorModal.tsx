@@ -12,6 +12,7 @@ import { usePrompts } from '@/contexts/PromptsContext';
 import toast from 'react-hot-toast';
 import { HighlightedTextarea } from './HighlightedTextarea';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK, parseVariableReferences } from '@/utils/colorUtils';
+import { normalizeVariableName } from '@/config/variableRules';
 import { sanitizeVariables } from '@/utils/variableUtils';
 
 interface EditorModalProps {
@@ -55,11 +56,8 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
       const undefinedVars: string[] = [];
 
       references.forEach(ref => {
-        const normalizedRef = ref.replace(/[\s_]+/g, '').toLowerCase();
-        const isDefined = variables.some(v => {
-          const normalizedVar = v.replace(/[\s_]+/g, '').toLowerCase();
-          return normalizedVar === normalizedRef;
-        });
+        const normalizedRef = normalizeVariableName(ref);
+        const isDefined = variables.some(v => normalizeVariableName(v) === normalizedRef);
 
         if (!isDefined && !undefinedVars.includes(ref)) {
           undefinedVars.push(ref);
