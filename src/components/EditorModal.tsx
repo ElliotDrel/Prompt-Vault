@@ -401,7 +401,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                         </li>
                         <li>
                           Colors show usage: vibrant chips (and matching highlights in the prompt text) mean the
-                          variable is referenced; grey chips mean it&apos;s defined here but not used yet.
+                          variable is referenced; grey chips mean it's defined here but not used yet.
                         </li>
                       </ul>
                     </TooltipContent>
