@@ -324,11 +324,30 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                   </Label>
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
+                      <Info
+                        className="h-4 w-4 text-muted-foreground cursor-help"
+                        onClick={(e) => e.preventDefault()}
+                        aria-label="How variables work"
+                      />
                     </TooltipTrigger>
-                     <TooltipContent side="right" className="max-w-xs">
-                       <p>Define variable names that can be used in your prompt with {`{variable}`} syntax.</p>
-                     </TooltipContent>
+                    <TooltipContent side="right" className="max-w-sm space-y-2 text-xs">
+                      <p className="font-medium text-foreground">Using variables in prompts</p>
+                      <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+                        <li>
+                          Add variables here exactly once per line. Use the same spelling inside your prompt with
+                          curly braces&mdash;for example <code>{`{firstName}`}</code>.
+                        </li>
+                        <li>
+                          When a variable wrapped in braces appears in the prompt, the vault replaces it inline when you
+                          copy the prompt. If the braces are missing, the variable&apos;s value is appended afterwards as
+                          <code>{`<VariableName>value</VariableName>`}</code> blocks.
+                        </li>
+                        <li>
+                          Colors show usage: vibrant chips (and matching highlights in the prompt text) mean the
+                          variable is referenced; grey chips mean it&apos;s defined here but not used yet.
+                        </li>
+                      </ul>
+                    </TooltipContent>
                   </Tooltip>
                 </div>
                 
