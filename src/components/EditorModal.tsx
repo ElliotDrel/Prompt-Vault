@@ -396,7 +396,7 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                         </li>
                         <li>
                           When a variable wrapped in braces appears in the prompt, the vault replaces it inline when you
-                          copy the prompt. If the braces are missing, the variable&apos;s value is appended afterwards as
+                          copy the prompt. If the braces are missing, the variable's value is appended afterwards as
                           <code>{`<firstName>value</firstName>`}</code> blocks.
                         </li>
                         <li>
