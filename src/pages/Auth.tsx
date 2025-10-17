@@ -67,7 +67,7 @@ export default function Auth() {
     setMessage('');
 
     try {
-      const redirectTo = `${window.location.origin}/auth`;
+      const redirectTo = typeof window !== 'undefined' ? window.location.href : undefined;
       const { error } = await signInWithEmail(email, redirectTo);
 
       if (error) {

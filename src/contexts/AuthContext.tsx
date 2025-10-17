@@ -47,10 +47,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithEmail = async (email: string, redirectTo?: string) => {
     try {
+      const fallbackRedirect =
+        typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: redirectTo || window.location.origin,
+          emailRedirectTo: redirectTo || fallbackRedirect,
         },
       });
       return { error };
