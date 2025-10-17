@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info, Plus, Trash2, Pin } from 'lucide-react';
 import { Prompt } from '@/types/prompt';
@@ -35,6 +35,10 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
   const [undefinedVariables, setUndefinedVariables] = useState<string[]>([]);
   const [showUndefinedDialog, setShowUndefinedDialog] = useState(false);
   const [hasShownUndefinedDialog, setHasShownUndefinedDialog] = useState(false);
+  const [isVariableTooltipOpen, setIsVariableTooltipOpen] = useState(false);
+  const [isVariableTooltipPinned, setIsVariableTooltipPinned] = useState(false);
+  const variableTooltipTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const variableTooltipContentRef = useRef<HTMLDivElement | null>(null);
 
   const isEditing = !!prompt;
 
@@ -219,6 +223,41 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
     );
   };
 
+  const handleVariableTooltipClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsVariableTooltipPinned((prev) => {
+      const nextPinned = !prev;
+      setIsVariableTooltipOpen(nextPinned);
+      return nextPinned;
+    });
+  };
+
+  useEffect(() => {
+    if (!isVariableTooltipPinned) {
+      return;
+    }
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        variableTooltipTriggerRef.current?.contains(target) ||
+        variableTooltipContentRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setIsVariableTooltipPinned(false);
+      setIsVariableTooltipOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+    };
+  }, [isVariableTooltipPinned]);
+
   const handleDismissUndefinedDialog = () => {
     setUndefinedVariables([]);
     setShowUndefinedDialog(false);
@@ -322,13 +361,50 @@ export function EditorModal({ isOpen, onClose, onSave, onDelete, prompt }: Edito
                   <Label className="text-sm font-medium">
                     Variables
                   </Label>
-                  <Tooltip delayDuration={0}>
+                  <Tooltip
+                    delayDuration={0}
+                    open={isVariableTooltipPinned || isVariableTooltipOpen}
+                    onOpenChange={(open) => {
+                      if (isVariableTooltipPinned) {
+                        setIsVariableTooltipOpen(true);
+                        return;
+                      }
+                      setIsVariableTooltipOpen(open);
+                    }}
+                  >
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" onClick={(e) => e.preventDefault()} />
+                      <button
+                        type="button"
+                        ref={variableTooltipTriggerRef}
+                        onClick={handleVariableTooltipClick}
+                        className="p-0 h-4 w-4 text-muted-foreground cursor-help inline-flex items-center justify-center"
+                        aria-label="How variables work"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button>
                     </TooltipTrigger>
-                     <TooltipContent side="right" className="max-w-xs">
-                       <p>Define variable names that can be used in your prompt with {`{variable}`} syntax.</p>
-                     </TooltipContent>
+                    <TooltipContent
+                      ref={variableTooltipContentRef}
+                      side="right"
+                      className="max-w-sm space-y-2 text-xs"
+                    >
+                      <p className="font-medium text-foreground">Using variables in prompts</p>
+                      <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+                        <li>
+                          Add variables here exactly once per line. Use the same spelling inside your prompt with
+                          curly braces&mdash;for example <code>{`{firstName}`}</code>.
+                        </li>
+                        <li>
+                          When a variable wrapped in braces appears in the prompt, the vault replaces it inline when you
+                          copy the prompt. If the braces are missing, the variable&apos;s value is appended afterwards as
+                          <code>{`<VariableName>value</VariableName>`}</code> blocks.
+                        </li>
+                        <li>
+                          Colors show usage: vibrant chips (and matching highlights in the prompt text) mean the
+                          variable is referenced; grey chips mean it&apos;s defined here but not used yet.
+                        </li>
+                      </ul>
+                    </TooltipContent>
                   </Tooltip>
                 </div>
                 
