@@ -12,8 +12,8 @@ export const Navigation = () => {
       <div className="container mx-auto px-4 py-4">
         <nav className="flex space-x-4">
           <Button
-            variant={isActive('/') ? 'default' : 'ghost'}
-            onClick={() => navigate('/')}
+            variant={isActive('/dashboard') ? 'default' : 'ghost'}
+            onClick={() => navigate('/dashboard')}
             className="text-sm font-medium"
           >
             Dashboard
