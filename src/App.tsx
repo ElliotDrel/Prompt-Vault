@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import CopyHistory from "./pages/CopyHistory";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -38,11 +39,12 @@ const App = () => (
               />
               <Routes>
                 {/* Public routes */}
+                <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
 
                 {/* Protected routes */}
                 <Route
-                  path="/"
+                  path="/dashboard"
                   element={
                     <RequireAuth>
                       <Index />
