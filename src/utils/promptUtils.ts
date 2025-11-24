@@ -5,7 +5,6 @@ import {
   createVariableRegex,
   findMatchingVariable,
   formatAsXML,
-  isVariableReferenced,
   hasNearbyNonSpaceCharacters,
   extractVariableName,
 } from '@/config/variableRules';
@@ -13,14 +12,16 @@ import {
 export function buildPromptPayload(prompt: Prompt, variableValues: VariableValues): string {
   let payload = prompt.body;
 
-  const unreferencedVariables = prompt.variables.filter(
-    variable => !isVariableReferenced(variable, prompt.body)
-  );
-
   // Get all variable patterns in the body using centralized pattern
   const variableMatches = payload.match(new RegExp(VARIABLE_PATTERN.source, 'g')) || [];
   const referencedVariables = variableMatches.map(match => extractVariableName(match));
   const uniqueReferencedVariables = Array.from(new Set(referencedVariables));
+
+  const unreferencedVariables = prompt.variables.filter(variable => {
+    return !uniqueReferencedVariables.some(ref => {
+      return findMatchingVariable(ref, [variable]) !== undefined;
+    });
+  });
 
   if (uniqueReferencedVariables.length > 0) {
     // Replace {variable} with value or <variable>value</variable> based on proximity rule
@@ -49,10 +50,8 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
       .map(variable => formatAsXML(variable, variableValues[variable] || ''))
       .join('');
 
-    if (unreferencedXml) {
-      const separator = payload.endsWith('\n') ? '' : '\n';
-      payload = `${payload}${separator}${unreferencedXml}`;
-    }
+    const separator = payload.endsWith('\n') ? '' : '\n';
+    payload = `${payload}${separator}${unreferencedXml}`;
   }
 
   // Apply character guard - duplicate if exceeds limit
