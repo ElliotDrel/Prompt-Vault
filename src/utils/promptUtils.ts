@@ -7,6 +7,7 @@ import {
   formatAsXML,
   hasNearbyNonSpaceCharacters,
   extractVariableName,
+  variablesMatch,
 } from '@/config/variableRules';
 
 export function buildPromptPayload(prompt: Prompt, variableValues: VariableValues): string {
@@ -18,9 +19,7 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
   const uniqueReferencedVariables = Array.from(new Set(referencedVariables));
 
   const unreferencedVariables = prompt.variables.filter(variable => {
-    return !uniqueReferencedVariables.some(ref => {
-      return findMatchingVariable(ref, [variable]) !== undefined;
-    });
+    return !uniqueReferencedVariables.some(ref => variablesMatch(ref, variable));
   });
 
   if (uniqueReferencedVariables.length > 0) {
