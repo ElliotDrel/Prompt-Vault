@@ -5,13 +5,18 @@ import {
   createVariableRegex,
   findMatchingVariable,
   formatAsXML,
+  isVariableReferenced,
   hasNearbyNonSpaceCharacters,
   extractVariableName,
 } from '@/config/variableRules';
 
 export function buildPromptPayload(prompt: Prompt, variableValues: VariableValues): string {
   let payload = prompt.body;
-  
+
+  const unreferencedVariables = prompt.variables.filter(
+    variable => !isVariableReferenced(variable, prompt.body)
+  );
+
   // Get all variable patterns in the body using centralized pattern
   const variableMatches = payload.match(new RegExp(VARIABLE_PATTERN.source, 'g')) || [];
   const referencedVariables = variableMatches.map(match => extractVariableName(match));
@@ -37,20 +42,18 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
         }
       }
     });
-  } else {
-    // Append variables in XML format after the prompt
-    const xmlVariables = prompt.variables
-      .map(variable => {
-        const value = variableValues[variable] || '';
-        return formatAsXML(variable, value);
-      })
+  }
+
+  if (unreferencedVariables.length > 0) {
+    const unreferencedXml = unreferencedVariables
+      .map(variable => formatAsXML(variable, variableValues[variable] || ''))
       .join('');
-    
-    if (xmlVariables) {
-      payload = payload + ' ' + xmlVariables;
+
+    if (unreferencedXml) {
+      payload = payload + ' ' + unreferencedXml;
     }
   }
-  
+
   // Apply character guard - duplicate if exceeds limit
   if (payload.length > CHARACTER_LIMIT) {
     payload = payload + ' ' + payload;
