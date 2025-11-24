@@ -50,7 +50,8 @@ export function buildPromptPayload(prompt: Prompt, variableValues: VariableValue
       .join('');
 
     if (unreferencedXml) {
-      payload = payload + ' ' + unreferencedXml;
+      const separator = payload.endsWith('\n') ? '' : '\n';
+      payload = `${payload}${separator}${unreferencedXml}`;
     }
   }
 
