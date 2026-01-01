@@ -8,6 +8,7 @@ import { PromptsProvider } from "@/contexts/PromptsContext";
 import { CopyHistoryProvider } from "@/contexts/CopyHistoryContext";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Toaster as HotToaster } from 'react-hot-toast';
+import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import CopyHistory from "./pages/CopyHistory";
 import Auth from "./pages/Auth";
@@ -63,6 +64,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <Analytics />
             </CopyHistoryProvider>
           </PromptsProvider>
         </AuthProvider>
