@@ -156,6 +156,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
     const trimmedBody = body.trim();
 
     if (!trimmedTitle || !trimmedBody) {
+      toast.error('Title and body are required');
       return false;
     }
 
