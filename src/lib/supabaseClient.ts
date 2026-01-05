@@ -34,7 +34,6 @@ export type Database = {
           variables: string[];
           is_pinned: boolean;
           times_used: number;
-          time_saved_minutes: number;
           created_at: string;
           updated_at: string;
         };
@@ -46,7 +45,6 @@ export type Database = {
           variables?: string[];
           is_pinned?: boolean;
           times_used?: number;
-          time_saved_minutes?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -58,7 +56,6 @@ export type Database = {
           variables?: string[];
           is_pinned?: boolean;
           times_used?: number;
-          time_saved_minutes?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -92,6 +89,26 @@ export type Database = {
           created_at?: string;
         };
       };
+      user_settings: {
+        Row: {
+          user_id: string;
+          time_saved_multiplier: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          time_saved_multiplier?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          time_saved_multiplier?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       prompt_stats: {
@@ -99,8 +116,8 @@ export type Database = {
           user_id: string;
           total_prompts: number;
           total_copies: number;
-          time_saved_minutes: number;
           total_prompt_uses: number;
+          time_saved_multiplier: number;
         };
       };
     };

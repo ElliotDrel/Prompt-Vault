@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with the Prompt Vault codebase.
 
@@ -34,8 +34,11 @@ npx supabase migration new <name>
 # Apply migrations to remote database
 npx supabase db push
 
-# Generate TypeScript types from remote schema
-npx supabase gen types typescript --linked --schema public > src/types/supabase-generated.ts
+# Generate TypeScript types from remote schema (PowerShell-safe)
+npx supabase gen types typescript --linked --schema public | Out-File -Encoding utf8 src/types/supabase-generated.ts
+
+# If using bash/zsh instead:
+# npx supabase gen types typescript --linked --schema public > src/types/supabase-generated.ts
 
 # Pull remote schema changes (team collaboration)
 npx supabase db pull
@@ -62,6 +65,7 @@ npx supabase migration list
 **Command Hygiene**
 - Never suggest local Supabase commands in responses; use migrations or remote-safe fixes instead.
 - Keep docs/examples aligned with the remote-only workflow (no `npx supabase functions serve` references).
+- Ensure generated files are UTF-8 (PowerShell `>` writes UTF-16 and can break ESLint parsing).
 
 ## Architecture
 
@@ -154,17 +158,19 @@ npx supabase functions delete my-function
 ## Codex Agent Notes (2025-10-16)
 
 - When fixing placeholder substitution, adjust shared helpers (such as `createVariableRegex`) so every consumer stays consistent and proximity checks retain their matching semantics.
-- Keep sanitizers aligned with normalization rules—dedupe using `normalizeVariableName` (or an equivalent helper) to prevent hard-to-debug collisions during payload construction.
+- Keep sanitizers aligned with normalization rules; dedupe using `normalizeVariableName` (or an equivalent helper) to prevent hard-to-debug collisions during payload construction.
 - For layered UI components, audit both layers before tweaking styles; remove redundant decoration from background overlays instead of altering the interactive surface.
 - Large files can trigger command timeouts; use `Get-Content -TotalCount` or scoped `rg` queries to gather context quickly before editing.
+- PowerShell git refs like `@{upstream}` must be quoted (e.g., `"@{upstream}"`) to avoid hash literal parsing errors.
+- Quote triple-dot refs in PowerShell (e.g., `"BASE...HEAD"`) so `git diff` parses correctly.
+- For route-specific document titles, set them in the page component and reset to the default on unmount; avoid live updates unless explicitly required.
 - **Context dependencies**: Use primitive values (`user?.id`) not objects (`user`) to prevent re-renders on token refresh
 - **Background refresh**: Add optional `silent` parameter to load functions; use separate `loading` and `isBackgroundRefresh` flags
 - **Realtime subscriptions**: Always use silent mode for background updates to avoid spinner/unmount cycles
 
 ### Database Migration Best Practices:
-- **Handle Unicode/emojis carefully**: Test emoji storage in JSONB fields
-- **CRITICAL: Use ASCII-only in SQL files**: Unicode characters (✅⚠️) cause deployment failures
-- **Document object dependencies**: Track triggers → policies → functions → tables → enums for removal order
+- **Document object dependencies**: Track triggers -> policies -> functions -> tables -> enums for removal order
+- **Avoid double counting in views**: Pre-aggregate one-to-many tables before joining
 - **Test end-to-end workflows**: Ensure navigation works after database changes
 - **Use incremental migrations**: Separate schema changes from data fixes
 - **Always verify CLI is linked**: Check project connection before pushing migrations
@@ -181,7 +187,7 @@ npx supabase functions delete my-function
 - **Test**: Two tabs logged in, edit in Tab A, Tab B updates instantly
 
 ### Time Tracking Architecture (2026-01-04):
-- **Frontend calculation pattern**: Compute derived values (time saved = timesUsed × multiplier) in components, not database
+- **Frontend calculation pattern**: Compute derived values (time saved = timesUsed * multiplier) in components, not database
 - **Configurable multiplier**: Store multiplier in `user_settings` table, expose via `prompt_stats` view
 - **Reduced writes**: Only increment atomic counters (times_used), calculate aggregates on-demand
 - **Adapter consistency**: Both Supabase and localStorage adapters return multiplier in getStats()
@@ -286,7 +292,7 @@ import { supabase } from '@/lib/supabaseClient';
 ### String Normalization
 - Normalize consistently across ALL comparison points: `.replace(/[\s_]+/g, '').toLowerCase()`
 - Grep for all locations where string type is compared and update together
-- Centralize normalization in utilities, don't scatter it
+- Centralize normalization in utilities, do not scatter it
 
 ### One-Time Dialogs
 - Use session-scoped flag: `const [hasShown, setHasShown] = useState(false)`
@@ -329,7 +335,7 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - `prompt_stats` view: Aggregates total_prompts, total_copies, total_prompt_uses, time_saved_multiplier per user
 - RLS policies: Users can only access their own data
 
-**Time Tracking**: Frontend calculates time saved dynamically using `timesUsed × multiplier` instead of storing accumulated values
+**Time Tracking**: Frontend calculates time saved dynamically using `timesUsed * multiplier` instead of storing accumulated values
 
 **Auth Flow**: Magic-link email → `exchangeCodeForSession` → dashboard redirect
 
