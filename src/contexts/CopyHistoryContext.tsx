@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { CopyEvent } from '../types/prompt';
-import { createStorageAdapter, StorageAdapter } from '@/lib/storage';
-import { useAuth } from '@/contexts/AuthContext';
+import { StorageAdapter } from '@/lib/storage';
+import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
 
 interface CopyHistoryContextType {
   copyHistory: CopyEvent[];
@@ -33,9 +33,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
-  const [storageAdapter, setStorageAdapter] = useState<StorageAdapter | null>(null);
-
-  const { user, loading: authLoading } = useAuth();
+  const { adapter: storageAdapter, loading: adapterLoading, error: adapterError } = useStorageAdapterContext();
 
   const loadCopyHistory = useCallback(async (adapter: StorageAdapter, silent = false) => {
     try {
@@ -57,64 +55,48 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
   }, []);
 
   useEffect(() => {
-    if (authLoading) {
+    if (adapterError) {
+      setError(adapterError);
+    }
+  }, [adapterError]);
+
+  useEffect(() => {
+    if (adapterLoading || !storageAdapter?.subscribe) {
       return;
     }
 
     let isMounted = true;
-    let unsubscribe: (() => void) | undefined;
-
-    const initAdapter = async () => {
-      try {
-        const adapter = await createStorageAdapter();
-        if (!isMounted) {
-          return;
-        }
-
-        setStorageAdapter(adapter);
-
-        if (adapter.subscribe) {
-          unsubscribe = adapter.subscribe((type) => {
-            if (!isMounted) {
-              return;
-            }
-
-            if (type === 'copyEvents') {
-              loadCopyHistory(adapter, true).catch((err) => {
-                console.error('Failed to refresh copy history via subscription:', err);
-              });
-            }
-          });
-        }
-      } catch (err) {
-        if (!isMounted) {
-          return;
-        }
-        console.error('Failed to initialize storage adapter:', err);
-        setError('Failed to initialize storage');
+    const unsubscribe = storageAdapter.subscribe((type) => {
+      if (!isMounted) {
+        return;
       }
-    };
 
-    initAdapter();
+      if (type === 'copyEvents') {
+        loadCopyHistory(storageAdapter, true).catch((err) => {
+          console.error('Failed to refresh copy history via subscription:', err);
+        });
+      }
+    });
 
     return () => {
       isMounted = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribe();
     };
-  }, [authLoading, user?.id, loadCopyHistory]);
+  }, [adapterLoading, storageAdapter, loadCopyHistory]);
 
   useEffect(() => {
     if (!storageAdapter) {
       setCopyHistory([]);
       return;
     }
+    if (adapterLoading) {
+      return;
+    }
 
     loadCopyHistory(storageAdapter).catch((err) => {
       console.error('Failed to load copy history for adapter:', err);
     });
-  }, [storageAdapter, loadCopyHistory]);
+  }, [adapterLoading, storageAdapter, loadCopyHistory]);
 
   const addCopyEvent = useCallback(async (event: Omit<CopyEvent, 'id' | 'timestamp'>) => {
     if (!storageAdapter) {

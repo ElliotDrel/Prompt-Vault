@@ -6,6 +6,7 @@ import { createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterPro
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PromptsProvider } from "@/contexts/PromptsContext";
 import { CopyHistoryProvider } from "@/contexts/CopyHistoryContext";
+import { StorageAdapterProvider } from "@/contexts/StorageAdapterContext";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Analytics } from "@vercel/analytics/react";
@@ -96,11 +97,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <PromptsProvider>
-          <CopyHistoryProvider>
-            <RouterProvider router={router} />
-          </CopyHistoryProvider>
-        </PromptsProvider>
+        <StorageAdapterProvider>
+          <PromptsProvider>
+            <CopyHistoryProvider>
+              <RouterProvider router={router} />
+            </CopyHistoryProvider>
+          </PromptsProvider>
+        </StorageAdapterProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
