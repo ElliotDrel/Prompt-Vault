@@ -1,0 +1,25 @@
+name: CLAUDE.md and AGENTS.md Sync
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify-sync:
+    name: CLAUDE.md and AGENTS.md Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify sync
+        run: npm run check-sync:agents
+
