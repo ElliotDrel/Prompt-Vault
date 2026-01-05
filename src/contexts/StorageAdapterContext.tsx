@@ -27,6 +27,15 @@ export function StorageAdapterProvider({ children }: { children: React.ReactNode
       };
     }
 
+    if (!userId) {
+      setAdapter(null);
+      setError(null);
+      setLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
     setLoading(true);
     setError(null);
     setAdapter(null);
@@ -34,6 +43,11 @@ export function StorageAdapterProvider({ children }: { children: React.ReactNode
     createStorageAdapter()
       .then((nextAdapter) => {
         if (!isMounted) {
+          return;
+        }
+        if (!nextAdapter) {
+          setError('Failed to initialize storage');
+          setAdapter(null);
           return;
         }
         setAdapter(nextAdapter);

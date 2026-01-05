@@ -1,13 +1,12 @@
 import { StorageAdapter } from './types';
-import { LocalStorageAdapter } from './localStorageAdapter';
 import { SupabaseAdapter } from './supabaseAdapter';
 import { getCurrentUserId } from '@/lib/supabaseClient';
 
 /**
  * Factory function to create the appropriate storage adapter
- * Returns Supabase adapter for authenticated users, localStorage for anonymous users
+ * Returns Supabase adapter for authenticated users
  */
-export async function createStorageAdapter(): Promise<StorageAdapter> {
+export async function createStorageAdapter(): Promise<StorageAdapter | null> {
   try {
     const userId = await getCurrentUserId();
 
@@ -21,11 +20,10 @@ export async function createStorageAdapter(): Promise<StorageAdapter> {
       }
     }
   } catch (error) {
-    console.warn('Failed to initialize Supabase adapter, falling back to localStorage:', error);
+    console.warn('Failed to initialize Supabase adapter:', error);
   }
 
-  // Fall back to localStorage for anonymous users or if Supabase fails
-  return new LocalStorageAdapter();
+  return null;
 }
 
 /**
@@ -39,5 +37,4 @@ export function useStorageAdapter() {
 
 // Re-export types and adapters for convenience
 export * from './types';
-export { LocalStorageAdapter } from './localStorageAdapter';
 export { SupabaseAdapter } from './supabaseAdapter';
