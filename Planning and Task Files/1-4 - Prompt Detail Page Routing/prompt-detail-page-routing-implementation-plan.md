@@ -6,17 +6,17 @@
 
 ## 🎯 Project Goal
 
-Replace the modal-based prompt editing flow with dedicated page routes, enabling direct URL access to prompts at `/dashboard/{promptId}` and `/dashboard/new` while maintaining all existing functionality and authentication requirements.
+Replace the modal-based prompt editing flow with dedicated page routes, enabling direct URL access to prompts at `/dashboard/prompt/{promptId}` and `/dashboard/prompt/new` while maintaining all existing functionality and authentication requirements.
 
 ---
 
 ## 📋 Requirements
 
 ### User Experience
-- **Edit Route (`/dashboard/:promptId`)**: Full-page editor for existing prompts
-- **Create Route (`/dashboard/new`)**: Full-page editor for new prompts
+- **Edit Route (`/dashboard/prompt/:promptId`)**: Full-page editor for existing prompts
+- **Create Route (`/dashboard/prompt/new`)**: Full-page editor for new prompts
 - **After Save (Edit)**: Stay on the detail page
-- **After Save (Create)**: Navigate to `/dashboard/{newId}`
+- **After Save (Create)**: Navigate to `/dashboard/prompt/{newId}`
 - **After Delete**: Navigate back to `/dashboard`
 - **Ownership**: Only the authenticated prompt owner can access their prompts
 
@@ -34,13 +34,13 @@ Replace the modal-based prompt editing flow with dedicated page routes, enabling
 | Route | Component | Access | Description |
 |-------|-----------|--------|-------------|
 | `/dashboard` | Dashboard | Protected | Prompt list with search/sort |
-| `/dashboard/new` | PromptDetail | Protected | Create new prompt |
-| `/dashboard/:promptId` | PromptDetail | Protected | Edit existing prompt |
+| `/dashboard/prompt/new` | PromptDetail | Protected | Create new prompt |
+| `/dashboard/prompt/:promptId` | PromptDetail | Protected | Edit existing prompt |
 
 ### Component Flow
-- **Dashboard** → Click "Create Prompt" → Navigate to `/dashboard/new`
-- **Dashboard** → Click PromptCard → Navigate to `/dashboard/{id}`
-- **PromptDetail** → Save (create mode) → Navigate to `/dashboard/{newId}`
+- **Dashboard** → Click "Create Prompt" → Navigate to `/dashboard/prompt/new`
+- **Dashboard** → Click PromptCard → Navigate to `/dashboard/prompt/{id}`
+- **PromptDetail** → Save (create mode) → Navigate to `/dashboard/prompt/{newId}`
 - **PromptDetail** → Save (edit mode) → Stay on page
 - **PromptDetail** → Delete → Navigate to `/dashboard`
 
@@ -51,7 +51,7 @@ Replace the modal-based prompt editing flow with dedicated page routes, enabling
 ### `src/pages/PromptDetail.tsx`
 New page component that serves both create and edit modes:
 - Extract `promptId` from URL params using `useParams()`
-- Determine mode: `promptId === 'new'` → create mode, otherwise edit mode
+- Determine mode: `location.pathname.endsWith('/new')` → create mode, otherwise edit mode
 - For edit: find prompt from context's `prompts` array
 - Handle loading state while prompts fetch
 - Handle "not found" state (invalid ID or unauthorized)
@@ -73,8 +73,8 @@ Refactored from `EditorModal.tsx` for full-page use:
 
 ### `src/App.tsx`
 Add new protected routes before the catch-all:
-- `/dashboard/new` route (must come before `:promptId` to avoid "new" being treated as ID)
-- `/dashboard/:promptId` route
+- `/dashboard/prompt/new` route (must come before `:promptId` to avoid "new" being treated as ID)
+- `/dashboard/prompt/:promptId` route
 - Both wrapped in `<RequireAuth>`
 - Import new `PromptDetail` page component
 
@@ -89,8 +89,8 @@ Remove modal state and update to navigation:
 - Remove state: `isModalOpen`, `editingPrompt`
 - Remove handlers: `handleEditPrompt`, `handleCloseModal`, `handleSavePrompt`
 - Remove import and usage of `EditorModal`
-- Update "Create Prompt" buttons to call `navigate('/dashboard/new')`
-- Update `PromptCard` onClick to call `navigate(`/dashboard/${prompt.id}`)`
+- Update "Create Prompt" buttons to call `navigate('/dashboard/prompt/new')`
+- Update `PromptCard` onClick to call `navigate(`/dashboard/prompt/${prompt.id}`)`
 
 ### `src/components/Navigation.tsx`
 Update active state highlighting:
@@ -110,14 +110,14 @@ Update active state highlighting:
 
 ### Phase 2: Create Page Component
 1. Create `src/pages/PromptDetail.tsx`
-2. Implement mode detection (`promptId === 'new'`)
+2. Implement mode detection (`location.pathname.endsWith('/new')`)
 3. Implement prompt lookup from context for edit mode
 4. Add loading and "not found" states
 5. Wire up `PromptEditor` with appropriate props
 
 ### Phase 3: Update Routes
 1. Add new routes to `src/App.tsx`
-2. Ensure route order: `/dashboard/new` before `/dashboard/:promptId`
+2. Ensure route order: `/dashboard/prompt/new` before `/dashboard/prompt/:promptId`
 3. Verify routes are protected by `RequireAuth`
 
 ### Phase 4: Update Context
@@ -144,14 +144,14 @@ Update active state highlighting:
 ## ✅ Testing Checklist
 
 ### Routing Tests
-- [ ] `/dashboard/new` renders create form (no pre-filled data)
-- [ ] `/dashboard/{validId}` renders edit form with prompt data
-- [ ] `/dashboard/{invalidId}` shows "not found" state
+- [ ] `/dashboard/prompt/new` renders create form (no pre-filled data)
+- [ ] `/dashboard/prompt/{validId}` renders edit form with prompt data
+- [ ] `/dashboard/prompt/{invalidId}` shows "not found" state
 - [ ] Direct URL access respects authentication (redirects to `/auth`)
 
 ### Create Flow Tests
 - [ ] Creating prompt saves successfully
-- [ ] After create, URL changes to `/dashboard/{newId}`
+- [ ] After create, URL changes to `/dashboard/prompt/{newId}`
 - [ ] New prompt appears in dashboard list
 
 ### Edit Flow Tests
@@ -209,8 +209,8 @@ If issues arise:
 
 ### Functional
 - Public dashboard shows prompt list at `/dashboard`
-- Create flow works end-to-end at `/dashboard/new`
-- Edit flow works end-to-end at `/dashboard/{id}`
+- Create flow works end-to-end at `/dashboard/prompt/new`
+- Edit flow works end-to-end at `/dashboard/prompt/{id}`
 - Delete navigates back to dashboard
 - All existing editor features work (variables, dialogs, pin)
 
@@ -234,7 +234,7 @@ If issues arise:
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Create flow | `/dashboard/new` route | Consistent page-based approach |
+| Create flow | `/dashboard/prompt/new` route | Consistent page-based approach |
 | After save (edit) | Stay on page | User preference |
 | After save (create) | Navigate to new ID | Enable continued editing |
 | After delete | Navigate to dashboard | Natural flow back to list |
@@ -262,7 +262,7 @@ If issues arise:
 ## ✨ Future Enhancements (Not in Scope)
 
 - Shareable public prompt URLs (read-only view for non-owners)
-- Prompt versioning with history at `/dashboard/{id}/history`
+- Prompt versioning with history at `/dashboard/prompt/{id}/history`
 - Duplicate prompt action
 - Keyboard shortcuts for save/cancel
 - Auto-save drafts

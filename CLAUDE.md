@@ -23,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 #### One-Time Setup
 ```bash
 # Link CLI to remote Supabase project (run once per machine)
-npx supabase link --project-ref snugknkrthyuizoytxop
+npx supabase link --project-ref hupdhjdasqgfcabaiiwa
 ```
 
 #### Daily Workflow
@@ -85,7 +85,7 @@ npx supabase migration list
 - Helper functions provided for common auth operations
 - **Remote-only development**: CLI operates against hosted Supabase project
 - Migrations stored in `supabase/migrations/` and applied via `npx supabase db push`
-- Project ref: `snugknkrthyuizoytxop` (configured in `.mcp.json` for MCP server)
+- Project ref: `hupdhjdasqgfcabaiiwa` (configured in `.mcp.json` for MCP server)
 
 ### Supabase MCP Server (Model Context Protocol)
 
@@ -97,7 +97,7 @@ npx supabase migration list
   "mcpServers": {
     "supabase": {
       "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=snugknkrthyuizoytxop"
+      "url": "https://mcp.supabase.com/mcp?project_ref=hupdhjdasqgfcabaiiwa"
     }
   }
 }
@@ -111,7 +111,7 @@ npx supabase migration list
 - If MCP connects to wrong project, check `~/.claude.json` for global `mcpServers` config
 - Global config overrides project `.mcp.json` - remove global config to use project config
 - Restart Claude Code after changing `.mcp.json`
-- Verify connection: MCP tools should show project ref `snugknkrthyuizoytxop`
+- Verify connection: MCP tools should show project ref `hupdhjdasqgfcabaiiwa`
 
 ### Edge Functions Development
 
@@ -140,7 +140,7 @@ npx supabase functions deploy my-function
 
 # 4. Test the deployed function
 curl -i --location --request POST \
-  'https://snugknkrthyuizoytxop.supabase.co/functions/v1/my-function' \
+  'https://hupdhjdasqgfcabaiiwa.supabase.co/functions/v1/my-function' \
   --header 'Authorization: Bearer YOUR_ANON_KEY' \
   --header 'Content-Type: application/json' \
   --data '{"key":"value"}'
