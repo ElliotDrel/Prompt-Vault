@@ -16,7 +16,8 @@ interface PromptsContextType {
   stats: {
     totalPrompts: number;
     totalCopies: number;
-    timeSavedMinutes: number;
+    totalPromptUses: number;
+    timeSavedMultiplier: number;
   };
   statsLoading: boolean;
   incrementCopyCount: () => Promise<void>;
@@ -29,7 +30,8 @@ const PromptsContext = createContext<PromptsContextType | undefined>(undefined);
 const defaultStats = {
   totalPrompts: 0,
   totalCopies: 0,
-  timeSavedMinutes: 0,
+  totalPromptUses: 0,
+  timeSavedMultiplier: 5,
 };
 
 export function PromptsProvider({ children }: { children: React.ReactNode }) {

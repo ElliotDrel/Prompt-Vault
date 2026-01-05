@@ -6,7 +6,6 @@ export interface Prompt {
   updatedAt: string;
   isPinned?: boolean;
   timesUsed?: number;
-  timeSavedMinutes?: number;
 }
 
 export interface VariableValues {
