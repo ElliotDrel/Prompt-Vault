@@ -3,6 +3,9 @@
 
 # Auto-sync AGENTS.md from CLAUDE.md before commit
 if git diff --cached --name-only | grep -q "^CLAUDE.md$"; then
-  node scripts/sync-agents.cjs
+  if ! node scripts/sync-agents.cjs; then
+    echo "Error: Failed to sync AGENTS.md from CLAUDE.md. Aborting commit." >&2
+    exit 1
+  fi
   git add AGENTS.md
 fi
