@@ -15,9 +15,6 @@ dist-ssr
 # Environment Variables
 .env
 
-# Claude Seetings
-settings.local.json
-
 # Lock Files
 package-lock.json
 
