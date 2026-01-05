@@ -16,10 +16,140 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - Making assumptions about missing tools that actually exist
 - Implementing solutions that conflict with existing architecture
 
-**Core Rules:**
-- **CLI-First Rule**: Research CLI automation capabilities thoroughly before recommending manual steps
-- **Documentation-First Rule**: Use Context7 MCP (`mcp__context7__resolve-library-id` → `mcp__context7__get-library-docs`) for current library docs
-- **Template Validation Rule**: Always validate generated code against specific technology choices
+### Supabase Remote Development
+
+**CRITICAL**: This project uses **REMOTE-ONLY** Supabase development. **NO local Docker or `supabase start` commands.**
+
+#### One-Time Setup
+```bash
+# Link CLI to remote Supabase project (run once per machine)
+npx supabase link --project-ref snugknkrthyuizoytxop
+```
+
+#### Daily Workflow
+```bash
+# Create migration
+npx supabase migration new <name>
+
+# Apply migrations to remote database
+npx supabase db push
+
+# Generate TypeScript types from remote schema
+npx supabase gen types typescript --linked --schema public > src/types/supabase-generated.ts
+
+# Pull remote schema changes (team collaboration)
+npx supabase db pull
+
+# List migration status
+npx supabase migration list
+```
+
+#### Forbidden Commands
+```bash
+❌ npx supabase start                        # NO local Docker
+❌ npx supabase stop                         # NO local services
+❌ npx supabase db reset                     # NO local reset
+❌ npx supabase gen types typescript --local # NO local types
+❌ npx supabase functions serve              # NO local functions
+```
+
+**Why Remote-Only?**
+- No Docker dependency (Windows compatibility)
+- Version-controlled migrations
+- No local/remote schema drift
+- Direct deployment to production environment
+
+**Command Hygiene**
+- Never suggest local Supabase commands in responses; use migrations or remote-safe fixes instead.
+- Keep docs/examples aligned with the remote-only workflow (no `npx supabase functions serve` references).
+
+## Architecture
+
+### Authentication Flow
+- Uses Supabase Auth with email magic links (OTP)
+- `AuthContext` (`src/contexts/AuthContext.tsx`) provides centralized auth state management
+- Auth state persists across sessions and auto-refreshes tokens
+- Token refresh events should not trigger data reloads; expose a stable `authUserId` and use it for data contexts and realtime filters
+- Protected routes use `RequireAuth` component to enforce authentication (`src/components/auth/RequireAuth.tsx`)
+- Magic link redirects include code exchange handled in `AuthContext.exchangeCodeForSession()`
+
+### Routing Structure
+- `BrowserRouter` wraps entire app
+- Routes: `/` (Landing - public), `/auth` (Auth - public), `/dashboard` (Dashboard - protected), `/history` (Copy History - protected), `*` (NotFound)
+- All routes wrapped in `AuthProvider` for consistent auth state
+- Protected routes use `RequireAuth` component to enforce authentication
+
+### Supabase Integration
+- Client configured in `src/lib/supabaseClient.ts` with environment variable validation
+- Environment variables required: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+- Helper functions provided for common auth operations
+- **Remote-only development**: CLI operates against hosted Supabase project
+- Migrations stored in `supabase/migrations/` and applied via `npx supabase db push`
+- Project ref: `snugknkrthyuizoytxop` (configured in `.mcp.json` for MCP server)
+
+### Supabase MCP Server (Model Context Protocol)
+
+**What it is**: Development tool for exploring and querying the Supabase database during development.
+
+**Configuration**: Project-specific `.mcp.json` in repository root:
+```json
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=snugknkrthyuizoytxop"
+    }
+  }
+}
+```
+
+**When to Use MCP vs CLI**:
+- ✅ **Use MCP for**: Schema exploration, quick queries, debugging, drafting migrations
+- ✅ **Use CLI for**: Production deployments, applying migrations, generating types, managing secrets
+
+**Troubleshooting**:
+- If MCP connects to wrong project, check `~/.claude.json` for global `mcpServers` config
+- Global config overrides project `.mcp.json` - remove global config to use project config
+- Restart Claude Code after changing `.mcp.json`
+- Verify connection: MCP tools should show project ref `snugknkrthyuizoytxop`
+
+### Edge Functions Development
+
+**CRITICAL**: Edge Functions follow the **REMOTE-ONLY** development pattern. **NO local testing with Docker.**
+
+#### File Structure
+```
+supabase/functions/
+  _shared/              # Shared utilities (imported by all functions)
+    claude.ts          # Claude API utility
+    types.ts           # Shared type definitions
+    README.md          # Documentation
+  function-name/
+    index.ts           # Function entry point
+```
+
+#### Development Workflow
+```bash
+# 1. Create function directory
+mkdir -p supabase/functions/my-function
+
+# 2. Create index.ts with function logic
+
+# 3. Deploy to remote (this is your "test")
+npx supabase functions deploy my-function
+
+# 4. Test the deployed function
+curl -i --location --request POST \
+  'https://snugknkrthyuizoytxop.supabase.co/functions/v1/my-function' \
+  --header 'Authorization: Bearer YOUR_ANON_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{"key":"value"}'
+
+# 5. Iterate: edit code, deploy, test
+
+# 6. Delete function when no longer needed
+npx supabase functions delete my-function
+```
 
 ## Codex Agent Notes (2025-10-16)
 
@@ -31,40 +161,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - **Background refresh**: Add optional `silent` parameter to load functions; use separate `loading` and `isBackgroundRefresh` flags
 - **Realtime subscriptions**: Always use silent mode for background updates to avoid spinner/unmount cycles
 
-## ⚠️ CRITICAL: Supabase Development Workflow
-
-**CLI-Only Development Rule**: This project uses Supabase CLI exclusively for schema and configuration management against the deployed/hosted Supabase project. **NO local Docker setup or `supabase start` commands.**
-
-### Required Supabase Workflow:
-1. **Project Management**: Work against deployed Supabase projects only
-2. **Configuration**: All auth settings, database schema, and project config managed via `supabase/config.toml`
-3. **Deployment**: Use `supabase db push` to deploy changes to remote project
-4. **No Local Services**: Never use `supabase start`, Docker containers, or local database instances
-
-### CLI Commands for Development:
-```bash
-# Project setup (run with npx prefix)
-npx supabase init                    # Initialize config files
-npx supabase login                   # Authenticate with Supabase
-npx supabase link --project-ref <id> # Link to hosted project
-
-# Configuration management
-npx supabase db push                 # Deploy local config to remote
-npx supabase db pull                 # Pull remote config changes
-npx supabase validate               # Validate config before deployment
-npx supabase status                 # Verify CLI is linked before pushing
-
-# Migration management
-npx supabase migrate new name_here   # Create new migration
-npx supabase gen types typescript --linked --schema public > src/lib/database.types.ts
-
-# Auth configuration via config.toml only
-# Database schema via migrations only
-# No dashboard clicking for configuration
-```
-
 ### Database Migration Best Practices:
-- **Use modern PostgreSQL functions**: `gen_random_uuid()` instead of `uuid_generate_v4()`
 - **Handle Unicode/emojis carefully**: Test emoji storage in JSONB fields
 - **CRITICAL: Use ASCII-only in SQL files**: Unicode characters (✅⚠️) cause deployment failures
 - **Document object dependencies**: Track triggers → policies → functions → tables → enums for removal order
