@@ -42,5 +42,5 @@ export interface StorageAdapter {
   isReady(): Promise<boolean>;
 
   // Get adapter type
-  getType(): 'localStorage' | 'supabase';
+  getType(): 'supabase';
 }

@@ -317,7 +317,7 @@ export class SupabaseAdapter implements StorageAdapter {
     }
   }
 
-  getType(): 'localStorage' | 'supabase' {
+  getType(): 'supabase' {
     return 'supabase';
   }
 
