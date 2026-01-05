@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { usePrompts } from '@/contexts/PromptsContext';
 import toast from 'react-hot-toast';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
+import { copyToClipboard } from '@/utils/promptUtils';
 
 interface PromptViewProps {
   prompt: Prompt;
@@ -40,8 +41,13 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     }
   };
 
-  const handleCopyBody = () => {
-    navigator.clipboard.writeText(prompt.body);
+  const handleCopyBody = async () => {
+    const success = await copyToClipboard(prompt.body);
+    if (!success) {
+      toast.error('Failed to copy to clipboard');
+      return;
+    }
+
     toast.success('Prompt copied to clipboard');
   };
 
