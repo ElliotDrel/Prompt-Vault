@@ -38,6 +38,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   const [isVariableTooltipPinned, setIsVariableTooltipPinned] = useState(false);
   const variableTooltipTriggerRef = useRef<HTMLButtonElement | null>(null);
   const variableTooltipContentRef = useRef<HTMLDivElement | null>(null);
+  const isMountedRef = useRef(true);
 
   const isEditing = mode === 'edit';
 
@@ -80,6 +81,13 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   }, [body, variables, hasShownUndefinedDialog]);
 
   // Initialize form when component mounts or prompt changes
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (mode === 'edit' && prompt) {
       const sanitizedVars = sanitizeVariables(prompt.variables ?? []);
@@ -150,12 +158,14 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
         variables: sanitizedVars,
       });
 
-      // Update original data to reflect the save
-      setOriginalData({
-        title: trimmedTitle,
-        body: trimmedBody,
-        variables: sanitizedVars
-      });
+      if (isMountedRef.current) {
+        // Update original data to reflect the save
+        setOriginalData({
+          title: trimmedTitle,
+          body: trimmedBody,
+          variables: sanitizedVars
+        });
+      }
 
       // Call success callback if provided
       if (onSaveSuccess && prompt) {

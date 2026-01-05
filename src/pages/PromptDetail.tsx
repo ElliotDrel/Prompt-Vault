@@ -22,9 +22,8 @@ export default function PromptDetail() {
 
   // Sync editing state when route changes
   useEffect(() => {
-    console.log('PromptDetail Debug:', { pathname: location.pathname, promptId, isCreating, isEditing });
     setIsEditing(isCreating);
-  }, [isCreating, location.pathname, promptId, isEditing]);
+  }, [isCreating, promptId]);
 
   const mode = isCreating ? 'create' : 'edit';
 
