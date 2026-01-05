@@ -78,10 +78,11 @@ npx supabase migration list
 - Magic link redirects include code exchange handled in `AuthContext.exchangeCodeForSession()`
 
 ### Routing Structure
-- `BrowserRouter` wraps entire app
-- Routes: `/` (Landing - public), `/auth` (Auth - public), `/dashboard` (Dashboard - protected), `/history` (Copy History - protected), `*` (NotFound)
+- Uses React Router data router API with `createBrowserRouter` and `RouterProvider`
+- Routes: `/` (Landing - public), `/auth` (Auth - public), `/dashboard` (Dashboard - protected), `/dashboard/prompt/new` (New Prompt - protected), `/dashboard/prompt/:promptId` (Prompt Detail - protected), `/history` (Copy History - protected), `*` (NotFound)
+- `/dashboard` supports nested subroutes (for example, `/dashboard/prompt/...` workflows)
 - All routes wrapped in `AuthProvider` for consistent auth state
-- Protected routes use `RequireAuth` component to enforce authentication
+- Protected routes use `RequireAuth` component in the route configuration
 
 ### Supabase Integration
 - Client configured in `src/lib/supabaseClient.ts` with environment variable validation
@@ -167,6 +168,15 @@ npx supabase functions delete my-function
 - **Context dependencies**: Use primitive values (`user?.id`) not objects (`user`) to prevent re-renders on token refresh
 - **Background refresh**: Add optional `silent` parameter to load functions; use separate `loading` and `isBackgroundRefresh` flags
 - **Realtime subscriptions**: Always use silent mode for background updates to avoid spinner/unmount cycles
+
+## Codex Agent Notes (2026-01-05)
+
+- When editing `CLAUDE.md`, ensure `AGENTS.md` is synced (run `scripts/sync-agents.cjs` or update both files in the same change).
+- Keep routing docs aligned with `src/App.tsx` (data router API, nested `/dashboard` subroutes, and prompt detail routes).
+- Copy actions should consistently update stats and history via contexts; keep the clipboard payload unchanged.
+- Realtime teardown on `CHANNEL_ERROR`/`CLOSED` should trigger resubscribe for existing subscribers to avoid silent drops.
+- When de-duplicating adapter guards, use a shared helper and consider parallel updates in related contexts for consistency.
+- Avoid success logs in realtime handlers; keep console output to actionable errors only.
 
 ### Database Migration Best Practices:
 - **Document object dependencies**: Track triggers -> policies -> functions -> tables -> enums for removal order
