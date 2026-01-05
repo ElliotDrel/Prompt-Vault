@@ -1,14 +1,45 @@
-import React from 'react';
-import { ArrowLeft, Edit, Pin, Trash2, Copy } from 'lucide-react';
-import { Prompt } from '@/types/prompt';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, Edit, Pin, Trash2, Copy, Check } from 'lucide-react';
+import { Prompt, VariableValues } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import toast from 'react-hot-toast';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
-import { copyToClipboard } from '@/utils/promptUtils';
+import { copyToClipboard, buildPromptPayload } from '@/utils/promptUtils';
+import { sanitizeVariables } from '@/utils/variableUtils';
+
+// SessionStorage helpers for persisting variable inputs
+const STORAGE_KEY_PREFIX = 'prompt-variables-';
+
+const loadVariableValues = (promptId: string): VariableValues => {
+  try {
+    const stored = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}${promptId}`);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    // Gracefully degrade if sessionStorage is unavailable or data is corrupted
+    return {};
+  }
+};
+
+const saveVariableValues = (promptId: string, values: VariableValues): void => {
+  try {
+    sessionStorage.setItem(`${STORAGE_KEY_PREFIX}${promptId}`, JSON.stringify(values));
+  } catch {
+    // Ignore quota errors or privacy mode restrictions
+  }
+};
+
+const clearVariableValues = (promptId: string): void => {
+  try {
+    sessionStorage.removeItem(`${STORAGE_KEY_PREFIX}${promptId}`);
+  } catch {
+    // Ignore errors
+  }
+};
 
 interface PromptViewProps {
   prompt: Prompt;
@@ -20,7 +51,19 @@ interface PromptViewProps {
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
   const { stats, togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
+  const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
+  const [isCopied, setIsCopied] = useState(false);
+  const sanitizedVariables = useMemo(() => sanitizeVariables(prompt.variables), [prompt.variables]);
+  const sanitizedPrompt = useMemo(
+    () => ({ ...prompt, variables: sanitizedVariables }),
+    [prompt, sanitizedVariables]
+  );
   const variableColors = assignVariableColors(prompt.variables, prompt.body);
+
+  // Auto-save variable values to sessionStorage whenever they change
+  useEffect(() => {
+    saveVariableValues(prompt.id, variableValues);
+  }, [prompt.id, variableValues]);
 
   const formatTime = (minutes: number) => {
     if (minutes < 60) {
@@ -32,6 +75,13 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
   };
 
   const totalTimeSavedMinutes = (prompt.timesUsed || 0) * stats.timeSavedMultiplier;
+
+  const handleVariableChange = (variable: string, value: string) => {
+    setVariableValues((prev) => ({
+      ...prev,
+      [variable]: value,
+    }));
+  };
 
   const handlePin = async () => {
     try {
@@ -55,10 +105,11 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     }
   };
 
-  const handleCopyBody = async () => {
+  const handleCopy = async () => {
     try {
-      const copiedText = prompt.body;
-      const success = await copyToClipboard(copiedText);
+      const payload = buildPromptPayload(sanitizedPrompt, variableValues);
+      const success = await copyToClipboard(payload);
+
       if (!success) {
         toast.error('Failed to copy to clipboard');
         return;
@@ -72,11 +123,26 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       await addCopyEvent({
         promptId: prompt.id,
         promptTitle: prompt.title,
-        variableValues: {},
-        copiedText,
+        variableValues: { ...variableValues },
+        copiedText: payload,
       });
 
-      toast.success('Prompt copied to clipboard');
+      // Clear saved values after successful copy (transaction complete)
+      clearVariableValues(prompt.id);
+      setVariableValues({});
+
+      // Trigger visual feedback
+      setIsCopied(true);
+
+      // Reset visual feedback after delay
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 1500);
+
+      const message = payload.length > 50000
+        ? 'Copied (Prompt duplicated because limit exceeded)'
+        : 'Copied';
+      toast.success(message);
     } catch (err) {
       console.error('Failed to handle prompt copy:', err);
       toast.error('Failed to record copy event');
@@ -118,58 +184,92 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
           <div className="space-y-6">
             {/* Prompt body */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Prompt</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyBody}
-                  className="h-8"
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
-                </Button>
-              </div>
+              <Label className="text-sm font-medium">Prompt</Label>
               <div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap font-mono">
                 {prompt.body}
               </div>
             </div>
 
-            {/* Variables */}
-            {prompt.variables.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Variables</Label>
-                <div className="flex flex-wrap gap-2">
-                  {prompt.variables.map((variable, index) => {
-                    const color = variableColors.get(variable) || getGreyColor();
-                    const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
-                    const textColor = isGrey ? undefined : getContrastTextColor(color);
-
-                    return (
-                      <div
-                        key={`${variable || 'unnamed'}-${index}`}
-                        className={isGrey ? "px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground" : "px-3 py-1 rounded-full text-sm"}
-                        style={!isGrey ? { backgroundColor: color, color: textColor } : {}}
-                      >
-                        {variable}
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Variable inputs */}
+            {sanitizedVariables.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Fill Variables</Label>
+                {sanitizedVariables.map((variable) => (
+                  <div key={variable} className="space-y-1">
+                    <Label
+                      htmlFor={`${prompt.id}-${variable}`}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {variable}
+                    </Label>
+                    <Input
+                      id={`${prompt.id}-${variable}`}
+                      type="text"
+                      placeholder={`Enter ${variable}...`}
+                      value={variableValues[variable] || ''}
+                      onChange={(event) => handleVariableChange(variable, event.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* Metadata */}
-            <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
-              <div className="flex justify-between">
+            {/* Copy button */}
+            <Button
+              onClick={handleCopy}
+              className="w-full font-medium"
+            >
+              {isCopied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  {sanitizedVariables.length > 0 ? 'Copy with Variables' : 'Copy'}
+                </>
+              )}
+            </Button>
+
+            {/* Prompt Information */}
+            <div className="pt-4 border-t space-y-3">
+              <Label className="text-sm font-medium">Prompt Information</Label>
+
+              {/* Variables */}
+              {prompt.variables.length > 0 && (
+                <div className="space-y-2 text-sm">
+                  <span className="text-muted-foreground">Variables:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {prompt.variables.map((variable, index) => {
+                      const color = variableColors.get(variable) || getGreyColor();
+                      const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
+                      const textColor = isGrey ? undefined : getContrastTextColor(color);
+
+                      return (
+                        <div
+                          key={`${variable || 'unnamed'}-${index}`}
+                          className={isGrey ? "px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground" : "px-3 py-1 rounded-full text-sm"}
+                          style={!isGrey ? { backgroundColor: color, color: textColor } : {}}
+                        >
+                          {variable}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Times used:</span>
                 <span className="font-medium text-foreground">{prompt.timesUsed || 0}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Time saved:</span>
                 <span className="font-medium text-foreground">{formatTime(totalTimeSavedMinutes)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Last updated:</span>
                 <span className="font-medium text-foreground">
                   {new Date(prompt.updatedAt).toLocaleDateString()} {new Date(prompt.updatedAt).toLocaleTimeString()}
