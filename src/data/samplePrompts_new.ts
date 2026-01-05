@@ -9,6 +9,5 @@ export const samplePrompts: Prompt[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     isPinned: true,
     timesUsed: 12,
-    timeSavedMinutes: 180,
   }
 ];

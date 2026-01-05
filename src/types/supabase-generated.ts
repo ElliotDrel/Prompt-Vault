@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -58,7 +58,6 @@ export type Database = {
           created_at: string | null
           id: string
           is_pinned: boolean | null
-          time_saved_minutes: number | null
           times_used: number | null
           title: string
           updated_at: string | null
@@ -70,7 +69,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_pinned?: boolean | null
-          time_saved_minutes?: number | null
           times_used?: number | null
           title: string
           updated_at?: string | null
@@ -82,7 +80,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_pinned?: boolean | null
-          time_saved_minutes?: number | null
           times_used?: number | null
           title?: string
           updated_at?: string | null
@@ -91,11 +88,32 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string | null
+          time_saved_multiplier: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          time_saved_multiplier?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          time_saved_multiplier?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       prompt_stats: {
         Row: {
-          time_saved_minutes: number | null
+          time_saved_multiplier: number | null
           total_copies: number | null
           total_prompt_uses: number | null
           total_prompts: number | null
@@ -238,4 +256,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
