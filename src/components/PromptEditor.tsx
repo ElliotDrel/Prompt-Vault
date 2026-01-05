@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Info, Plus, Trash2, Pin } from 'lucide-react';
 import { Prompt } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrompts } from '@/contexts/PromptsContext';
 import toast from 'react-hot-toast';
+import { useBlocker } from 'react-router-dom';
 import { HighlightedTextarea } from './HighlightedTextarea';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK, parseVariableReferences } from '@/utils/colorUtils';
 import { normalizeVariableName } from '@/config/variableRules';
@@ -16,7 +17,7 @@ import { sanitizeVariables } from '@/utils/variableUtils';
 interface PromptEditorProps {
   mode: 'create' | 'edit';
   prompt?: Prompt; // Required when mode is 'edit'
-  onSave: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
+  onSave: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<Prompt>;
   onDelete?: (promptId: string) => Promise<void>;
   onNavigateBack: () => void;
   onSaveSuccess?: (promptId: string) => void; // Called after successful save with prompt ID
@@ -39,6 +40,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   const variableTooltipTriggerRef = useRef<HTMLButtonElement | null>(null);
   const variableTooltipContentRef = useRef<HTMLDivElement | null>(null);
   const isMountedRef = useRef(true);
+  const skipBlockerResetRef = useRef(false);
 
   const isEditing = mode === 'edit';
 
@@ -110,14 +112,23 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   }, [mode, prompt]);
 
   // Check if there are unsaved changes
-  const hasUnsavedChanges = () => {
+  const hasUnsavedChanges = useCallback(() => {
     if (!originalData) return false;
     return (
       title !== originalData.title ||
       body !== originalData.body ||
       JSON.stringify(variables) !== JSON.stringify(originalData.variables)
     );
-  };
+  }, [title, body, variables, originalData]);
+
+  const shouldBlockNavigation = hasUnsavedChanges();
+  const blocker = useBlocker(shouldBlockNavigation);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      setShowUnsavedChanges(true);
+    }
+  }, [blocker.state]);
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -130,7 +141,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [title, body, variables, originalData]);
+  }, [hasUnsavedChanges]);
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
@@ -140,19 +151,19 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async ({ skipSuccessCallback = false }: { skipSuccessCallback?: boolean } = {}): Promise<boolean> => {
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
 
     if (!trimmedTitle || !trimmedBody) {
-      return;
+      return false;
     }
 
     const sanitizedVars = sanitizeVariables(variables);
     setVariables(sanitizedVars);
 
     try {
-      await onSave({
+      const savedPrompt = await onSave({
         title: trimmedTitle,
         body: trimmedBody,
         variables: sanitizedVars,
@@ -168,14 +179,16 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       }
 
       // Call success callback if provided
-      if (onSaveSuccess && prompt) {
-        onSaveSuccess(prompt.id);
+      if (onSaveSuccess && !skipSuccessCallback) {
+        onSaveSuccess(savedPrompt.id);
       }
 
       toast.success(isEditing ? 'Prompt updated' : 'Prompt created');
+      return true;
     } catch (err) {
       console.error('Failed to save prompt:', err);
       toast.error('Failed to save prompt');
+      return false;
     }
   };
 
@@ -209,8 +222,9 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
     }
 
     try {
+      const wasPinned = prompt.isPinned;
       await togglePinPrompt(prompt.id);
-      toast.success(prompt.isPinned ? 'Prompt unpinned' : 'Prompt pinned');
+      toast.success(wasPinned ? 'Prompt unpinned' : 'Prompt pinned');
     } catch (err) {
       console.error('Failed to toggle pin state:', err);
       toast.error('Failed to update pin state');
@@ -299,13 +313,34 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
 
   const handleDiscardChanges = () => {
     setShowUnsavedChanges(false);
+    const wasBlocked = blocker.state === 'blocked';
+    if (wasBlocked) {
+      skipBlockerResetRef.current = true;
+      blocker.proceed();
+      return;
+    }
     onNavigateBack();
   };
 
   const handleSaveChanges = async () => {
     setShowUnsavedChanges(false);
-    await handleSave();
-    // Don't navigate back - stay on the page after saving
+    const wasBlocked = blocker.state === 'blocked';
+    const didSave = await handleSave({ skipSuccessCallback: wasBlocked });
+    if (didSave && wasBlocked) {
+      skipBlockerResetRef.current = true;
+      blocker.proceed();
+    }
+  };
+
+  const handleUnsavedDialogChange = (open: boolean) => {
+    setShowUnsavedChanges(open);
+    if (!open && blocker.state === 'blocked') {
+      if (skipBlockerResetRef.current) {
+        skipBlockerResetRef.current = false;
+        return;
+      }
+      blocker.reset();
+    }
   };
 
   return (
@@ -548,7 +583,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       </div>
 
       {/* Unsaved Changes Dialog */}
-      <AlertDialog open={showUnsavedChanges} onOpenChange={setShowUnsavedChanges}>
+      <AlertDialog open={showUnsavedChanges} onOpenChange={handleUnsavedDialogChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>

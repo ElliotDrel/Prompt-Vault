@@ -10,7 +10,7 @@ interface PromptsContextType {
   error: string | null;
   isBackgroundRefresh: boolean;
   addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<Prompt>;
-  updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
+  updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<Prompt>;
   deletePrompt: (id: string) => Promise<void>;
   togglePinPrompt: (id: string) => Promise<void>;
   stats: {
@@ -170,10 +170,10 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [storageAdapter, loadStats]);
 
-  const updatePrompt = useCallback(async (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
+  const updatePrompt = useCallback(async (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> => {
     if (!storageAdapter) {
       setError('Storage not initialized');
-      return;
+      throw new Error('Storage not initialized');
     }
 
     try {
@@ -185,6 +185,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       };
       setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
       await loadStats(storageAdapter);
+      return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to update prompt:', err);
       setError('Failed to update prompt');
@@ -195,7 +196,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const deletePrompt = useCallback(async (id: string) => {
     if (!storageAdapter) {
       setError('Storage not initialized');
-      return;
+      throw new Error('Storage not initialized');
     }
 
     try {
@@ -213,7 +214,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const togglePinPrompt = useCallback(async (id: string) => {
     if (!storageAdapter) {
       setError('Storage not initialized');
-      return;
+      throw new Error('Storage not initialized');
     }
 
     try {
@@ -234,7 +235,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const incrementPromptUsage = useCallback(async (promptId: string) => {
     if (!storageAdapter) {
       setError('Storage not initialized');
-      return;
+      throw new Error('Storage not initialized');
     }
 
     try {
@@ -256,7 +257,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const incrementCopyCount = useCallback(async () => {
     if (!storageAdapter) {
       setError('Storage not initialized');
-      return;
+      throw new Error('Storage not initialized');
     }
 
     try {
@@ -272,7 +273,8 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
 
   const refreshData = useCallback(async () => {
     if (!storageAdapter) {
-      return;
+      setError('Storage not initialized');
+      throw new Error('Storage not initialized');
     }
 
     await Promise.all([

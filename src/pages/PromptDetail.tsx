@@ -66,23 +66,24 @@ export default function PromptDetail() {
   // Handle save for create mode
   const handleSaveCreate = async (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
     const newPrompt = await addPrompt(promptData);
-    // Navigate to the new prompt's page (will implement return type in Phase 4)
-    // For now, navigate to dashboard
-    navigate(`/dashboard/prompt/${newPrompt.id}`, { replace: true });
+    return newPrompt;
   };
 
   // Handle save for edit mode
   const handleSaveEdit = async (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
-    if (!promptId) return;
-    await updatePrompt(promptId, promptData);
+    if (!promptId) {
+      throw new Error('Missing prompt ID');
+    }
+    const updatedPrompt = await updatePrompt(promptId, promptData);
     // Exit edit mode and stay on the page
     setIsEditing(false);
+    return updatedPrompt;
   };
 
   // Handle delete
   const handleDelete = async (id: string) => {
     await deletePrompt(id);
-    // Navigation to dashboard is handled in PromptEditor after successful delete
+    // Navigation handled by the calling component after successful delete
   };
 
   // Loading state (initial load, not background refresh)
@@ -133,6 +134,7 @@ export default function PromptDetail() {
           onSave={isCreating ? handleSaveCreate : handleSaveEdit}
           onDelete={handleDelete}
           onNavigateBack={handleCancelEdit}
+          onSaveSuccess={isCreating ? (newPromptId) => navigate(`/dashboard/prompt/${newPromptId}`, { replace: true }) : undefined}
         />
       ) : (
         prompt && (
