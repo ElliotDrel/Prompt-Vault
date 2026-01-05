@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Edit, Pin, Trash2, Copy, Check } from 'lucide-react';
-import { Prompt, VariableValues } from '@/types/prompt';
+import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Prompt, VariableValues, CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { CopyEventCard } from '@/components/CopyEventCard';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import toast from 'react-hot-toast';
@@ -50,9 +53,18 @@ interface PromptViewProps {
 
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
   const { stats, togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
-  const { addCopyEvent } = useCopyHistory();
+  const { addCopyEvent, copyHistory, deleteCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
   const [isCopied, setIsCopied] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+
+  // Filter and sort history for this specific prompt (most recent first)
+  const promptHistory = useMemo(
+    () => copyHistory
+      .filter(event => event.promptId === prompt.id)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    [copyHistory, prompt.id]
+  );
   const sanitizedVariables = useMemo(() => sanitizeVariables(prompt.variables), [prompt.variables]);
   const sanitizedPrompt = useMemo(
     () => ({ ...prompt, variables: sanitizedVariables }),
@@ -149,6 +161,44 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     }
   };
 
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await deleteCopyEvent(id);
+      toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
+    } catch (err) {
+      console.error('Failed to delete copy event:', err);
+      toast.error('Failed to delete copy event');
+    }
+  };
+
+  const handleCopyHistoryEvent = async (event: CopyEvent) => {
+    try {
+      const success = await copyToClipboard(event.copiedText);
+
+      if (!success) {
+        toast.error('Failed to copy to clipboard');
+        return;
+      }
+
+      await Promise.all([
+        incrementCopyCount(),
+        incrementPromptUsage(event.promptId),
+      ]);
+
+      await addCopyEvent({
+        promptId: event.promptId,
+        promptTitle: event.promptTitle,
+        variableValues: { ...event.variableValues },
+        copiedText: event.copiedText,
+      });
+
+      toast.success('Copied from history');
+    } catch (err) {
+      console.error('Failed to copy history event:', err);
+      toast.error('Failed to copy from history');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -185,7 +235,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
             {/* Prompt body */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Prompt</Label>
-              <div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap font-mono">
+              <div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap break-all font-mono">
                 {prompt.body}
               </div>
             </div>
@@ -250,7 +300,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
                       return (
                         <div
                           key={`${variable || 'unnamed'}-${index}`}
-                          className={isGrey ? "px-3 py-1 rounded-full text-sm bg-secondary text-secondary-foreground" : "px-3 py-1 rounded-full text-sm"}
+                          className={isGrey ? "px-3 py-1 rounded-full text-sm break-words bg-secondary text-secondary-foreground" : "px-3 py-1 rounded-full text-sm break-words"}
                           style={!isGrey ? { backgroundColor: color, color: textColor } : {}}
                         >
                           {variable}
@@ -321,6 +371,49 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Usage History - Separate Card */}
+        <div className="mt-6">
+          <button
+            onClick={() => setHistoryExpanded(!historyExpanded)}
+            className="flex items-center gap-2 mb-4 text-left font-medium hover:text-primary transition-colors"
+          >
+            {historyExpanded ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+            <span className="text-lg">Usage History</span>
+            {promptHistory.length > 0 && (
+              <Badge variant="secondary">{promptHistory.length}</Badge>
+            )}
+          </button>
+
+          {historyExpanded && (
+            <>
+              {promptHistory.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <p className="text-muted-foreground text-lg">
+                      No usage history yet. Copy this prompt to see its history here!
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {promptHistory.map((event) => (
+                    <CopyEventCard
+                      key={event.id}
+                      event={event}
+                      onDelete={handleDeleteEvent}
+                      onCopy={handleCopyHistoryEvent}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
