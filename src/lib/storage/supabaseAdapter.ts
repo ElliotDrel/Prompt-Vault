@@ -433,16 +433,31 @@ export class SupabaseAdapter implements StorageAdapter {
       if (status === 'CHANNEL_ERROR') {
         console.error('Realtime subscription error:', err);
         console.error('Channel state:', channel);
-        void this.teardownChannel(this.subscriptionGeneration);
+        void this.resubscribe();
       }
       if (status === 'TIMED_OUT') {
         console.error('Realtime subscription timed out');
       }
       if (status === 'CLOSED') {
         console.warn('Realtime subscription closed');
-        void this.teardownChannel(this.subscriptionGeneration);
+        void this.resubscribe();
       }
     });
+  }
+
+  private async resubscribe(): Promise<void> {
+    if (this.subscribers.size === 0) {
+      await this.teardownChannel(this.subscriptionGeneration);
+      return;
+    }
+
+    const generation = ++this.subscriptionGeneration;
+    await this.teardownChannel(generation);
+    if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
+      return;
+    }
+
+    await this.ensureSubscription(generation);
   }
 
   private async teardownChannel(generation: number): Promise<void> {

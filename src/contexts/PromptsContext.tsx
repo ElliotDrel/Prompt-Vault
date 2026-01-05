@@ -79,6 +79,15 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const getAdapter = useCallback((): StorageAdapter => {
+    if (!storageAdapter) {
+      const err = new Error('Storage not initialized');
+      setError(err.message);
+      throw err;
+    }
+    return storageAdapter;
+  }, [storageAdapter]);
+
   useEffect(() => {
     if (adapterError) {
       setError(adapterError);
@@ -132,78 +141,66 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   }, [adapterLoading, storageAdapter, loadPrompts, loadStats]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     try {
       setError(null);
-      const newPrompt = await storageAdapter.prompts.addPrompt(promptData);
+      const newPrompt = await adapter.prompts.addPrompt(promptData);
       const sanitizedPrompt = {
         ...newPrompt,
         variables: sanitizeVariables(newPrompt.variables ?? []),
       };
       setPrompts((prev) => [sanitizedPrompt, ...prev]);
-      await loadStats(storageAdapter);
+      await loadStats(adapter);
       return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to add prompt:', err);
       setError('Failed to add prompt');
       throw err;
     }
-  }, [storageAdapter, loadStats]);
+  }, [getAdapter, loadStats]);
 
   const updatePrompt = useCallback(async (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     try {
       setError(null);
-      const updatedPrompt = await storageAdapter.prompts.updatePrompt(id, promptData);
+      const updatedPrompt = await adapter.prompts.updatePrompt(id, promptData);
       const sanitizedPrompt = {
         ...updatedPrompt,
         variables: sanitizeVariables(updatedPrompt.variables ?? []),
       };
       setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
-      await loadStats(storageAdapter);
+      await loadStats(adapter);
       return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to update prompt:', err);
       setError('Failed to update prompt');
       throw err;
     }
-  }, [storageAdapter, loadStats]);
+  }, [getAdapter, loadStats]);
 
   const deletePrompt = useCallback(async (id: string) => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     try {
       setError(null);
-      await storageAdapter.prompts.deletePrompt(id);
+      await adapter.prompts.deletePrompt(id);
       setPrompts((prev) => prev.filter((prompt) => prompt.id !== id));
-      await loadStats(storageAdapter);
+      await loadStats(adapter);
     } catch (err) {
       console.error('Failed to delete prompt:', err);
       setError('Failed to delete prompt');
       throw err;
     }
-  }, [storageAdapter, loadStats]);
+  }, [getAdapter, loadStats]);
 
   const togglePinPrompt = useCallback(async (id: string) => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     try {
       setError(null);
-      const updatedPrompt = await storageAdapter.prompts.togglePinPrompt(id);
+      const updatedPrompt = await adapter.prompts.togglePinPrompt(id);
       const sanitizedPrompt = {
         ...updatedPrompt,
         variables: sanitizeVariables(updatedPrompt.variables ?? []),
@@ -214,58 +211,49 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setError('Failed to toggle pin');
       throw err;
     }
-  }, [storageAdapter]);
+  }, [getAdapter]);
 
   const incrementPromptUsage = useCallback(async (promptId: string) => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     try {
       setError(null);
-      const updatedPrompt = await storageAdapter.prompts.incrementPromptUsage(promptId);
+      const updatedPrompt = await adapter.prompts.incrementPromptUsage(promptId);
       const sanitizedPrompt = {
         ...updatedPrompt,
         variables: sanitizeVariables(updatedPrompt.variables ?? []),
       };
       setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? sanitizedPrompt : prompt)));
-      await loadStats(storageAdapter);
+      await loadStats(adapter);
     } catch (err) {
       console.error('Failed to increment usage:', err);
       setError('Failed to increment usage');
       throw err;
     }
-  }, [storageAdapter, loadStats]);
+  }, [getAdapter, loadStats]);
 
   const incrementCopyCount = useCallback(async () => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     try {
       setError(null);
-      await storageAdapter.stats.incrementCopyCount();
-      await loadStats(storageAdapter);
+      await adapter.stats.incrementCopyCount();
+      await loadStats(adapter);
     } catch (err) {
       console.error('Failed to increment copy count:', err);
       setError('Failed to increment copy count');
       throw err;
     }
-  }, [storageAdapter, loadStats]);
+  }, [getAdapter, loadStats]);
 
   const refreshData = useCallback(async () => {
-    if (!storageAdapter) {
-      setError('Storage not initialized');
-      throw new Error('Storage not initialized');
-    }
+    const adapter = getAdapter();
 
     await Promise.all([
-      loadPrompts(storageAdapter),
-      loadStats(storageAdapter),
+      loadPrompts(adapter),
+      loadStats(adapter),
     ]);
-  }, [storageAdapter, loadPrompts, loadStats]);
+  }, [getAdapter, loadPrompts, loadStats]);
 
   return (
     <PromptsContext.Provider value={{
