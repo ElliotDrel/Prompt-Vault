@@ -1,4 +1,4 @@
-﻿# CLAUDE.md
+# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with the Prompt Vault codebase.
 
@@ -200,7 +200,7 @@ npx supabase functions delete my-function
 - **Frontend calculation pattern**: Compute derived values (time saved = timesUsed * multiplier) in components, not database
 - **Configurable multiplier**: Store multiplier in `user_settings` table, expose via `prompt_stats` view
 - **Reduced writes**: Only increment atomic counters (times_used), calculate aggregates on-demand
-- **Adapter consistency**: Both Supabase and localStorage adapters return multiplier in getStats()
+- **Adapter consistency**: Supabase adapter returns multiplier in getStats()
 - **Component pattern**: Access multiplier via `stats.timeSavedMultiplier`, calculate display values inline
 - **Benefits**: Instant multiplier changes, fewer DB writes, cleaner schema, ready for user customization
 
@@ -219,7 +219,8 @@ npm run preview    # preview production build
 - **Styling**: Tailwind CSS with shadcn/ui components.
 - **State**: `PromptsContext`, `CopyHistoryContext`, and `AuthContext` manage prompt CRUD, stats, copy history, and authentication state.
 - **Routing**: Vite SPA gated by `RequireAuth`; unauthenticated users are redirected to `/auth`.
-- **Persistence**: Hybrid storage adapter (Supabase when authenticated, localStorage fallback otherwise) lives under `src/lib/storage/`.
+- **Persistence**: Supabase storage adapter (auth required; no anonymous fallback) lives under `src/lib/storage/`; sessionStorage is used only for in-progress variable inputs.
+- **Auth required**: Storage adapter is null until a user is present; contexts must handle `adapter === null`.
 - **Realtime**: Supabase realtime subscriptions trigger prompt/history refresh when supported by the adapter.
 
 ### File Structure & Key Paths
@@ -234,7 +235,7 @@ src/
 ├── components/                 # UI components (dashboard, modal, cards, stats)
 ├── contexts/                   # PromptsContext, CopyHistoryContext, AuthContext
 ├── lib/
-│   ├── storage/               # Hybrid storage adapters
+│   ├── storage/               # Supabase storage adapter
 │   ├── supabaseClient.ts      # Supabase client config
 │   └── database.types.ts      # Generated Supabase types
 ├── utils/
@@ -312,7 +313,7 @@ import { supabase } from '@/lib/supabaseClient';
 ### Form State Persistence
 - Use sessionStorage for work-in-progress inputs (survives unmount, cleared on browser close)
 - Pattern: Lazy init from storage → auto-save on change → clear after submit
-- Storage decision: Component state (UI-only) → Session (WIP) → Local (preferences) → Server (truth)
+- Storage decision: Component state (UI-only) → Session (WIP) → Server (truth); do not persist prompts/history locally.
 
 ### Debug Logging
 - Remove all `console.log` before commit unless feature-flagged
@@ -330,7 +331,7 @@ import { supabase } from '@/lib/supabaseClient';
 - **CRITICAL**: Always read `package.json`, `vite.config.ts`, etc. BEFORE assuming problems
 
 ## Supabase Integration Status
-**Architecture**: Hybrid storage (Supabase + localStorage fallback)
+**Architecture**: Supabase-only storage (auth required; no localStorage fallback)
 
 **Environment Variables** (required in `.env`):
 ```bash
@@ -361,7 +362,8 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 ### Critical Errors to Avoid
 - **SQL migrations**: Keep ASCII-only (emojis break deployment)
 - **Auth state**: Always check session before assuming user exists
-- **Storage bypass**: Never use direct `localStorage` or Supabase calls from components
+- **Storage bypass**: Never use direct Supabase calls from components
+- **Anonymous storage**: Do not add localStorage fallbacks or unauth adapters; data access requires auth
 - **Context imports**: Never import `src/lib/storage/*` directly - use contexts only
 - **Async errors**: Always implement loading/error states with `try/catch`
 - **Provider errors**: Verify context hierarchy in App.tsx
@@ -410,20 +412,20 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - [ ] Magic-link redirect URL matches `supabase/config.toml`
 - [ ] RLS policies prevent cross-user access
 - [ ] Real-time subscriptions work for authenticated users
-- [ ] localStorage fallback works for unauthenticated users
+- [ ] Storage adapter initializes after authentication
 
 **Manual Testing**
 1. Auth flow: magic link → dashboard redirect
 2. CRUD: create, edit, pin, copy, delete prompts
 3. Persistence: data survives refresh
-4. Dual mode: authenticated (Supabase) + fallback (localStorage)
+4. Auth required: unauthenticated sessions redirect to /auth; authenticated data persists after refresh
 5. RLS: cross-user access denied
 6. Real-time: updates across browser sessions
 
 ## Development Status & Roadmap
 
 **✅ Completed**:
-- Hybrid storage architecture (Supabase + localStorage)
+- Supabase-only storage architecture
 - Magic-link authentication with session management
 - Async contexts with loading/error states
 - Real-time prompt synchronization (WebSocket, background refresh, stabilized dependencies)
@@ -453,9 +455,11 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 **If auth breaks**:
 1. Check environment variables in `.env`
 2. Verify `supabase/config.toml` site_url matches dev server
-3. Clear browser localStorage and retry auth flow
+3. Clear browser storage and retry auth flow
 
 **If database breaks**:
 1. `npx supabase status` (should show linked project)
 2. `npx supabase db push` (apply pending migrations)
 3. Check Supabase dashboard for table existence and RLS policies
+
+

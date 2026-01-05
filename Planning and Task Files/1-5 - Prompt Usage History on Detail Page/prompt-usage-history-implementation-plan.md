@@ -121,7 +121,7 @@ Add `ChevronDown` and `ChevronRight` (or similar) from `lucide-react` for the to
 
 ### Integration
 - [ ] New copy event appears after copying prompt (may require page refresh)
-- [ ] Works in both authenticated (Supabase) and fallback (localStorage) modes
+- [ ] Works for authenticated users (Supabase-only)
 - [ ] No console errors
 
 ### Quality

@@ -74,8 +74,8 @@ export default function Landing() {
               <div className="flex items-start space-x-3">
                 <CheckCircle2 className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" aria-hidden="true" />
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Works offline with cloud sync</h3>
-                  <p className="text-gray-600 text-sm">Access your prompts anywhere, automatic sync when ready</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">Cloud sync across devices</h3>
+                  <p className="text-gray-600 text-sm">Access your prompts anywhere when you sign in</p>
                 </div>
               </div>
             </div>

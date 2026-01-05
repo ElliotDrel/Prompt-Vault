@@ -18,9 +18,11 @@ export async function createStorageAdapter(): Promise<StorageAdapter | null> {
       if (isReady) {
         return adapter;
       }
+      throw new Error('Supabase adapter not ready');
     }
   } catch (error) {
     console.warn('Failed to initialize Supabase adapter:', error);
+    throw error;
   }
 
   return null;

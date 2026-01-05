@@ -4,6 +4,7 @@
 **Status:** ✅ IMPLEMENTATION COMPLETE
 **Completed:** 2026-01-04
 **Target Branch:** `feature/frontend-time-calculation`
+**Note:** localStorage adapter support has been removed; references to localStorage in this document are historical.
 
 ---
 
