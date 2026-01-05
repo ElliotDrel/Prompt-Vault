@@ -22,8 +22,9 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
 
   const handlePin = async () => {
     try {
+      const wasPinned = prompt.isPinned;
       await togglePinPrompt(prompt.id);
-      toast.success(prompt.isPinned ? 'Prompt unpinned' : 'Prompt pinned');
+      toast.success(wasPinned ? 'Prompt unpinned' : 'Prompt pinned');
     } catch (err) {
       console.error('Failed to toggle pin state:', err);
       toast.error('Failed to update pin state');
