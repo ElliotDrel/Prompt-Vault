@@ -14,6 +14,7 @@ import CopyHistory from "./pages/CopyHistory";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
+import PromptDetail from "./pages/PromptDetail";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,22 @@ const App = () => (
                   element={
                     <RequireAuth>
                       <Index />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/dashboard/prompt/new"
+                  element={
+                    <RequireAuth>
+                      <PromptDetail />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/dashboard/prompt/:promptId"
+                  element={
+                    <RequireAuth>
+                      <PromptDetail />
                     </RequireAuth>
                   }
                 />

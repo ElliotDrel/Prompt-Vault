@@ -1,18 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { usePrompts } from '@/contexts/PromptsContext';
-import { Prompt } from '@/types/prompt';
 import { PromptCard } from './PromptCard';
-import { EditorModal } from './EditorModal';
 import { StatsCounter } from './StatsCounter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export function Dashboard() {
-  const { prompts, loading, isBackgroundRefresh, addPrompt, updatePrompt, deletePrompt } = usePrompts();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPrompt, setEditingPrompt] = useState<Prompt | undefined>();
+  const { prompts, loading, isBackgroundRefresh } = usePrompts();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'lastUpdated' | 'usage'>('lastUpdated');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -46,26 +44,11 @@ export function Dashboard() {
   }, [prompts, searchTerm, sortBy, sortDirection]);
 
   const handleCreatePrompt = () => {
-    setEditingPrompt(undefined);
-    setIsModalOpen(true);
+    navigate('/dashboard/prompt/new');
   };
 
-  const handleEditPrompt = (prompt: Prompt) => {
-    setEditingPrompt(prompt);
-    setIsModalOpen(true);
-  };
-
-  const handleSavePrompt = async (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
-    if (editingPrompt) {
-      await updatePrompt(editingPrompt.id, promptData);
-    } else {
-      await addPrompt(promptData);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingPrompt(undefined);
+  const handleEditPrompt = (promptId: string) => {
+    navigate(`/dashboard/prompt/${promptId}`);
   };
 
   const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
@@ -191,7 +174,7 @@ export function Dashboard() {
               >
                 <PromptCard
                   prompt={prompt}
-                  onClick={() => handleEditPrompt(prompt)}
+                  onClick={() => handleEditPrompt(prompt.id)}
                 />
               </motion.div>
             ))}
@@ -207,14 +190,6 @@ export function Dashboard() {
           Create Prompt
         </Button>
 
-        {/* Editor Modal */}
-        <EditorModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSave={handleSavePrompt}
-          onDelete={deletePrompt}
-          prompt={editingPrompt}
-        />
       </div>
     </div>
   );
