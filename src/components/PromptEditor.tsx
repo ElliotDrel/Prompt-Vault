@@ -312,10 +312,12 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   };
 
   const handleDiscardChanges = () => {
-    setShowUnsavedChanges(false);
     const wasBlocked = blocker.state === 'blocked';
     if (wasBlocked) {
       skipBlockerResetRef.current = true;
+    }
+    setShowUnsavedChanges(false);
+    if (wasBlocked) {
       blocker.proceed();
       return;
     }
@@ -323,11 +325,18 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   };
 
   const handleSaveChanges = async () => {
-    setShowUnsavedChanges(false);
     const wasBlocked = blocker.state === 'blocked';
     const didSave = await handleSave({ skipSuccessCallback: wasBlocked });
-    if (didSave && wasBlocked) {
+    if (!didSave) {
+      setShowUnsavedChanges(true);
+      return;
+    }
+
+    if (wasBlocked) {
       skipBlockerResetRef.current = true;
+    }
+    setShowUnsavedChanges(false);
+    if (wasBlocked) {
       blocker.proceed();
     }
   };

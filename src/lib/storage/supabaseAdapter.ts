@@ -306,6 +306,10 @@ export class SupabaseAdapter implements StorageAdapter {
   public copyEvents: CopyEventsStorageAdapter;
   public stats: StatsStorageAdapter;
   private channel: RealtimeChannel | null = null;
+  private channelUserId: string | null = null;
+  private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void>();
+  private subscriptionGeneration = 0;
+  private subscribeTask: Promise<void> | null = null;
 
   constructor() {
     this.prompts = new SupabasePromptsAdapter();
@@ -327,67 +331,147 @@ export class SupabaseAdapter implements StorageAdapter {
   }
 
   subscribe(callback: (type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void): () => void {
-    const setupSubscription = async () => {
-      const userId = await getCurrentUserId();
-      if (!userId) {
-        return;
-      }
-
-      if (this.channel) {
-        await this.channel.unsubscribe();
-        this.channel = null;
-      }
-
-      const channel = supabase
-        .channel('prompt_vault_changes')
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'prompts',
-          filter: `user_id=eq.${userId}`,
-        }, (payload) => {
-          callback('prompts', payload);
-        })
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'copy_events',
-          filter: `user_id=eq.${userId}`,
-        }, (payload) => {
-          callback('copyEvents', payload);
-        });
-
-      this.channel = channel;
-
-      // Subscribe with status callback to ensure connection establishes
-      channel.subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Realtime subscription active');
-        }
-        if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Realtime subscription error:', err);
-          console.error('Channel state:', channel);
-        }
-        if (status === 'TIMED_OUT') {
-          console.error('⏱️ Realtime subscription timed out');
-        }
-        if (status === 'CLOSED') {
-          console.warn('🔌 Realtime subscription closed');
-        }
-      });
-    };
-
-    setupSubscription().catch((err) => {
-      console.error('Failed to initialise supabase subscriptions:', err);
-    });
+    this.subscribers.add(callback);
+    if (this.subscribers.size === 1) {
+      const generation = ++this.subscriptionGeneration;
+      void this.ensureSubscription(generation);
+    }
 
     return () => {
-      if (this.channel) {
-        this.channel.unsubscribe().catch((err) => {
-          console.error('Failed to unsubscribe from Supabase channel:', err);
-        });
-        this.channel = null;
+      this.subscribers.delete(callback);
+      if (this.subscribers.size === 0) {
+        const generation = ++this.subscriptionGeneration;
+        void this.teardownChannel(generation);
       }
     };
+  }
+
+  private notifySubscribers(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) {
+    this.subscribers.forEach((subscriber) => {
+      try {
+        subscriber(type, data);
+      } catch (err) {
+        console.error('Realtime subscription callback failed:', err);
+      }
+    });
+  }
+
+  private async ensureSubscription(generation: number): Promise<void> {
+    if (generation !== this.subscriptionGeneration) {
+      return;
+    }
+
+    if (this.subscribeTask) {
+      await this.subscribeTask;
+      if (generation !== this.subscriptionGeneration) {
+        return;
+      }
+      if (this.channel) {
+        return;
+      }
+    }
+
+    const task = this.setupSubscription(generation);
+    this.subscribeTask = task;
+    try {
+      await task;
+    } finally {
+      if (this.subscribeTask === task) {
+        this.subscribeTask = null;
+      }
+    }
+  }
+
+  private async setupSubscription(generation: number): Promise<void> {
+    if (generation !== this.subscriptionGeneration) {
+      return;
+    }
+
+    if (this.subscribers.size === 0) {
+      await this.teardownChannel(generation);
+      return;
+    }
+
+    const userId = await getCurrentUserId();
+    if (!userId || generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
+      await this.teardownChannel(generation);
+      return;
+    }
+
+    if (this.channel && this.channelUserId === userId) {
+      return;
+    }
+
+    await this.teardownChannel(generation);
+    if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`prompt_vault_changes:${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'prompts',
+        filter: `user_id=eq.${userId}`
+      }, (payload) => {
+        this.notifySubscribers('prompts', payload);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'copy_events',
+        filter: `user_id=eq.${userId}`
+      }, (payload) => {
+        this.notifySubscribers('copyEvents', payload);
+      });
+
+    if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
+      try {
+        await supabase.removeChannel(channel);
+      } catch (err) {
+        console.error('Failed to remove Supabase channel:', err);
+      }
+      return;
+    }
+
+    this.channel = channel;
+    this.channelUserId = userId;
+
+    channel.subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.error('Realtime subscription error:', err);
+        console.error('Channel state:', channel);
+        void this.teardownChannel(this.subscriptionGeneration);
+      }
+      if (status === 'TIMED_OUT') {
+        console.error('Realtime subscription timed out');
+      }
+      if (status === 'CLOSED') {
+        console.warn('Realtime subscription closed');
+        void this.teardownChannel(this.subscriptionGeneration);
+      }
+    });
+  }
+
+  private async teardownChannel(generation: number): Promise<void> {
+    if (generation !== this.subscriptionGeneration) {
+      return;
+    }
+
+    if (!this.channel) {
+      this.channelUserId = null;
+      return;
+    }
+
+    const channel = this.channel;
+    this.channel = null;
+    this.channelUserId = null;
+
+    try {
+      await supabase.removeChannel(channel);
+    } catch (err) {
+      console.error('Failed to remove Supabase channel:', err);
+    }
   }
 }

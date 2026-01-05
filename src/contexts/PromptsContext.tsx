@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Prompt } from '@/types/prompt';
-import { createStorageAdapter, StorageAdapter } from '@/lib/storage';
+import { StorageAdapter } from '@/lib/storage';
 import { sanitizeVariables } from '@/utils/variableUtils';
-import { useAuth } from '@/contexts/AuthContext';
+import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
 
 interface PromptsContextType {
   prompts: Prompt[];
@@ -39,9 +39,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
   const [stats, setStats] = useState(defaultStats);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [storageAdapter, setStorageAdapter] = useState<StorageAdapter | null>(null);
-
-  const { user, loading: authLoading } = useAuth();
+  const { adapter: storageAdapter, loading: adapterLoading, error: adapterError } = useStorageAdapterContext();
 
   const loadPrompts = useCallback(async (adapter: StorageAdapter, silent = false) => {
     try {
@@ -80,62 +78,46 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (authLoading) {
+    if (adapterError) {
+      setError(adapterError);
+    }
+  }, [adapterError]);
+
+  useEffect(() => {
+    if (adapterLoading || !storageAdapter?.subscribe) {
       return;
     }
 
     let isMounted = true;
-    let unsubscribe: (() => void) | undefined;
-
-    const initAdapter = async () => {
-      try {
-        const adapter = await createStorageAdapter();
-        if (!isMounted) {
-          return;
-        }
-
-        setStorageAdapter(adapter);
-
-        if (adapter.subscribe) {
-          unsubscribe = adapter.subscribe((type) => {
-            if (!isMounted) {
-              return;
-            }
-
-            if (type === 'prompts') {
-              loadPrompts(adapter, true).catch((err) => {
-                console.error('Failed to refresh prompts via subscription:', err);
-              });
-            } else if (type === 'copyEvents' || type === 'stats') {
-              loadStats(adapter).catch((err) => {
-                console.error('Failed to refresh stats via subscription:', err);
-              });
-            }
-          });
-        }
-      } catch (err) {
-        if (!isMounted) {
-          return;
-        }
-        console.error('Failed to initialize storage adapter:', err);
-        setError('Failed to initialize storage');
+    const unsubscribe = storageAdapter.subscribe((type) => {
+      if (!isMounted) {
+        return;
       }
-    };
 
-    initAdapter();
+      if (type === 'prompts') {
+        loadPrompts(storageAdapter, true).catch((err) => {
+          console.error('Failed to refresh prompts via subscription:', err);
+        });
+      } else if (type === 'copyEvents' || type === 'stats') {
+        loadStats(storageAdapter).catch((err) => {
+          console.error('Failed to refresh stats via subscription:', err);
+        });
+      }
+    });
 
     return () => {
       isMounted = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribe();
     };
-  }, [authLoading, user?.id, loadPrompts, loadStats]);
+  }, [adapterLoading, storageAdapter, loadPrompts, loadStats]);
 
   useEffect(() => {
     if (!storageAdapter) {
       setPrompts([]);
       setStats(defaultStats);
+      return;
+    }
+    if (adapterLoading) {
       return;
     }
 
@@ -145,7 +127,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     loadStats(storageAdapter).catch((err) => {
       console.error('Failed to load stats for adapter:', err);
     });
-  }, [storageAdapter, loadPrompts, loadStats]);
+  }, [adapterLoading, storageAdapter, loadPrompts, loadStats]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> => {
     if (!storageAdapter) {
