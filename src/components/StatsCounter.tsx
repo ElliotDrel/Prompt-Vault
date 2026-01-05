@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 export function StatsCounter() {
   const { stats } = usePrompts();
   const [activeStatDialog, setActiveStatDialog] = useState<string | null>(null);
-  
+
   const formatTime = (minutes: number) => {
     if (minutes < 60) {
       return `${minutes}m`;
@@ -15,6 +15,8 @@ export function StatsCounter() {
     const remainingMinutes = minutes % 60;
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
+
+  const totalTimeSaved = (stats.totalPromptUses || 0) * stats.timeSavedMultiplier;
 
   const statsData = [
     {
@@ -32,8 +34,8 @@ export function StatsCounter() {
     {
       id: 'time',
       label: 'Time Saved',
-      value: formatTime(stats.timeSavedMinutes),
-      explanation: 'On average, you would spend 5 minutes updating a prompt with proper variables, rewriting it, or finding it. This shows the cumulative time saved by using the Prompt Vault.'
+      value: formatTime(totalTimeSaved),
+      explanation: `On average, you would spend ${stats.timeSavedMultiplier} minutes updating a prompt with proper variables, rewriting it, or finding it. This shows the cumulative time saved by using the Prompt Vault.`
     }
   ];
 

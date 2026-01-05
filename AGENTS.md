@@ -180,6 +180,14 @@ npx supabase functions delete my-function
 - **Debug checklist**: Publication enabled? RLS policy exists? User authenticated? Callback handles status?
 - **Test**: Two tabs logged in, edit in Tab A, Tab B updates instantly
 
+### Time Tracking Architecture (2026-01-04):
+- **Frontend calculation pattern**: Compute derived values (time saved = timesUsed × multiplier) in components, not database
+- **Configurable multiplier**: Store multiplier in `user_settings` table, expose via `prompt_stats` view
+- **Reduced writes**: Only increment atomic counters (times_used), calculate aggregates on-demand
+- **Adapter consistency**: Both Supabase and localStorage adapters return multiplier in getStats()
+- **Component pattern**: Access multiplier via `stats.timeSavedMultiplier`, calculate display values inline
+- **Benefits**: Instant multiplier changes, fewer DB writes, cleaner schema, ready for user customization
+
 ## Project Commands
 ```bash
 npm install        # setup dependencies
@@ -315,9 +323,13 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 **Database Schema**:
-- `prompts` table: id (uuid), user_id (uuid), title, body, variables (jsonb), is_pinned, copy_count, created_at, updated_at
-- `copy_history` table: id (uuid), user_id (uuid), prompt_id (uuid), copied_at, time_saved
+- `prompts` table: id (uuid), user_id (uuid), title, body, variables (jsonb), is_pinned, times_used, created_at, updated_at
+- `copy_events` table: id (uuid), user_id (uuid), prompt_id (uuid), prompt_title, variable_values (jsonb), copied_text, created_at
+- `user_settings` table: user_id (uuid), time_saved_multiplier (integer, default: 5), created_at, updated_at
+- `prompt_stats` view: Aggregates total_prompts, total_copies, total_prompt_uses, time_saved_multiplier per user
 - RLS policies: Users can only access their own data
+
+**Time Tracking**: Frontend calculates time saved dynamically using `timesUsed × multiplier` instead of storing accumulated values
 
 **Auth Flow**: Magic-link email → `exchangeCodeForSession` → dashboard redirect
 
@@ -403,6 +415,7 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - Pin/unpin functionality
 - Variable highlighting (color-coded, case-insensitive, auto-add dialog, overlay-based)
 - Work-in-progress form persistence (sessionStorage, survives unmounts)
+- Time tracking refactor (frontend calculation, configurable multiplier, reduced DB writes)
 
 **🔄 Current Focus**:
 - Testing & quality assurance

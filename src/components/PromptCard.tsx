@@ -46,7 +46,7 @@ interface PromptCardProps {
 }
 
 export function PromptCard({ prompt, onClick }: PromptCardProps) {
-  const { incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
+  const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
   const [isCopied, setIsCopied] = useState(false);
@@ -199,7 +199,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
       {/* Usage stats */}
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>Used {prompt.timesUsed || 0} times</span>
-        <span>Saved {formatTime(prompt.timeSavedMinutes || 0)}</span>
+        <span>Saved {formatTime((prompt.timesUsed || 0) * stats.timeSavedMultiplier)}</span>
       </div>
 
       {/* Copy button */}

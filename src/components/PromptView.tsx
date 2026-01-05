@@ -17,8 +17,19 @@ interface PromptViewProps {
 }
 
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
-  const { togglePinPrompt } = usePrompts();
+  const { stats, togglePinPrompt } = usePrompts();
   const variableColors = assignVariableColors(prompt.variables, prompt.body);
+
+  const formatTime = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+  };
+
+  const totalTimeSavedMinutes = (prompt.timesUsed || 0) * stats.timeSavedMultiplier;
 
   const handlePin = async () => {
     try {
@@ -136,7 +147,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               </div>
               <div className="flex justify-between">
                 <span>Time saved:</span>
-                <span className="font-medium text-foreground">{prompt.timeSavedMinutes || 0} minutes</span>
+                <span className="font-medium text-foreground">{formatTime(totalTimeSavedMinutes)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Last updated:</span>
