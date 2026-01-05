@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Auto-sync AGENTS.md from CLAUDE.md before commit
+if git diff --cached --name-only | grep -q "^CLAUDE.md$"; then
+  node scripts/sync-agents.cjs
+  git add AGENTS.md
+fi

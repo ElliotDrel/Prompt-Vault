@@ -10,7 +10,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "analyze": "vite build --mode analyze"
+    "analyze": "vite build --mode analyze",
+    "prepare": "husky",
+    "sync:agents": "node scripts/sync-agents.cjs",
+    "check-sync:agents": "node scripts/check-agents-sync.cjs",
+    "check-sync:all": "npm run check-sync:agents"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
