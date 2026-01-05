@@ -9,7 +9,7 @@ interface PromptsContextType {
   loading: boolean;
   error: string | null;
   isBackgroundRefresh: boolean;
-  addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
+  addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<Prompt>;
   updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<void>;
   deletePrompt: (id: string) => Promise<void>;
   togglePinPrompt: (id: string) => Promise<void>;
@@ -147,10 +147,10 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     });
   }, [storageAdapter, loadPrompts, loadStats]);
 
-  const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'updatedAt'>) => {
+  const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> => {
     if (!storageAdapter) {
       setError('Storage not initialized');
-      return;
+      throw new Error('Storage not initialized');
     }
 
     try {
@@ -162,6 +162,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       };
       setPrompts((prev) => [sanitizedPrompt, ...prev]);
       await loadStats(storageAdapter);
+      return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to add prompt:', err);
       setError('Failed to add prompt');

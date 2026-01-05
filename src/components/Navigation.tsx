@@ -5,7 +5,14 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    // For dashboard, match all /dashboard/* routes
+    if (path === '/dashboard') {
+      return location.pathname.startsWith('/dashboard');
+    }
+    // For other routes, use exact match
+    return location.pathname === path;
+  };
 
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
