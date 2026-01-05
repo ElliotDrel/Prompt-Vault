@@ -11,7 +11,6 @@ type PromptRow = {
   updated_at: string;
   is_pinned: boolean | null;
   times_used: number | null;
-  time_saved_minutes: number | null;
 };
 
 type CopyEventRow = {
@@ -31,7 +30,6 @@ const mapPromptRow = (row: PromptRow): Prompt => ({
   updatedAt: row.updated_at,
   isPinned: row.is_pinned ?? false,
   timesUsed: row.times_used ?? 0,
-  timeSavedMinutes: row.time_saved_minutes ?? 0,
 });
 
 const mapCopyEventRow = (row: CopyEventRow): CopyEvent => ({
@@ -93,7 +91,6 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       variables: promptData.variables ?? [],
       is_pinned: promptData.isPinned ?? false,
       times_used: promptData.timesUsed ?? 0,
-      time_saved_minutes: promptData.timeSavedMinutes ?? 0,
     };
 
     const { data, error } = await supabase
@@ -123,9 +120,6 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     }
     if (typeof promptData.timesUsed === 'number') {
       updates.times_used = promptData.timesUsed;
-    }
-    if (typeof promptData.timeSavedMinutes === 'number') {
-      updates.time_saved_minutes = promptData.timeSavedMinutes;
     }
 
     const { data, error } = await supabase
@@ -180,14 +174,9 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     const userId = await requireUserId();
     const currentPrompt = await fetchPromptRowById(userId, id);
 
-    const updatedUsage = {
-      times_used: (currentPrompt.times_used ?? 0) + 1,
-      time_saved_minutes: (currentPrompt.time_saved_minutes ?? 0) + 5,
-    };
-
     const { data, error } = await supabase
       .from('prompts')
-      .update(updatedUsage)
+      .update({ times_used: (currentPrompt.times_used ?? 0) + 1 })
       .eq('id', id)
       .eq('user_id', userId)
       .select()
@@ -269,7 +258,7 @@ class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
 }
 
 class SupabaseStatsAdapter implements StatsStorageAdapter {
-  async getStats(): Promise<{ totalPrompts: number; totalCopies: number; timeSavedMinutes: number }> {
+  async getStats(): Promise<{ totalPrompts: number; totalCopies: number; totalPromptUses: number; timeSavedMultiplier: number }> {
     const userId = await requireUserId();
 
     const { data, error } = await supabase
@@ -283,7 +272,8 @@ class SupabaseStatsAdapter implements StatsStorageAdapter {
         return {
           totalPrompts: 0,
           totalCopies: 0,
-          timeSavedMinutes: 0,
+          totalPromptUses: 0,
+          timeSavedMultiplier: 5,
         };
       }
       throw new Error(`Failed to fetch stats: ${error.message}`);
@@ -292,7 +282,8 @@ class SupabaseStatsAdapter implements StatsStorageAdapter {
     return {
       totalPrompts: (data?.total_prompts as number | null) ?? 0,
       totalCopies: (data?.total_copies as number | null) ?? 0,
-      timeSavedMinutes: (data?.time_saved_minutes as number | null) ?? 0,
+      totalPromptUses: (data?.total_prompt_uses as number | null) ?? 0,
+      timeSavedMultiplier: (data?.time_saved_multiplier as number | null) ?? 5,
     };
   }
 

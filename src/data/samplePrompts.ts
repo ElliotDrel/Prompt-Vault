@@ -9,7 +9,6 @@ export const samplePrompts: Prompt[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     isPinned: true,
     timesUsed: 12,
-    timeSavedMinutes: 180,
   },
   {
     id: 'sample-2',
@@ -19,7 +18,6 @@ export const samplePrompts: Prompt[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
     isPinned: true,
     timesUsed: 8,
-    timeSavedMinutes: 120,
   },
   {
     id: 'sample-3',
@@ -29,6 +27,5 @@ export const samplePrompts: Prompt[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
     isPinned: false,
     timesUsed: 15,
-    timeSavedMinutes: 200,
   }
 ];

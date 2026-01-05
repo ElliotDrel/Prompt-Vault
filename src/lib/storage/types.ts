@@ -23,7 +23,8 @@ export interface StatsStorageAdapter {
   getStats(): Promise<{
     totalPrompts: number;
     totalCopies: number;
-    timeSavedMinutes: number;
+    totalPromptUses: number;
+    timeSavedMultiplier: number;
   }>;
   incrementCopyCount(): Promise<void>;
 }

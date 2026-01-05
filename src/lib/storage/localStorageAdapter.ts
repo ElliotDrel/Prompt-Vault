@@ -6,7 +6,26 @@ const STORAGE_KEYS = {
   PROMPTS: 'prompts',
   COPY_EVENTS: 'copyHistory',
   STATS: 'promptStats',
+  USER_SETTINGS: 'userSettings',
 } as const;
+
+interface UserSettings {
+  timeSavedMultiplier: number;
+}
+
+function getUserSettings(): UserSettings {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.USER_SETTINGS);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    const defaultSettings: UserSettings = { timeSavedMultiplier: 5 };
+    localStorage.setItem(STORAGE_KEYS.USER_SETTINGS, JSON.stringify(defaultSettings));
+    return defaultSettings;
+  } catch {
+    return { timeSavedMultiplier: 5 };
+  }
+}
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -17,7 +36,6 @@ function withPromptDefaults(prompt: Prompt): Prompt {
     ...prompt,
     isPinned: prompt.isPinned ?? false,
     timesUsed: prompt.timesUsed ?? 0,
-    timeSavedMinutes: prompt.timeSavedMinutes ?? 0,
   };
 }
 
@@ -26,7 +44,6 @@ function hydrateSamplePrompts(): Prompt[] {
     ...prompt,
     isPinned: prompt.isPinned ?? false,
     timesUsed: prompt.timesUsed ?? 0,
-    timeSavedMinutes: prompt.timeSavedMinutes ?? 0,
   }));
 }
 
@@ -123,7 +140,6 @@ class LocalStoragePromptsAdapter implements PromptsStorageAdapter {
     const updatedPrompt: Prompt = {
       ...prompt,
       timesUsed: (prompt.timesUsed ?? 0) + 1,
-      timeSavedMinutes: (prompt.timeSavedMinutes ?? 0) + 5,
       updatedAt: new Date().toISOString(),
     };
 
@@ -172,27 +188,29 @@ class LocalStorageCopyEventsAdapter implements CopyEventsStorageAdapter {
 }
 
 class LocalStorageStatsAdapter implements StatsStorageAdapter {
-  async getStats(): Promise<{ totalPrompts: number; totalCopies: number; timeSavedMinutes: number }> {
+  async getStats(): Promise<{ totalPrompts: number; totalCopies: number; totalPromptUses: number; timeSavedMultiplier: number }> {
     try {
       const prompts = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROMPTS) || '[]') as Prompt[];
       const copyEvents = JSON.parse(localStorage.getItem(STORAGE_KEYS.COPY_EVENTS) || '[]') as CopyEvent[];
       const storedStats = localStorage.getItem(STORAGE_KEYS.STATS);
-      const baseStats = storedStats ? JSON.parse(storedStats) : {
-        totalCopies: 0,
-        timeSavedMinutes: 0,
-      };
+      const baseStats = storedStats ? JSON.parse(storedStats) : { totalCopies: 0 };
+      const settings = getUserSettings();
+
+      const totalPromptUses = prompts.reduce((sum, p) => sum + (p.timesUsed ?? 0), 0);
 
       return {
         totalPrompts: prompts.length,
         totalCopies: Math.max(baseStats.totalCopies, copyEvents.length),
-        timeSavedMinutes: baseStats.timeSavedMinutes || 0,
+        totalPromptUses,
+        timeSavedMultiplier: settings.timeSavedMultiplier,
       };
     } catch (error) {
       console.error('Failed to load stats from localStorage:', error);
       return {
         totalPrompts: 0,
         totalCopies: 0,
-        timeSavedMinutes: 0,
+        totalPromptUses: 0,
+        timeSavedMultiplier: 5,
       };
     }
   }
@@ -200,9 +218,7 @@ class LocalStorageStatsAdapter implements StatsStorageAdapter {
   async incrementCopyCount(): Promise<void> {
     const currentStats = await this.getStats();
     const updatedStats = {
-      ...currentStats,
       totalCopies: currentStats.totalCopies + 1,
-      timeSavedMinutes: currentStats.timeSavedMinutes + 5,
     };
     localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(updatedStats));
   }
