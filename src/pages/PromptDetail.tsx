@@ -13,6 +13,7 @@ export default function PromptDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { prompts, loading, isBackgroundRefresh, addPrompt, updatePrompt, deletePrompt } = usePrompts();
+  const defaultTitle = 'Prompt Vault';
 
   // Determine if we're creating a new prompt (check pathname for /new route)
   const isCreating = location.pathname.endsWith('/new');
@@ -29,6 +30,22 @@ export default function PromptDetail() {
 
   // For edit mode, find the prompt by ID
   const prompt = !isCreating ? prompts.find(p => p.id === promptId) : undefined;
+
+  useEffect(() => {
+    let nextTitle = defaultTitle;
+
+    if (isCreating) {
+      nextTitle = `New Prompt - ${defaultTitle}`;
+    } else if (prompt?.title?.trim()) {
+      nextTitle = `${prompt.title.trim()} - ${defaultTitle}`;
+    }
+
+    document.title = nextTitle;
+
+    return () => {
+      document.title = defaultTitle;
+    };
+  }, [defaultTitle, isCreating, prompt?.title]);
 
   // Handle navigation back to dashboard
   const handleNavigateBack = () => {
