@@ -172,14 +172,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 
   async incrementPromptUsage(id: string): Promise<Prompt> {
     const userId = await requireUserId();
-    const currentPrompt = await fetchPromptRowById(userId, id);
 
+    // Use atomic RPC function instead of read-then-write pattern
+    // This reduces 2 DB roundtrips to 1 and prevents race conditions
     const { data, error } = await supabase
-      .from('prompts')
-      .update({ times_used: (currentPrompt.times_used ?? 0) + 1 })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .select()
+      .rpc('increment_prompt_usage', {
+        p_id: id,
+        p_user_id: userId
+      })
       .single();
 
     if (error) {

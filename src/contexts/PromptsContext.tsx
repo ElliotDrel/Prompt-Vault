@@ -216,21 +216,56 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
   const incrementPromptUsage = useCallback(async (promptId: string) => {
     const adapter = getAdapter();
 
+    // Store previous state for rollback on error
+    let previousPrompts: Prompt[] | null = null;
+    let previousStats: typeof stats | null = null;
+
     try {
       setError(null);
+
+      // Optimistic update: Immediately update UI state before database call
+      setPrompts((prev) => {
+        previousPrompts = prev; // Store for rollback
+        return prev.map((prompt) =>
+          prompt.id === promptId
+            ? { ...prompt, timesUsed: (prompt.timesUsed ?? 0) + 1 }
+            : prompt
+        );
+      });
+
+      setStats((prev) => {
+        previousStats = prev; // Store for rollback
+        return {
+          ...prev,
+          totalPromptUses: (prev.totalPromptUses ?? 0) + 1,
+        };
+      });
+
+      // Background: Confirm with database
       const updatedPrompt = await adapter.prompts.incrementPromptUsage(promptId);
       const sanitizedPrompt = {
         ...updatedPrompt,
         variables: sanitizeVariables(updatedPrompt.variables ?? []),
       };
+
+      // Replace optimistic update with server-confirmed data
       setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? sanitizedPrompt : prompt)));
-      await loadStats(adapter);
+      // Note: loadStats() removed - stats auto-update via realtime subscription when prompt_stats view changes
     } catch (err) {
       console.error('Failed to increment usage:', err);
       setError('Failed to increment usage');
+
+      // Rollback optimistic updates on error
+      if (previousPrompts !== null) {
+        setPrompts(previousPrompts);
+      }
+      if (previousStats !== null) {
+        setStats(previousStats);
+      }
+
       throw err;
     }
-  }, [getAdapter, loadStats]);
+  }, [getAdapter]);
 
   const incrementCopyCount = useCallback(async () => {
     const adapter = getAdapter();
