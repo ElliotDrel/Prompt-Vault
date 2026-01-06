@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Trash2, Eye, Copy, ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -23,7 +23,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
 
-export function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
+export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
   const [isDialogVariablesExpanded, setIsDialogVariablesExpanded] = useState(true);
   const [isDialogOutputExpanded, setIsDialogOutputExpanded] = useState(true);
 
@@ -54,6 +54,9 @@ export function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
                       Copy
                     </Button>
                   </div>
+                  <DialogDescription>
+                    View the complete details of this copy event, including all variable values and the final copied text.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -180,4 +183,4 @@ export function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
