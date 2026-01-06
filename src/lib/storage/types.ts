@@ -10,9 +10,17 @@ export interface PromptsStorageAdapter {
   incrementPromptUsage(id: string): Promise<Prompt>;
 }
 
+// Pagination result for copy events
+export interface PaginatedCopyEvents {
+  events: CopyEvent[];
+  hasMore: boolean;
+  totalCount: number;
+}
+
 // Storage interface for copy events
 export interface CopyEventsStorageAdapter {
-  getCopyEvents(): Promise<CopyEvent[]>;
+  getCopyEvents(offset?: number, limit?: number): Promise<PaginatedCopyEvents>;
+  searchCopyEvents(query: string): Promise<CopyEvent[]>;
   addCopyEvent(event: Omit<CopyEvent, 'id' | 'timestamp'>): Promise<CopyEvent>;
   deleteCopyEvent(id: string): Promise<void>;
   clearHistory(): Promise<void>;

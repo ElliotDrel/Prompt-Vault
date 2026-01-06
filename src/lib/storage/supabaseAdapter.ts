@@ -1,5 +1,5 @@
 import { Prompt, CopyEvent } from '@/types/prompt';
-import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, StorageAdapter } from './types';
+import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, StorageAdapter, PaginatedCopyEvents } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -191,17 +191,56 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 }
 
 class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
-  async getCopyEvents(): Promise<CopyEvent[]> {
+  async getCopyEvents(offset: number = 0, limit: number = 25): Promise<PaginatedCopyEvents> {
     const userId = await requireUserId();
 
+    // First query: Get total count (lightweight head-only request)
+    const { count, error: countError } = await supabase
+      .from('copy_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (countError) {
+      throw new Error(`Failed to fetch copy events count: ${countError.message}`);
+    }
+
+    const totalCount = count ?? 0;
+
+    // Second query: Get paginated data
     const { data, error } = await supabase
       .from('copy_events')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) {
       throw new Error(`Failed to fetch copy events: ${error.message}`);
+    }
+
+    const events = (data as CopyEventRow[]).map(mapCopyEventRow);
+    const hasMore = offset + events.length < totalCount;
+
+    return {
+      events,
+      hasMore,
+      totalCount,
+    };
+  }
+
+  async searchCopyEvents(query: string): Promise<CopyEvent[]> {
+    if (!query.trim()) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .rpc('search_copy_events', {
+        search_query: query,
+        result_limit: 500,
+      });
+
+    if (error) {
+      throw new Error(`Failed to search copy events: ${error.message}`);
     }
 
     return (data as CopyEventRow[]).map(mapCopyEventRow);

@@ -1,7 +1,10 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { Navigation } from '@/components/Navigation';
+import { PaginatedCopyEvents } from '@/lib/storage/types';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { usePrompts } from '@/contexts/PromptsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,23 +12,104 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CopyEventCard } from '@/components/CopyEventCard';
 import { CopyEvent } from '@/types/prompt';
 import { copyToClipboard } from '@/utils/promptUtils';
-import { Trash2, Search } from 'lucide-react';
+import { Trash2, Search, Loader2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const CopyHistory = () => {
-  const { copyHistory, clearHistory, deleteCopyEvent, addCopyEvent } = useCopyHistory();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const {
+    copyHistory,
+    clearHistory,
+    deleteCopyEvent,
+    addCopyEvent,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    totalCount,
+    searchCopyEvents,
+    searchResults,
+    isSearching,
+    clearSearch,
+  } = useCopyHistory();
   const { incrementCopyCount, incrementPromptUsage } = usePrompts();
   const [searchTerm, setSearchTerm] = useState('');
+  const observerTarget = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filteredHistory = useMemo(
-    () => copyHistory.filter(event =>
-      event.promptTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      Object.values(event.variableValues).some(value =>
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    ),
-    [copyHistory, searchTerm]
-  );
+  // Trim extra pages on unmount to optimize memory while keeping first page cached
+  useEffect(() => {
+    return () => {
+      // Keep only the first page for instant load on return, remove extra pages
+      queryClient.setQueryData<InfiniteData<PaginatedCopyEvents>>(
+        ['copyHistory', user?.id],
+        (old) => {
+          if (!old?.pages || old.pages.length <= 1) return old;
+
+          // Keep only the first page and its params
+          return {
+            pages: [old.pages[0]],
+            pageParams: [old.pageParams[0]],
+          };
+        }
+      );
+    };
+  }, [queryClient, user?.id]);
+
+  // Debounced search effect
+  useEffect(() => {
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // If search is cleared, reset to normal view
+    if (!searchTerm) {
+      clearSearch();
+      return;
+    }
+
+    // Debounce search for 300ms
+    searchTimeoutRef.current = setTimeout(() => {
+      searchCopyEvents(searchTerm);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm, searchCopyEvents, clearSearch]);
+
+  // Infinite scroll: Auto-load more when scrolling near bottom (disabled during search)
+  useEffect(() => {
+    if (searchResults !== null) return; // Don't load more during search
+
+    const target = observerTarget.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // When the sentinel element is visible and we have more pages
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      {
+        // Trigger when sentinel is 100px from entering viewport (smoother UX)
+        rootMargin: '100px',
+      }
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, searchResults]);
+
+  // Display either search results or paginated history
+  const displayedHistory = searchResults !== null ? searchResults : copyHistory;
 
   const handleClearHistory = useCallback(async () => {
     try {
@@ -89,11 +173,20 @@ const CopyHistory = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search copy history..."
+              placeholder="Search entire copy history (title + variables)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 pr-10"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           
           {copyHistory.length > 0 && (
@@ -124,27 +217,69 @@ const CopyHistory = () => {
           )}
         </div>
 
-        {filteredHistory.length === 0 ? (
+        {/* Search status indicator */}
+        {searchTerm && (
+          <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+            {isSearching ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Searching entire copy history...</span>
+              </>
+            ) : searchResults !== null ? (
+              <span>Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} in entire history</span>
+            ) : null}
+          </div>
+        )}
+
+        {displayedHistory.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
               <p className="text-muted-foreground text-lg">
-                {copyHistory.length === 0 
-                  ? "No copy history yet. Start copying prompts to see them here!" 
-                  : "No matches found for your search."}
+                {copyHistory.length === 0
+                  ? "No copy history yet. Start copying prompts to see them here!"
+                  : searchTerm
+                  ? `No results found for "${searchTerm}"`
+                  : "No matches found."}
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {filteredHistory.map((event) => (
-              <CopyEventCard
-                key={event.id}
-                event={event}
-                onDelete={handleDeleteEvent}
-                onCopy={handleCopyHistoryEvent}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {displayedHistory.map((event) => (
+                <CopyEventCard
+                  key={event.id}
+                  event={event}
+                  onDelete={handleDeleteEvent}
+                  onCopy={handleCopyHistoryEvent}
+                />
+              ))}
+            </div>
+
+            {/* Infinite scroll sentinel - triggers auto-load when visible (only in normal mode) */}
+            {hasNextPage && searchResults === null && (
+              <div
+                ref={observerTarget}
+                className="flex justify-center py-8"
+              >
+                {isFetchingNextPage && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Loading more...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Item count display - only show when not searching */}
+            {searchResults === null && (
+              <div className="text-center mt-6">
+                <p className="text-sm text-muted-foreground">
+                  Showing {copyHistory.length} of {totalCount} events
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
