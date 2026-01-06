@@ -387,8 +387,8 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               <ChevronRight className="h-5 w-5" />
             )}
             <span className="text-lg">Usage History</span>
-            {promptHistory.length > 0 && (
-              <Badge variant="secondary">{promptHistory.length}</Badge>
+            {totalCount > 0 && (
+              <Badge variant="secondary">{totalCount}</Badge>
             )}
           </button>
 
