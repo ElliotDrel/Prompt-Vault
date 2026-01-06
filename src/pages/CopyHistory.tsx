@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { usePrompts } from '@/contexts/PromptsContext';
@@ -17,14 +17,17 @@ const CopyHistory = () => {
   const { incrementCopyCount, incrementPromptUsage } = usePrompts();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredHistory = copyHistory.filter(event =>
-    event.promptTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    Object.values(event.variableValues).some(value =>
-      value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+  const filteredHistory = useMemo(
+    () => copyHistory.filter(event =>
+      event.promptTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      Object.values(event.variableValues).some(value =>
+        value.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    ),
+    [copyHistory, searchTerm]
   );
 
-  const handleClearHistory = async () => {
+  const handleClearHistory = useCallback(async () => {
     try {
       await clearHistory();
       toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
@@ -32,9 +35,9 @@ const CopyHistory = () => {
       console.error('Failed to clear copy history:', err);
       toast.error('Failed to clear copy history');
     }
-  };
+  }, [clearHistory]);
 
-  const handleDeleteEvent = async (id: string) => {
+  const handleDeleteEvent = useCallback(async (id: string) => {
     try {
       await deleteCopyEvent(id);
       toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
@@ -42,9 +45,9 @@ const CopyHistory = () => {
       console.error('Failed to delete copy event:', err);
       toast.error('Failed to delete copy event');
     }
-  };
+  }, [deleteCopyEvent]);
 
-  const handleCopyHistoryEvent = async (event: CopyEvent) => {
+  const handleCopyHistoryEvent = useCallback(async (event: CopyEvent) => {
     try {
       const success = await copyToClipboard(event.copiedText);
 
@@ -70,7 +73,7 @@ const CopyHistory = () => {
       console.error('Failed to copy history event:', err);
       toast.error('Failed to copy from history');
     }
-  };
+  }, [incrementCopyCount, incrementPromptUsage, addCopyEvent]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
