@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useCallback, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback, useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CopyEvent } from '../types/prompt';
 import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
@@ -42,6 +42,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
   const { user } = useAuth();
   const { adapter: storageAdapter } = useStorageAdapterContext();
   const userId = user?.id;
+  const searchRequestIdRef = useRef(0);
 
   // Search state
   const [searchResults, setSearchResults] = useState<CopyEvent[] | null>(null);
@@ -105,25 +106,39 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
     }
 
     if (!query.trim()) {
+      searchRequestIdRef.current += 1;
       setSearchResults(null);
+      setIsSearching(false);
       return;
     }
 
+    const requestId = searchRequestIdRef.current + 1;
+    searchRequestIdRef.current = requestId;
     setIsSearching(true);
     try {
       const results = await storageAdapter.copyEvents.searchCopyEvents(query);
+      if (requestId !== searchRequestIdRef.current) {
+        return;
+      }
       setSearchResults(results);
     } catch (error) {
+      if (requestId !== searchRequestIdRef.current) {
+        return;
+      }
       console.error('Failed to search copy events:', error);
       setSearchResults([]);
     } finally {
-      setIsSearching(false);
+      if (requestId === searchRequestIdRef.current) {
+        setIsSearching(false);
+      }
     }
   }, [storageAdapter]);
 
   // Clear search
   const clearSearch = useCallback(() => {
+    searchRequestIdRef.current += 1;
     setSearchResults(null);
+    setIsSearching(false);
   }, []);
 
   return (
