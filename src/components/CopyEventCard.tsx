@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Trash2, Eye, Copy, ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VirtualizedText } from '@/components/ui/VirtualizedText';
 
 interface CopyEventCardProps {
   event: CopyEvent;
@@ -26,6 +28,22 @@ const truncateText = (text: string, maxLength: number = 100) => {
 export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
   const [isDialogVariablesExpanded, setIsDialogVariablesExpanded] = useState(true);
   const [isDialogOutputExpanded, setIsDialogOutputExpanded] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [shouldRenderContent, setShouldRenderContent] = useState(false);
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      // Wait for animation to complete (100ms) + small buffer
+      const timer = setTimeout(() => {
+        setShouldRenderContent(true);
+      }, 120);
+
+      return () => clearTimeout(timer);
+    } else {
+      // Reset when dialog closes
+      setShouldRenderContent(false);
+    }
+  }, [isDialogOpen]);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -38,7 +56,7 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
             </p>
           </div>
           <div className="flex gap-2">
-            <Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Eye className="h-4 w-4 mr-1" />
@@ -59,55 +77,81 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
+                  {/* Always render timestamp - it's lightweight */}
                   <div>
                     <h4 className="font-semibold mb-2">Timestamp</h4>
                     <p className="text-sm">{formatDate(event.timestamp)}</p>
                   </div>
 
-                  <Collapsible open={isDialogVariablesExpanded} onOpenChange={setIsDialogVariablesExpanded}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="p-0 h-auto hover:bg-transparent hover:text-foreground hover:underline -ml-2 text-foreground font-semibold text-base">
-                          {isDialogVariablesExpanded ? (
-                            <ChevronDown className="h-4 w-4 mr-1" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 mr-1" />
-                          )}
-                          Variables Used
-                        </Button>
-                      </CollapsibleTrigger>
-                    </div>
-                    <CollapsibleContent>
-                      <div className="space-y-2">
-                        {Object.entries(event.variableValues).map(([key, value]) => (
-                          <div key={key} className="border rounded p-3">
-                            <Badge variant="secondary" className="mb-2">{key}</Badge>
-                            <p className="text-sm whitespace-pre-wrap break-all">{value}</p>
+                  {/* Conditional rendering for heavy content */}
+                  {!shouldRenderContent ? (
+                    // Loading skeleton during defer period (~120ms)
+                    <>
+                      <div>
+                        <h4 className="font-semibold mb-2">Variables Used</h4>
+                        <div className="space-y-2">
+                          <Skeleton className="h-20 w-full" />
+                          <Skeleton className="h-20 w-full" />
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Final Copied Text</h4>
+                        <Skeleton className="h-40 w-full" />
+                      </div>
+                    </>
+                  ) : (
+                    // Actual content after defer period
+                    <>
+                      <Collapsible open={isDialogVariablesExpanded} onOpenChange={setIsDialogVariablesExpanded}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="p-0 h-auto hover:bg-transparent hover:text-foreground hover:underline -ml-2 text-foreground font-semibold text-base">
+                              {isDialogVariablesExpanded ? (
+                                <ChevronDown className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 mr-1" />
+                              )}
+                              Variables Used
+                            </Button>
+                          </CollapsibleTrigger>
+                        </div>
+                        <CollapsibleContent>
+                          <div className="space-y-2">
+                            {Object.entries(event.variableValues).map(([key, value]) => (
+                              <div key={key} className="border rounded p-3">
+                                <Badge variant="secondary" className="mb-2">{key}</Badge>
+                                <p className="text-sm whitespace-pre-wrap break-all">{value}</p>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+                        </CollapsibleContent>
+                      </Collapsible>
 
-                  <Collapsible open={isDialogOutputExpanded} onOpenChange={setIsDialogOutputExpanded}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="p-0 h-auto hover:bg-transparent hover:text-foreground hover:underline -ml-2 text-foreground font-semibold text-base">
-                          {isDialogOutputExpanded ? (
-                            <ChevronDown className="h-4 w-4 mr-1" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 mr-1" />
-                          )}
-                          Final Copied Text
-                        </Button>
-                      </CollapsibleTrigger>
-                    </div>
-                    <CollapsibleContent>
-                      <div className="border rounded p-3 bg-muted">
-                        <pre className="text-sm whitespace-pre-wrap break-all">{event.copiedText}</pre>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+                      <Collapsible open={isDialogOutputExpanded} onOpenChange={setIsDialogOutputExpanded}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="p-0 h-auto hover:bg-transparent hover:text-foreground hover:underline -ml-2 text-foreground font-semibold text-base">
+                              {isDialogOutputExpanded ? (
+                                <ChevronDown className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 mr-1" />
+                              )}
+                              Final Copied Text
+                            </Button>
+                          </CollapsibleTrigger>
+                        </div>
+                        <CollapsibleContent>
+                          <div className="border rounded p-3 bg-muted">
+                            <VirtualizedText
+                              text={event.copiedText}
+                              className="text-sm whitespace-pre-wrap break-all"
+                              threshold={2000}
+                            />
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
