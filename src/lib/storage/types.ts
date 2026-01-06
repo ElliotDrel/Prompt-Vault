@@ -20,6 +20,7 @@ export interface PaginatedCopyEvents {
 // Storage interface for copy events
 export interface CopyEventsStorageAdapter {
   getCopyEvents(offset?: number, limit?: number): Promise<PaginatedCopyEvents>;
+  getCopyEventsByPromptId(promptId: string, offset?: number, limit?: number): Promise<PaginatedCopyEvents>;
   searchCopyEvents(query: string): Promise<CopyEvent[]>;
   addCopyEvent(event: Omit<CopyEvent, 'id' | 'timestamp'>): Promise<CopyEvent>;
   deleteCopyEvent(id: string): Promise<void>;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { Navigation } from '@/components/Navigation';
 import { PaginatedCopyEvents } from '@/lib/storage/types';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { CopyEventCard } from '@/components/CopyEventCard';
+import { InfiniteScrollContainer } from '@/components/InfiniteScrollContainer';
 import { CopyEvent } from '@/types/prompt';
 import { copyToClipboard } from '@/utils/promptUtils';
 import { Trash2, Search, Loader2, X } from 'lucide-react';
@@ -34,7 +35,6 @@ const CopyHistory = () => {
   } = useCopyHistory();
   const { incrementCopyCount, incrementPromptUsage } = usePrompts();
   const [searchTerm, setSearchTerm] = useState('');
-  const observerTarget = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Trim extra pages on unmount to optimize memory while keeping first page cached
@@ -80,36 +80,6 @@ const CopyHistory = () => {
       }
     };
   }, [searchTerm, searchCopyEvents, clearSearch]);
-
-  // Infinite scroll: Auto-load more when scrolling near bottom (disabled during search)
-  useEffect(() => {
-    if (searchResults !== null) return; // Don't load more during search
-
-    const target = observerTarget.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // When the sentinel element is visible and we have more pages
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      {
-        // Trigger when sentinel is 100px from entering viewport (smoother UX)
-        rootMargin: '100px',
-      }
-    );
-
-    observer.observe(target);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, searchResults]);
-
-  // Display either search results or paginated history
-  const displayedHistory = searchResults !== null ? searchResults : copyHistory;
 
   const handleClearHistory = useCallback(async () => {
     try {
@@ -231,22 +201,19 @@ const CopyHistory = () => {
           </div>
         )}
 
-        {displayedHistory.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
-                {copyHistory.length === 0
-                  ? "No copy history yet. Start copying prompts to see them here!"
-                  : searchTerm
-                  ? `No results found for "${searchTerm}"`
-                  : "No matches found."}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
+        {/* Show search results if searching, otherwise show paginated history */}
+        {searchResults !== null ? (
+          searchResults.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  {searchTerm ? `No results found for "${searchTerm}"` : "No matches found."}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
             <div className="space-y-4">
-              {displayedHistory.map((event) => (
+              {searchResults.map((event) => (
                 <CopyEventCard
                   key={event.id}
                   event={event}
@@ -255,31 +222,26 @@ const CopyHistory = () => {
                 />
               ))}
             </div>
-
-            {/* Infinite scroll sentinel - triggers auto-load when visible (only in normal mode) */}
-            {hasNextPage && searchResults === null && (
-              <div
-                ref={observerTarget}
-                className="flex justify-center py-8"
-              >
-                {isFetchingNextPage && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Loading more...</span>
-                  </div>
-                )}
-              </div>
+          )
+        ) : (
+          <InfiniteScrollContainer
+            items={copyHistory}
+            totalCount={totalCount}
+            loading={false}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={fetchNextPage}
+            renderItem={(event) => (
+              <CopyEventCard
+                event={event}
+                onDelete={handleDeleteEvent}
+                onCopy={handleCopyHistoryEvent}
+              />
             )}
-
-            {/* Item count display - only show when not searching */}
-            {searchResults === null && (
-              <div className="text-center mt-6">
-                <p className="text-sm text-muted-foreground">
-                  Showing {copyHistory.length} of {totalCount} events
-                </p>
-              </div>
-            )}
-          </>
+            getItemKey={(event) => event.id}
+            emptyMessage="No copy history yet. Start copying prompts to see them here!"
+            enableInfiniteScroll={true}
+          />
         )}
       </div>
     </div>
