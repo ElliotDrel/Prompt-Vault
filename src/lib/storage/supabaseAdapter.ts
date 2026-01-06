@@ -228,6 +228,45 @@ class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
     };
   }
 
+  async getCopyEventsByPromptId(promptId: string, offset: number = 0, limit: number = 10): Promise<PaginatedCopyEvents> {
+    const userId = await requireUserId();
+
+    // First query: Get total count for this specific prompt
+    const { count, error: countError } = await supabase
+      .from('copy_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('prompt_id', promptId);
+
+    if (countError) {
+      throw new Error(`Failed to fetch copy events count for prompt: ${countError.message}`);
+    }
+
+    const totalCount = count ?? 0;
+
+    // Second query: Get paginated data for this specific prompt
+    const { data, error } = await supabase
+      .from('copy_events')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('prompt_id', promptId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw new Error(`Failed to fetch copy events for prompt: ${error.message}`);
+    }
+
+    const events = (data as CopyEventRow[]).map(mapCopyEventRow);
+    const hasMore = offset + events.length < totalCount;
+
+    return {
+      events,
+      hasMore,
+      totalCount,
+    };
+  }
+
   async searchCopyEvents(query: string): Promise<CopyEvent[]> {
     if (!query.trim()) {
       return [];

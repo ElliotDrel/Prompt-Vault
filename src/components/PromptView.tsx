@@ -8,8 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { CopyEventCard } from '@/components/CopyEventCard';
+import { InfiniteScrollContainer } from '@/components/InfiniteScrollContainer';
 import { usePrompts } from '@/contexts/PromptsContext';
-import { useCopyHistory } from '@/contexts/CopyHistoryContext';
+import { usePromptCopyHistory } from '@/hooks/usePromptCopyHistory';
 import toast from 'react-hot-toast';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
 import { copyToClipboard, buildPromptPayload } from '@/utils/promptUtils';
@@ -53,18 +54,19 @@ interface PromptViewProps {
 
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
   const { stats, togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
-  const { addCopyEvent, copyHistory, deleteCopyEvent } = useCopyHistory();
+  const {
+    promptHistory,
+    totalCount,
+    loading: historyLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    deleteCopyEvent: deletePromptEvent,
+    addCopyEvent: addPromptEvent,
+  } = usePromptCopyHistory({ promptId: prompt.id, limit: 10 });
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
   const [isCopied, setIsCopied] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
-
-  // Filter and sort history for this specific prompt (most recent first)
-  const promptHistory = useMemo(
-    () => copyHistory
-      .filter(event => event.promptId === prompt.id)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
-    [copyHistory, prompt.id]
-  );
   const sanitizedVariables = useMemo(() => sanitizeVariables(prompt.variables), [prompt.variables]);
   const sanitizedPrompt = useMemo(
     () => ({ ...prompt, variables: sanitizedVariables }),
@@ -132,7 +134,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         incrementPromptUsage(prompt.id),
       ]);
 
-      await addCopyEvent({
+      await addPromptEvent({
         promptId: prompt.id,
         promptTitle: prompt.title,
         variableValues: { ...variableValues },
@@ -163,7 +165,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      await deleteCopyEvent(id);
+      await deletePromptEvent(id);
       toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
     } catch (err) {
       console.error('Failed to delete copy event:', err);
@@ -185,7 +187,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         incrementPromptUsage(event.promptId),
       ]);
 
-      await addCopyEvent({
+      await addPromptEvent({
         promptId: event.promptId,
         promptTitle: event.promptTitle,
         variableValues: { ...event.variableValues },
@@ -391,28 +393,24 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
           </button>
 
           {historyExpanded && (
-            <>
-              {promptHistory.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <p className="text-muted-foreground text-lg">
-                      No usage history yet. Copy this prompt to see its history here!
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {promptHistory.map((event) => (
-                    <CopyEventCard
-                      key={event.id}
-                      event={event}
-                      onDelete={handleDeleteEvent}
-                      onCopy={handleCopyHistoryEvent}
-                    />
-                  ))}
-                </div>
+            <InfiniteScrollContainer
+              items={promptHistory}
+              totalCount={totalCount}
+              loading={historyLoading}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+              renderItem={(event) => (
+                <CopyEventCard
+                  event={event}
+                  onDelete={handleDeleteEvent}
+                  onCopy={handleCopyHistoryEvent}
+                />
               )}
-            </>
+              getItemKey={(event) => event.id}
+              emptyMessage="No usage history yet. Copy this prompt to see its history here!"
+              enableInfiniteScroll={true}
+            />
           )}
         </div>
       </div>
