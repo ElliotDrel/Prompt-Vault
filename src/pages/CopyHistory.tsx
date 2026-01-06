@@ -84,12 +84,14 @@ const CopyHistory = () => {
   const handleClearHistory = useCallback(async () => {
     try {
       await clearHistory();
+      setSearchTerm('');
+      clearSearch();
       toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
     } catch (err) {
       console.error('Failed to clear copy history:', err);
       toast.error('Failed to clear copy history');
     }
-  }, [clearHistory]);
+  }, [clearHistory, clearSearch]);
 
   const handleDeleteEvent = useCallback(async (id: string) => {
     try {

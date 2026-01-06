@@ -7,6 +7,7 @@ CREATE OR REPLACE FUNCTION search_copy_events(
 RETURNS SETOF copy_events
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   -- Only return events for the authenticated user (RLS aware)

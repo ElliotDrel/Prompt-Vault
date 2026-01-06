@@ -36,6 +36,7 @@ export const ScrollToTop = ({ threshold = 300, className }: ScrollToTopProps) =>
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          key="scroll-to-top"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
