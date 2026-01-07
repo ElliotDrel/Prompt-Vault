@@ -6,7 +6,11 @@
       "Bash(npm run build:*)",
       "WebFetch(domain:supabase.com)",
       "WebFetch(domain:github.com)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "mcp__supabase__list_migrations",
+      "Bash(Out-File -Encoding utf8 src/types/supabase-generated.ts)",
+      "mcp__supabase__search_docs",
+      "Bash(git add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -179,14 +179,34 @@ npx supabase functions delete my-function
 - Avoid success logs in realtime handlers; keep console output to actionable errors only.
 
 ### Database Migration Best Practices:
+- **🚨 NEVER EDIT APPLIED MIGRATIONS**: Once a migration has been pushed to remote (`npx supabase db push`), NEVER edit the file. Supabase tracks migrations by **timestamp only**, not content. Editing creates a mismatch between local files and remote schema.
+  - **How it works**: Remote migrations tracked in `supabase_migrations.schema_migrations` table with timestamp as unique ID
+  - **Tracking**: Local migrations in `supabase/migrations/` directory, remote in `schema_migrations` table - only timestamps compared
+  - **Symptom**: `npx supabase db push` says "Remote database is up to date" but schema doesn't match local migration files
+  - **Detection**: Run `npx supabase migration list` to compare local vs remote, or query remote schema directly
+  - **Fix**: Create a NEW migration to update the remote schema (forward-only approach)
+  - **Example**: If you need to change a function signature, create a new migration with `DROP FUNCTION` + `CREATE FUNCTION`, don't edit the original migration
+  - **Recovery**: If mismatches occur, use `npx supabase migration repair` to fix migration history table
+- **Preview before applying**: Use `npx supabase db push --dry-run` to see what changes will be applied before committing
+- **Handle teammate conflicts**: If teammate merges new migration, rename your migration file with new timestamp and run `npx supabase db reset`
+  ```bash
+  # Example: Teammate merged migration while you were working
+  git pull
+  mv supabase/migrations/<old_time>_my_feature.sql supabase/migrations/<new_time>_my_feature.sql
+  npx supabase db reset  # Reapply all migrations in order
+  ```
+- **Detect schema drift**: Use `npx supabase db diff` to detect changes made through Dashboard that aren't in migration files
 - **Document object dependencies**: Track triggers -> policies -> functions -> tables -> enums for removal order
 - **Avoid double counting in views**: Pre-aggregate one-to-many tables before joining
 - **Test end-to-end workflows**: Ensure navigation works after database changes
 - **Use incremental migrations**: Separate schema changes from data fixes
-- **Always verify CLI is linked**: Check project connection before pushing migrations
+- **Always verify CLI is linked**: Check project connection before pushing migrations (`npx supabase status`)
 - **Preserve migration history**: Never delete migration files, even for removed features
+- **Verify after push**: After applying migrations, verify the remote schema matches expectations using MCP SQL queries or `npx supabase migration list`
 
 **Rationale**: This approach ensures all changes are version-controlled, reproducible, and eliminates dependency on local Docker setup while maintaining full control over project configuration.
+
+**Real Example (2026-01-07)**: The `increment_prompt_usage` function was created as a two-parameter function and pushed to remote. Later, the migration files were edited to use a one-parameter signature (with `auth.uid()` internally). However, the remote DB still had the old two-parameter version, causing runtime errors. Fixed by creating migration `20260107150343_fix_increment_prompt_usage_signature_mismatch.sql` that explicitly dropped the old function and created the new one.
 
 ### Supabase Realtime Setup:
 - **Enable first**: Dashboard → Database → Publications → `supabase_realtime` → Toggle tables ON
