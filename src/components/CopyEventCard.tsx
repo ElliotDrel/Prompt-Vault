@@ -117,8 +117,8 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
                         </div>
                         <CollapsibleContent>
                           <div className="space-y-2">
-                            {Object.entries(event.variableValues).map(([key, value]) => (
-                              <div key={key} className="border rounded p-3">
+                            {Object.entries(event.variableValues).map(([key, value], index) => (
+                              <div key={key || `var-${index}`} className="border rounded p-3">
                                 <Badge variant="secondary" className="mb-2">{key}</Badge>
                                 <p className="text-sm whitespace-pre-wrap break-all">{value}</p>
                               </div>
@@ -144,7 +144,7 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
                           <div className="border rounded p-3 bg-muted">
                             <VirtualizedText
                               text={event.copiedText}
-                              className="text-sm whitespace-pre-wrap break-all"
+                              className="text-sm whitespace-pre-wrap break-words"
                               threshold={2000}
                             />
                           </div>
@@ -197,8 +197,8 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
               <p className="text-sm text-muted-foreground italic">No variables used</p>
             ) : (
               <div className="grid gap-2">
-                {Object.entries(event.variableValues).slice(0, 3).map(([key, value]) => (
-                  <div key={key} className="flex items-start gap-2 p-2 bg-muted/50 rounded border">
+                {Object.entries(event.variableValues).slice(0, 3).map(([key, value], index) => (
+                  <div key={key || `var-${index}`} className="flex items-start gap-2 p-2 bg-muted/50 rounded border">
                     <Badge variant="outline" className="text-xs mt-0.5 shrink-0">{key}</Badge>
                     <span className="text-sm text-muted-foreground flex-1 break-all">
                       {truncateText(value, 80)}
