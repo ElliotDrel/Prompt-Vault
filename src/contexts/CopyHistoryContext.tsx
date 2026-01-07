@@ -82,7 +82,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
     },
     onSuccess: () => {
       // Invalidate and reset query
-      queryClient.invalidateQueries({ queryKey: ['copyEvents', 'copyHistory', userId ?? 'anonymous'] });
+      queryClient.invalidateQueries({ queryKey: ['copyEvents'] });
     },
   });
 
@@ -93,6 +93,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
 
   const deleteCopyEvent = useCallback(async (id: string) => {
     await deleteCopyEventMutation(id);
+    setSearchResults((prev) => (prev ? prev.filter((event) => event.id !== id) : prev));
   }, [deleteCopyEventMutation]);
 
   const clearHistory = useCallback(async () => {
@@ -125,7 +126,6 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
       if (requestId !== searchRequestIdRef.current) {
         return;
       }
-      console.error('Failed to search copy events:', error);
       setSearchResults([]);
     } finally {
       if (requestId === searchRequestIdRef.current) {
