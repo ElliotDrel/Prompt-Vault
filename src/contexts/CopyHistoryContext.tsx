@@ -126,7 +126,7 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
       if (requestId !== searchRequestIdRef.current) {
         return;
       }
-      setSearchResults([]);
+      setSearchResults(null);
     } finally {
       if (requestId === searchRequestIdRef.current) {
         setIsSearching(false);
