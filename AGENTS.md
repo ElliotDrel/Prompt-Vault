@@ -188,12 +188,12 @@ npx supabase functions delete my-function
   - **Example**: If you need to change a function signature, create a new migration with `DROP FUNCTION` + `CREATE FUNCTION`, don't edit the original migration
   - **Recovery**: If mismatches occur, use `npx supabase migration repair` to fix migration history table
 - **Preview before applying**: Use `npx supabase db push --dry-run` to see what changes will be applied before committing
-- **Handle teammate conflicts**: If teammate merges new migration, rename your migration file with new timestamp and run `npx supabase db reset`
+- **Handle teammate conflicts**: If teammate merges new migration, rename your migration file with new timestamp and run `npx supabase db push` (or `npx supabase db push --dry-run` to preview)
   ```bash
   # Example: Teammate merged migration while you were working
   git pull
   mv supabase/migrations/<old_time>_my_feature.sql supabase/migrations/<new_time>_my_feature.sql
-  npx supabase db reset  # Reapply all migrations in order
+  npx supabase db push  # Apply the renamed migration to remote
   ```
 - **Detect schema drift**: Use `npx supabase db diff` to detect changes made through Dashboard that aren't in migration files
 - **Document object dependencies**: Track triggers -> policies -> functions -> tables -> enums for removal order
