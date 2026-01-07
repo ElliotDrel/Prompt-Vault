@@ -19,8 +19,10 @@ import { toast } from 'react-hot-toast';
 const CopyHistory = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const cacheUserId = user?.id ?? 'anonymous';
   const {
     copyHistory,
+    loading,
     clearHistory,
     deleteCopyEvent,
     addCopyEvent,
@@ -42,7 +44,7 @@ const CopyHistory = () => {
     return () => {
       // Keep only the first page for instant load on return, remove extra pages
       queryClient.setQueryData<InfiniteData<PaginatedCopyEvents>>(
-        ['copyHistory', user?.id],
+        ['copyEvents', 'copyHistory', cacheUserId],
         (old) => {
           if (!old?.pages || old.pages.length <= 1) return old;
 
@@ -54,7 +56,7 @@ const CopyHistory = () => {
         }
       );
     };
-  }, [queryClient, user?.id]);
+  }, [queryClient, cacheUserId]);
 
   // Debounced search effect
   useEffect(() => {
@@ -229,7 +231,7 @@ const CopyHistory = () => {
           <InfiniteScrollContainer
             items={copyHistory}
             totalCount={totalCount}
-            loading={false}
+            loading={loading}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
             fetchNextPage={fetchNextPage}
