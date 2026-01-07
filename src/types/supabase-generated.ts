@@ -123,7 +123,38 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      increment_prompt_usage: {
+        Args: { p_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          times_used: number
+          title: string
+          updated_at: string
+          user_id: string
+          variables: Json
+        }[]
+      }
+      search_copy_events: {
+        Args: { result_limit?: number; search_query: string }
+        Returns: {
+          copied_text: string
+          created_at: string | null
+          id: string
+          prompt_id: string | null
+          prompt_title: string
+          user_id: string | null
+          variable_values: Json | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "copy_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
