@@ -3,12 +3,11 @@
 -- The RPC function needs to match the current table schema
 
 -- Drop the existing function first (PostgreSQL doesn't allow changing return type with CREATE OR REPLACE)
-DROP FUNCTION IF EXISTS increment_prompt_usage(UUID, UUID);
+DROP FUNCTION IF EXISTS increment_prompt_usage(UUID);
 
 -- Recreate with correct columns
 CREATE FUNCTION increment_prompt_usage(
-    p_id UUID,
-    p_user_id UUID
+    p_id UUID
 )
 RETURNS TABLE (
     id UUID,
@@ -33,7 +32,7 @@ BEGIN
     UPDATE prompts
     SET times_used = COALESCE(times_used, 0) + 1
     WHERE prompts.id = p_id
-      AND prompts.user_id = p_user_id
+      AND prompts.user_id = auth.uid()
     RETURNING
         prompts.id,
         prompts.user_id,
@@ -51,7 +50,7 @@ END;
 $$;
 
 -- Re-grant execution permissions (needed since we dropped the function)
-GRANT EXECUTE ON FUNCTION increment_prompt_usage(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_prompt_usage(UUID) TO authenticated;
 
 -- Re-add comment
-COMMENT ON FUNCTION increment_prompt_usage(UUID, UUID) IS 'Atomically increments the times_used counter for a prompt. Only allows users to increment their own prompts. Returns the updated prompt row or empty result if not found/unauthorized.';
+COMMENT ON FUNCTION increment_prompt_usage(UUID) IS 'Atomically increments the times_used counter for a prompt. Only allows users to increment their own prompts. Returns the updated prompt row or empty result if not found/unauthorized.';
