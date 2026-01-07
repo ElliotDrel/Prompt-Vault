@@ -4,8 +4,7 @@
 -- Safety: Atomic increment prevents race conditions from concurrent requests
 
 CREATE OR REPLACE FUNCTION increment_prompt_usage(
-    p_id UUID,
-    p_user_id UUID
+    p_id UUID
 )
 RETURNS TABLE (
     id UUID,
@@ -15,7 +14,6 @@ RETURNS TABLE (
     variables JSONB,
     is_pinned BOOLEAN,
     times_used INTEGER,
-    time_saved_minutes INTEGER,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 )
@@ -31,7 +29,7 @@ BEGIN
     UPDATE prompts
     SET times_used = COALESCE(times_used, 0) + 1
     WHERE prompts.id = p_id
-      AND prompts.user_id = p_user_id
+      AND prompts.user_id = auth.uid()
     RETURNING
         prompts.id,
         prompts.user_id,
@@ -40,7 +38,6 @@ BEGIN
         prompts.variables,
         prompts.is_pinned,
         prompts.times_used,
-        prompts.time_saved_minutes,
         prompts.created_at,
         prompts.updated_at;
 
@@ -51,7 +48,7 @@ $$;
 
 -- Grant execution to authenticated users
 -- This allows logged-in users to call the function
-GRANT EXECUTE ON FUNCTION increment_prompt_usage(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_prompt_usage(UUID) TO authenticated;
 
 -- Add helpful comment for documentation
-COMMENT ON FUNCTION increment_prompt_usage(UUID, UUID) IS 'Atomically increments the times_used counter for a prompt. Only allows users to increment their own prompts. Returns the updated prompt row or empty result if not found/unauthorized.';
+COMMENT ON FUNCTION increment_prompt_usage(UUID) IS 'Atomically increments the times_used counter for a prompt. Only allows users to increment their own prompts. Returns the updated prompt row or empty result if not found/unauthorized.';

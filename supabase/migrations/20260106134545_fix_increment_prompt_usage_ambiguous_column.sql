@@ -1,11 +1,10 @@
 -- Fix "column reference 'times_used' is ambiguous" error in increment_prompt_usage
 -- The SET clause needs to explicitly qualify the column reference with the table name
 
-DROP FUNCTION IF EXISTS increment_prompt_usage(UUID, UUID);
+DROP FUNCTION IF EXISTS increment_prompt_usage(UUID);
 
 CREATE FUNCTION increment_prompt_usage(
-    p_id UUID,
-    p_user_id UUID
+    p_id UUID
 )
 RETURNS TABLE (
     id UUID,
@@ -29,7 +28,7 @@ BEGIN
     UPDATE prompts
     SET times_used = COALESCE(prompts.times_used, 0) + 1
     WHERE prompts.id = p_id
-      AND prompts.user_id = p_user_id
+      AND prompts.user_id = auth.uid()
     RETURNING
         prompts.id,
         prompts.user_id,
@@ -43,6 +42,6 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION increment_prompt_usage(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_prompt_usage(UUID) TO authenticated;
 
-COMMENT ON FUNCTION increment_prompt_usage(UUID, UUID) IS 'Atomically increments the times_used counter for a prompt. Only allows users to increment their own prompts. Returns the updated prompt row or empty result if not found/unauthorized.';
+COMMENT ON FUNCTION increment_prompt_usage(UUID) IS 'Atomically increments the times_used counter for a prompt. Only allows users to increment their own prompts. Returns the updated prompt row or empty result if not found/unauthorized.';
