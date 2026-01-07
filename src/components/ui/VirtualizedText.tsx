@@ -51,6 +51,8 @@ export function VirtualizedText({
         {virtualizer.getVirtualItems().map((virtualRow) => (
           <div
             key={virtualRow.key}
+            data-index={virtualRow.index}
+            ref={virtualizer.measureElement}
             style={{
               position: 'absolute',
               top: 0,
@@ -60,7 +62,7 @@ export function VirtualizedText({
             }}
           >
             <pre className={className} style={{ margin: 0 }}>
-              {lines[virtualRow.index]}
+              {lines[virtualRow.index] || '\u00A0'}
             </pre>
           </div>
         ))}
