@@ -254,7 +254,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
 
       // Replace optimistic update with server-confirmed data
       setPrompts((prev) => prev.map((prompt) => (prompt.id === promptId ? sanitizedPrompt : prompt)));
-      // Note: loadStats() removed - stats auto-update via realtime subscription when prompt_stats view changes
+      // Stats are refreshed by the realtime subscription in PromptsProvider (prompts/copyEvents events call loadStats).
     } catch (err) {
       console.error('Failed to increment usage:', err);
       setError('Failed to increment usage');
