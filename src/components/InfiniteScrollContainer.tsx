@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, ReactNode } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface InfiniteScrollContainerProps<T> {
   /** Array of items to display */
@@ -18,8 +19,14 @@ interface InfiniteScrollContainerProps<T> {
   /** Whether currently fetching next page */
   isFetchingNextPage: boolean;
 
+  /** Error from pagination (if any) */
+  error?: string | null;
+
   /** Function to fetch next page */
   fetchNextPage: () => void;
+
+  /** Function to retry after error */
+  onRetry?: () => void;
 
   /** Function to render each item */
   renderItem: (item: T) => ReactNode;
@@ -39,7 +46,7 @@ interface InfiniteScrollContainerProps<T> {
 
 /**
  * Reusable infinite scroll container with automatic loading.
- * Handles intersection observer, loading states, and empty states.
+ * Handles intersection observer, loading states, error states, and empty states.
  *
  * @example
  * <InfiniteScrollContainer
@@ -48,7 +55,9 @@ interface InfiniteScrollContainerProps<T> {
  *   loading={loading}
  *   hasNextPage={hasNextPage}
  *   isFetchingNextPage={isFetchingNextPage}
+ *   error={error}
  *   fetchNextPage={fetchNextPage}
+ *   onRetry={refetch}
  *   renderItem={(event) => <CopyEventCard event={event} />}
  *   getItemKey={(event) => event.id}
  *   emptyMessage="No copy history yet."
@@ -61,7 +70,9 @@ export function InfiniteScrollContainer<T>({
   loading,
   hasNextPage,
   isFetchingNextPage,
+  error,
   fetchNextPage,
+  onRetry,
   renderItem,
   getItemKey,
   emptyMessage,
@@ -72,15 +83,15 @@ export function InfiniteScrollContainer<T>({
 
   // Infinite scroll: Auto-load more when scrolling near bottom
   useEffect(() => {
-    if (!enableInfiniteScroll) return;
+    if (!enableInfiniteScroll || error) return;
 
     const target = observerTarget.current;
     if (!target) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // When the sentinel element is visible and we have more pages
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        // When the sentinel element is visible and we have more pages (and no error)
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && !error) {
           fetchNextPage();
         }
       },
@@ -95,7 +106,7 @@ export function InfiniteScrollContainer<T>({
     return () => {
       observer.disconnect();
     };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, enableInfiniteScroll]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, enableInfiniteScroll, error]);
 
   // Loading state
   if (loading) {
@@ -106,6 +117,36 @@ export function InfiniteScrollContainer<T>({
           <span className="text-sm">Loading...</span>
         </div>
       </div>
+    );
+  }
+
+  // Error state (initial load failed)
+  if (error && items.length === 0) {
+    return (
+      <Card className="border-destructive">
+        <CardContent className="py-12">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-medium">Failed to load items</span>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {error}
+            </p>
+            {onRetry && (
+              <Button
+                onClick={onRetry}
+                variant="outline"
+                size="sm"
+                className="mt-2"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -131,8 +172,36 @@ export function InfiniteScrollContainer<T>({
         ))}
       </div>
 
+      {/* Error state - shows when pagination fails */}
+      {error && (
+        <Card className="border-destructive">
+          <CardContent className="py-6">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="h-5 w-5" />
+                <span className="font-medium">Failed to load more items</span>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md">
+                {error}
+              </p>
+              {onRetry && (
+                <Button
+                  onClick={onRetry}
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Infinite scroll sentinel - triggers auto-load when visible */}
-      {hasNextPage && enableInfiniteScroll && (
+      {hasNextPage && enableInfiniteScroll && !error && (
         <div
           ref={observerTarget}
           className="flex justify-center py-8"
@@ -147,7 +216,7 @@ export function InfiniteScrollContainer<T>({
       )}
 
       {/* Item count display */}
-      {enableInfiniteScroll && (
+      {enableInfiniteScroll && !error && (
         <div className="text-center mt-6">
           <p className="text-sm text-muted-foreground">
             Showing {items.length} of {totalCount} events
