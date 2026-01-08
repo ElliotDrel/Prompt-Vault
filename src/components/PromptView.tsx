@@ -66,6 +66,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     deleteCopyEvent: deletePromptEvent,
     addCopyEvent: addPromptEvent,
   } = usePromptCopyHistory({ promptId: prompt.id, limit: 10 });
+  const handleRetryHistory = promptHistory.length > 0 && hasNextPage ? fetchNextPage : refetchHistory;
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
   const [isCopied, setIsCopied] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
@@ -403,7 +404,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               isFetchingNextPage={isFetchingNextPage}
               error={historyError}
               fetchNextPage={fetchNextPage}
-              onRetry={refetchHistory}
+              onRetry={handleRetryHistory}
               renderItem={(event) => (
                 <CopyEventCard
                   event={event}
