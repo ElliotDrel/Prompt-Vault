@@ -15,6 +15,7 @@ export function usePromptCopyHistory({ promptId, limit = 10 }: UsePromptCopyHist
   const { user } = useAuth();
   const { adapter: storageAdapter } = useStorageAdapterContext();
   const userId = user?.id;
+  const queryUserId = userId!; // enabled prevents null userId from executing the query
 
   const {
     events,
@@ -28,7 +29,7 @@ export function usePromptCopyHistory({ promptId, limit = 10 }: UsePromptCopyHist
     addCopyEvent,
     deleteCopyEvent,
   } = useInfiniteCopyEvents({
-    queryKey: ['promptCopyHistory', userId ?? 'anonymous', promptId],
+    queryKey: ['promptCopyHistory', queryUserId, promptId],
     queryFn: async (offset, limit) => {
       if (!storageAdapter) {
         throw new Error('Storage adapter not initialized');
