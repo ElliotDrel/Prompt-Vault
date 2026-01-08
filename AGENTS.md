@@ -178,6 +178,14 @@ npx supabase functions delete my-function
 - When de-duplicating adapter guards, use a shared helper and consider parallel updates in related contexts for consistency.
 - Avoid success logs in realtime handlers; keep console output to actionable errors only.
 
+## Codex Agent Notes (2026-01-08)
+
+- When addressing review comments, scan for all occurrences with `rg` and note any similar patterns that remain out of scope.
+- When React Query is gated by `enabled`, keep query keys aligned with real auth state (avoid dead "anonymous" fallbacks); add a short comment when using non-null assertions.
+- When realtime callbacks trigger refetches, handle promise rejections (`void refetch().catch(...)`) with a contextual error message.
+- Fail fast in mutations when `userId` is missing to surface clear client-side errors before adapter/RLS.
+- For search/result caps, centralize the limit in config and surface a lightweight UI hint when the cap is reached.
+
 ### Database Migration Best Practices:
 - **🚨 NEVER EDIT APPLIED MIGRATIONS**: Once a migration has been pushed to remote (`npx supabase db push`), NEVER edit the file. Supabase tracks migrations by **timestamp only**, not content. Editing creates a mismatch between local files and remote schema.
   - **How it works**: Remote migrations tracked in `supabase_migrations.schema_migrations` table with timestamp as unique ID
