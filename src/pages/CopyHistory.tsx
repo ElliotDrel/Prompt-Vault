@@ -13,6 +13,7 @@ import { CopyEventCard } from '@/components/CopyEventCard';
 import { InfiniteScrollContainer } from '@/components/InfiniteScrollContainer';
 import { CopyEvent } from '@/types/prompt';
 import { copyToClipboard } from '@/utils/promptUtils';
+import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
 import { Trash2, Search, Loader2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -40,6 +41,7 @@ const CopyHistory = () => {
   const { incrementCopyCount, incrementPromptUsage } = usePrompts();
   const [searchTerm, setSearchTerm] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSearchLimitReached = searchResults !== null && searchResults.length === COPY_HISTORY_SEARCH_LIMIT;
 
   // Trim extra pages on unmount to optimize memory while keeping first page cached
   useEffect(() => {
@@ -202,7 +204,12 @@ const CopyHistory = () => {
                 <span>Searching entire copy history...</span>
               </>
             ) : searchResults !== null ? (
-              <span>Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} in entire history</span>
+              <>
+                <span>Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} in entire history</span>
+                {isSearchLimitReached && (
+                  <span className="text-xs">Showing first {COPY_HISTORY_SEARCH_LIMIT} results</span>
+                )}
+              </>
             ) : null}
           </div>
         )}
