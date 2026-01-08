@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function StatsCounter() {
-  const { stats } = usePrompts();
+  const { prompts, stats } = usePrompts();
   const [activeStatDialog, setActiveStatDialog] = useState<string | null>(null);
 
   const formatTime = (minutes: number) => {
@@ -16,7 +16,13 @@ export function StatsCounter() {
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
-  const totalPromptUses = stats.totalPromptUses || 0;
+  const totalPromptUses = useMemo(() => {
+    if (prompts.length === 0) {
+      return stats.totalPromptUses || 0;
+    }
+
+    return prompts.reduce((sum, prompt) => sum + (prompt.timesUsed ?? 0), 0);
+  }, [prompts, stats.totalPromptUses]);
 
   const totalTimeSaved = totalPromptUses * stats.timeSavedMultiplier;
 
