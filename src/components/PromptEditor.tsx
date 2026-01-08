@@ -192,7 +192,13 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       return true;
     } catch (err) {
       console.error('Failed to save prompt:', err);
-      toast.error('Failed to save prompt');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save prompt';
+      // Show a more specific error message
+      if (errorMessage.includes('not found') || errorMessage.includes('permission')) {
+        toast.error('This prompt no longer exists or you don\'t have permission to edit it');
+      } else {
+        toast.error(errorMessage.replace('Failed to update prompt: ', '').replace('Failed to add prompt: ', ''));
+      }
       return false;
     } finally {
       // Reset saving flag after navigation completes
