@@ -109,6 +109,10 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
         loadPrompts(storageAdapter, true).catch((err) => {
           console.error('Failed to refresh prompts via subscription:', err);
         });
+        // Also refresh stats because prompt_stats view depends on prompts table
+        loadStats(storageAdapter).catch((err) => {
+          console.error('Failed to refresh stats via subscription:', err);
+        });
       } else if (type === 'copyEvents' || type === 'stats') {
         loadStats(storageAdapter).catch((err) => {
           console.error('Failed to refresh stats via subscription:', err);
