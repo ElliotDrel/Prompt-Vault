@@ -25,6 +25,11 @@ const truncateText = (text: string, maxLength: number = 100) => {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 };
 
+const DIALOG_ANIMATION_MS = 100;
+const SKELETON_DELAY_MS = DIALOG_ANIMATION_MS + 20;
+
+const getVariableEntryKey = (variableKey: string, index: number) => `var-${index}-${variableKey || 'empty'}`;
+
 export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
   const [isDialogVariablesExpanded, setIsDialogVariablesExpanded] = useState(true);
   const [isDialogOutputExpanded, setIsDialogOutputExpanded] = useState(true);
@@ -33,10 +38,10 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
 
   useEffect(() => {
     if (isDialogOpen) {
-      // Wait for animation to complete (100ms) + small buffer
+      // Wait for dialog animation + small buffer
       const timer = setTimeout(() => {
         setShouldRenderContent(true);
-      }, 120);
+      }, SKELETON_DELAY_MS);
 
       return () => clearTimeout(timer);
     } else {
@@ -85,7 +90,7 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
 
                   {/* Conditional rendering for heavy content */}
                   {!shouldRenderContent ? (
-                    // Loading skeleton during defer period (~120ms)
+                    // Loading skeleton during defer period (dialog animation + buffer)
                     <>
                       <div>
                         <h4 className="font-semibold mb-2">Variables Used</h4>
@@ -118,7 +123,7 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
                         <CollapsibleContent>
                           <div className="space-y-2">
                             {Object.entries(event.variableValues).map(([key, value], index) => (
-                              <div key={key || `var-${index}`} className="border rounded p-3">
+                              <div key={getVariableEntryKey(key, index)} className="border rounded p-3">
                                 <Badge variant="secondary" className="mb-2">{key}</Badge>
                                 <p className="text-sm whitespace-pre-wrap break-all">{value}</p>
                               </div>
@@ -198,7 +203,7 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
             ) : (
               <div className="grid gap-2">
                 {Object.entries(event.variableValues).slice(0, 3).map(([key, value], index) => (
-                  <div key={key || `var-${index}`} className="flex items-start gap-2 p-2 bg-muted/50 rounded border">
+                  <div key={getVariableEntryKey(key, index)} className="flex items-start gap-2 p-2 bg-muted/50 rounded border">
                     <Badge variant="outline" className="text-xs mt-0.5 shrink-0">{key}</Badge>
                     <span className="text-sm text-muted-foreground flex-1 break-all">
                       {truncateText(value, 80)}
