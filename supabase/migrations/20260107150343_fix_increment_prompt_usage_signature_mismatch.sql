@@ -13,7 +13,8 @@
 DROP FUNCTION IF EXISTS increment_prompt_usage(UUID, UUID);
 
 -- Create the new one-parameter function that matches application code expectations
-CREATE FUNCTION increment_prompt_usage(
+-- Using CREATE OR REPLACE to ensure idempotency if one-parameter function already exists
+CREATE OR REPLACE FUNCTION increment_prompt_usage(
     p_id UUID
 )
 RETURNS TABLE (
