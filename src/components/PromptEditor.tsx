@@ -41,6 +41,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   const variableTooltipContentRef = useRef<HTMLDivElement | null>(null);
   const isMountedRef = useRef(true);
   const skipBlockerResetRef = useRef(false);
+  const isSavingRef = useRef(false);
 
   const isEditing = mode === 'edit';
 
@@ -121,8 +122,8 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
     );
   }, [title, body, variables, originalData]);
 
-  const shouldBlockNavigation = hasUnsavedChanges();
-  const blocker = useBlocker(shouldBlockNavigation);
+  // Use a function so blocker evaluates current ref value when navigation is attempted
+  const blocker = useBlocker(() => !isSavingRef.current && hasUnsavedChanges());
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -163,6 +164,9 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
     const sanitizedVars = sanitizeVariables(variables);
     setVariables(sanitizedVars);
 
+    // Mark that we're saving to prevent blocker from triggering during navigation
+    isSavingRef.current = true;
+
     try {
       const savedPrompt = await onSave({
         title: trimmedTitle,
@@ -179,7 +183,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
         });
       }
 
-      // Call success callback if provided
+      // Call success callback if provided (this may trigger navigation)
       if (onSaveSuccess && !skipSuccessCallback) {
         onSaveSuccess(savedPrompt.id);
       }
@@ -190,6 +194,12 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       console.error('Failed to save prompt:', err);
       toast.error('Failed to save prompt');
       return false;
+    } finally {
+      // Reset saving flag after navigation completes
+      // Use setTimeout to ensure navigation has been processed
+      setTimeout(() => {
+        isSavingRef.current = false;
+      }, 0);
     }
   };
 
