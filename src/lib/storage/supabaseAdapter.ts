@@ -2,6 +2,7 @@ import { Prompt, CopyEvent } from '@/types/prompt';
 import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, StorageAdapter, PaginatedCopyEvents } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
 
 type PromptRow = {
   id: string;
@@ -128,10 +129,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       .eq('id', id)
       .eq('user_id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to update prompt: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error(`Prompt not found or you don't have permission to update it`);
     }
 
     return mapPromptRow(data as PromptRow);
@@ -274,7 +279,7 @@ class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
     const { data, error } = await supabase
       .rpc('search_copy_events', {
         search_query: query,
-        result_limit: 500,
+        result_limit: COPY_HISTORY_SEARCH_LIMIT,
       });
 
     if (error) {

@@ -1,0 +1,1 @@
+export const COPY_HISTORY_SEARCH_LIMIT = 500;
