@@ -56,10 +56,14 @@ async function fetchPromptRowById(userId: string, promptId: string) {
     .select('*')
     .eq('id', promptId)
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw new Error(`Failed to fetch prompt: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error(`Prompt not found or you don't have permission to access it`);
   }
 
   return data as PromptRow;
@@ -166,10 +170,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       .eq('id', id)
       .eq('user_id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to toggle pin: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error(`Prompt not found or you don't have permission to toggle pin`);
     }
 
     return mapPromptRow(data as PromptRow);
@@ -184,10 +192,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       .rpc('increment_prompt_usage', {
         p_id: id,
       })
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new Error(`Failed to increment usage: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error(`Prompt not found or you don't have permission to increment usage`);
     }
 
     return mapPromptRow(data as PromptRow);
@@ -347,18 +359,20 @@ class SupabaseStatsAdapter implements StatsStorageAdapter {
       .from('prompt_stats')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return {
-          totalPrompts: 0,
-          totalCopies: 0,
-          totalPromptUses: 0,
-          timeSavedMultiplier: 5,
-        };
-      }
       throw new Error(`Failed to fetch stats: ${error.message}`);
+    }
+
+    if (!data) {
+      // New user with no stats yet
+      return {
+        totalPrompts: 0,
+        totalCopies: 0,
+        totalPromptUses: 0,
+        timeSavedMultiplier: 5,
+      };
     }
 
     return {

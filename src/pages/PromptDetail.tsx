@@ -74,10 +74,19 @@ export default function PromptDetail() {
     if (!promptId) {
       throw new Error('Missing prompt ID');
     }
-    const updatedPrompt = await updatePrompt(promptId, promptData);
-    // Exit edit mode and stay on the page
-    setIsEditing(false);
-    return updatedPrompt;
+    try {
+      const updatedPrompt = await updatePrompt(promptId, promptData);
+      // Exit edit mode and stay on the page
+      setIsEditing(false);
+      return updatedPrompt;
+    } catch (err) {
+      // If prompt not found, redirect to dashboard
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes('not found') || errorMessage.includes('permission')) {
+        navigate('/dashboard');
+      }
+      throw err; // Re-throw so PromptEditor can show the error toast
+    }
   };
 
   // Handle delete
