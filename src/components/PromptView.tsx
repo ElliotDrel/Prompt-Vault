@@ -58,9 +58,11 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     promptHistory,
     totalCount,
     loading: historyLoading,
+    error: historyError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch: refetchHistory,
     deleteCopyEvent: deletePromptEvent,
     addCopyEvent: addPromptEvent,
   } = usePromptCopyHistory({ promptId: prompt.id, limit: 10 });
@@ -399,7 +401,9 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               loading={historyLoading}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
+              error={historyError}
               fetchNextPage={fetchNextPage}
+              onRetry={refetchHistory}
               renderItem={(event) => (
                 <CopyEventCard
                   event={event}

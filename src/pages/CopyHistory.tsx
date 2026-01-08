@@ -23,6 +23,7 @@ const CopyHistory = () => {
   const {
     copyHistory,
     loading,
+    error,
     clearHistory,
     deleteCopyEvent,
     addCopyEvent,
@@ -30,6 +31,7 @@ const CopyHistory = () => {
     hasNextPage,
     isFetchingNextPage,
     totalCount,
+    refetch,
     searchCopyEvents,
     searchResults,
     isSearching,
@@ -234,7 +236,9 @@ const CopyHistory = () => {
             loading={loading}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
+            error={error}
             fetchNextPage={fetchNextPage}
+            onRetry={refetch}
             renderItem={(event) => (
               <CopyEventCard
                 event={event}
