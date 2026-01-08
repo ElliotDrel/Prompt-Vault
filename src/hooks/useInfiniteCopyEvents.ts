@@ -144,6 +144,10 @@ export function useInfiniteCopyEvents({
         return { ...old, pages: newPages };
       });
     },
+    onError: () => {
+      // If addition fails, refetch to ensure UI stays in sync with server
+      queryClient.invalidateQueries({ queryKey: fullQueryKey });
+    },
   });
 
   // Mutation for deleting copy event
@@ -186,6 +190,10 @@ export function useInfiniteCopyEvents({
 
         return { ...old, pages: newPages };
       });
+    },
+    onError: () => {
+      // If deletion fails, refetch to ensure UI stays in sync with server
+      queryClient.invalidateQueries({ queryKey: fullQueryKey });
     },
   });
 

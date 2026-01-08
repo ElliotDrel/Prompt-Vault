@@ -84,6 +84,10 @@ export const CopyHistoryProvider: React.FC<CopyHistoryProviderProps> = ({ childr
       // Invalidate and reset query
       queryClient.invalidateQueries({ queryKey: ['copyEvents'] });
     },
+    onError: () => {
+      // If clearing fails, refetch to ensure UI stays in sync with server
+      queryClient.invalidateQueries({ queryKey: ['copyEvents'] });
+    },
   });
 
   // Wrapper functions for backward compatibility
