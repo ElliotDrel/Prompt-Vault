@@ -42,6 +42,7 @@ const CopyHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isSearchLimitReached = searchResults !== null && searchResults.length === COPY_HISTORY_SEARCH_LIMIT;
+  const handleRetry = copyHistory.length > 0 && hasNextPage ? fetchNextPage : refetch;
 
   // Trim extra pages on unmount to optimize memory while keeping first page cached
   useEffect(() => {
@@ -245,7 +246,7 @@ const CopyHistory = () => {
             isFetchingNextPage={isFetchingNextPage}
             error={error}
             fetchNextPage={fetchNextPage}
-            onRetry={refetch}
+            onRetry={handleRetry}
             renderItem={(event) => (
               <CopyEventCard
                 event={event}
