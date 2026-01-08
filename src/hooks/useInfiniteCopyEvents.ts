@@ -97,6 +97,9 @@ export function useInfiniteCopyEvents({
   // Mutation for adding copy event
   const addMutation = useMutation({
     mutationFn: async (event: Omit<CopyEvent, 'id' | 'timestamp'>) => {
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
       if (!storageAdapter) {
         throw new Error('Storage not initialized');
       }
@@ -153,6 +156,9 @@ export function useInfiniteCopyEvents({
   // Mutation for deleting copy event
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
       if (!storageAdapter) {
         throw new Error('Storage not initialized');
       }
@@ -210,7 +216,9 @@ export function useInfiniteCopyEvents({
       }
 
       // For realtime updates, use silent background refetch
-      refetch();
+      void refetch().catch((err) => {
+        console.error('Failed to refetch copy events via subscription:', err);
+      });
     });
 
     return () => {
