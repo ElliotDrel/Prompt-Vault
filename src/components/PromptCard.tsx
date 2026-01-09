@@ -42,10 +42,11 @@ const clearVariableValues = (promptId: string): void => {
 
 interface PromptCardProps {
   prompt: Prompt;
-  onClick: () => void;
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-export function PromptCard({ prompt, onClick }: PromptCardProps) {
+export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
@@ -149,6 +150,7 @@ export function PromptCard({ prompt, onClick }: PromptCardProps) {
         prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
       }`}
       onClick={onClick}
+      onMouseDown={onMouseDown}
     >
       {/* Pin button */}
       <Button
