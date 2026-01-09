@@ -7,6 +7,10 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithEmail: (email: string, redirectTo?: string) => Promise<{ error: AuthError | null }>;
+  signInWithProvider: (
+    provider: 'google',
+    redirectTo?: string,
+  ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   exchangeCodeForSession: (code: string) => Promise<{ error: AuthError | null }>;
 }
@@ -71,6 +75,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithProvider = async (provider: 'google', redirectTo?: string) => {
+    try {
+      const fallbackRedirect =
+        typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectTo || fallbackRedirect,
+        },
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
+    }
+  };
+
   const exchangeCodeForSession = async (code: string) => {
     try {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -85,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     signInWithEmail,
+    signInWithProvider,
     signOut,
     exchangeCodeForSession,
   };
