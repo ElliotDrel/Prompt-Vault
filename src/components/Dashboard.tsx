@@ -52,11 +52,8 @@ export function Dashboard() {
 
     if (event.metaKey || event.ctrlKey) {
       event.preventDefault();
+      event.stopPropagation();
       window.open(promptUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    if (event.button !== 0) {
       return;
     }
 
@@ -69,6 +66,7 @@ export function Dashboard() {
     }
 
     event.preventDefault();
+    event.stopPropagation();
     window.open(`/dashboard/prompt/${promptId}`, '_blank', 'noopener,noreferrer');
   };
 
