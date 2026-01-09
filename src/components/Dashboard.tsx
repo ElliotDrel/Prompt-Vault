@@ -47,8 +47,29 @@ export function Dashboard() {
     navigate('/dashboard/prompt/new');
   };
 
-  const handleEditPrompt = (promptId: string) => {
-    navigate(`/dashboard/prompt/${promptId}`);
+  const handleOpenPrompt = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
+    const promptUrl = `/dashboard/prompt/${promptId}`;
+
+    if (event.metaKey || event.ctrlKey) {
+      event.preventDefault();
+      window.open(promptUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (event.button !== 0) {
+      return;
+    }
+
+    navigate(promptUrl);
+  };
+
+  const handlePromptMouseDown = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
+    if (event.button !== 1) {
+      return;
+    }
+
+    event.preventDefault();
+    window.open(`/dashboard/prompt/${promptId}`, '_blank', 'noopener,noreferrer');
   };
 
   const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
@@ -174,7 +195,8 @@ export function Dashboard() {
               >
                 <PromptCard
                   prompt={prompt}
-                  onClick={() => handleEditPrompt(prompt.id)}
+                  onClick={(event) => handleOpenPrompt(event, prompt.id)}
+                  onMouseDown={(event) => handlePromptMouseDown(event, prompt.id)}
                 />
               </motion.div>
             ))}
