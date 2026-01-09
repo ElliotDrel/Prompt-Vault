@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, Shield } from 'lucide-react';
+import { Chrome, Loader2, Mail, Shield } from 'lucide-react';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -13,14 +13,16 @@ export default function Auth() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isEmailSent, setIsEmailSent] = useState(false);
+  const [loadingText, setLoadingText] = useState('');
 
-  const { signInWithEmail, exchangeCodeForSession, user } = useAuth();
+  const { signInWithEmail, signInWithProvider, exchangeCodeForSession, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const codeParam = searchParams.get('code');
 
   const handleMagicLinkAuth = useCallback(async (code: string) => {
     setLoading(true);
+    setLoadingText('Signing you in...');
     setError('');
 
     try {
@@ -37,6 +39,7 @@ export default function Auth() {
       console.error('Unexpected auth error:', err);
     } finally {
       setLoading(false);
+      setLoadingText('');
     }
   }, [exchangeCodeForSession]);
 
@@ -63,6 +66,7 @@ export default function Auth() {
     if (!email) return;
 
     setLoading(true);
+    setLoadingText('Sending magic link...');
     setError('');
     setMessage('');
 
@@ -82,6 +86,32 @@ export default function Auth() {
       console.error('Sign in error:', err);
     } finally {
       setLoading(false);
+      setLoadingText('');
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setLoadingText('Redirecting to Google...');
+    setError('');
+    setMessage('');
+    setIsEmailSent(false);
+
+    try {
+      const redirectTo =
+        typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+      const { error } = await signInWithProvider('google', redirectTo);
+
+      if (error) {
+        setError(error.message || 'Failed to sign in with Google. Please try again.');
+        setLoading(false);
+        setLoadingText('');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Google sign in error:', err);
+      setLoading(false);
+      setLoadingText('');
     }
   };
 
@@ -109,33 +139,53 @@ export default function Auth() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               <span className="ml-2 text-sm text-gray-600">
-                {codeParam ? 'Signing you in...' : 'Sending magic link...'}
+                {loadingText || 'Working...'}
               </span>
             </div>
           )}
 
           {!loading && !isEmailSent && (
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="w-full"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading || !email}>
-                <Mail className="h-4 w-4 mr-2" />
-                Send Magic Link
+            <div className="space-y-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+              >
+                <Chrome className="h-4 w-4 mr-2" />
+                Continue with Google
               </Button>
-            </form>
+              <p className="text-xs text-center text-gray-500">
+                No email link required.
+              </p>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <div className="h-px flex-1 bg-gray-200" />
+                <span>or</span>
+                <div className="h-px flex-1 bg-gray-200" />
+              </div>
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email address
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                    className="w-full"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading || !email}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Magic Link
+                </Button>
+              </form>
+            </div>
           )}
 
           {!loading && isEmailSent && (
