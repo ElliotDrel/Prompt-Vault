@@ -11,7 +11,8 @@
       "Bash(Out-File -Encoding utf8 src/types/supabase-generated.ts)",
       "mcp__supabase__search_docs",
       "Bash(git add:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "WebSearch"
     ]
   },
   "enableAllProjectMcpServers": true,

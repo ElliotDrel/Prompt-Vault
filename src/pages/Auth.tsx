@@ -43,6 +43,9 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const codeParam = searchParams.get('code');
 
+  // Extract redirect URL to avoid duplication
+  const AUTH_REDIRECT_URL = typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+
   const handleMagicLinkAuth = useCallback(async (code: string) => {
     setLoading(true);
     setLoadingText('Signing you in...');
@@ -94,9 +97,7 @@ export default function Auth() {
     setMessage('');
 
     try {
-      const redirectTo =
-        typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
-      const { error } = await signInWithEmail(email, redirectTo);
+      const { error } = await signInWithEmail(email, AUTH_REDIRECT_URL);
 
       if (error) {
         setError(error.message || 'Failed to send magic link. Please try again.');
@@ -121,15 +122,24 @@ export default function Auth() {
     setIsEmailSent(false);
 
     try {
-      const redirectTo =
-        typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
-      const { error } = await signInWithProvider('google', redirectTo);
+      const { error } = await signInWithProvider('google', AUTH_REDIRECT_URL);
 
       if (error) {
         setError(error.message || 'Failed to sign in with Google. Please try again.');
         setLoading(false);
         setLoadingText('');
+        return;
       }
+
+      // Set a timeout to detect if redirect didn't happen (e.g., popup blockers)
+      // If successful, the OAuth redirect will unmount this component before timeout fires
+      setTimeout(() => {
+        setError(
+          'Sign in window may have been blocked. Please check your popup blocker settings and try again.'
+        );
+        setLoading(false);
+        setLoadingText('');
+      }, 5000);
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Google sign in error:', err);
@@ -154,7 +164,7 @@ export default function Auth() {
           </div>
           <CardTitle className="text-2xl font-bold">Welcome to Prompt Vault</CardTitle>
           <CardDescription>
-            Sign in with your email to access your prompts
+            Sign in with Google or email to access your prompts
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -253,6 +253,15 @@ max_frequency = "5s"
 # enroll_enabled = true
 # verify_enabled = true
 
+# ============================================================================
+# OAuth Provider Configuration
+# ============================================================================
+# NOTE: For this project, OAuth providers (Google, GitHub, etc.) are configured
+# via the Supabase Dashboard (Authentication → Providers), NOT in this file.
+# See CLAUDE.md "OAuth Provider Setup" section for detailed setup instructions.
+# The configuration below is for reference only and can be ignored.
+# ============================================================================
+
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `slack`, `spotify`, `workos`, `zoom`.

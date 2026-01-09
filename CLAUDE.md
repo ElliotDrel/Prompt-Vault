@@ -70,12 +70,26 @@ npx supabase migration list
 ## Architecture
 
 ### Authentication Flow
-- Uses Supabase Auth with email magic links (OTP)
+- Uses Supabase Auth with Google OAuth and email magic links (OTP)
 - `AuthContext` (`src/contexts/AuthContext.tsx`) provides centralized auth state management
 - Auth state persists across sessions and auto-refreshes tokens
 - Token refresh events should not trigger data reloads; expose a stable `authUserId` and use it for data contexts and realtime filters
 - Protected routes use `RequireAuth` component to enforce authentication (`src/components/auth/RequireAuth.tsx`)
 - Magic link redirects include code exchange handled in `AuthContext.exchangeCodeForSession()`
+
+#### OAuth Provider Setup
+OAuth providers (Google, GitHub, etc.) must be configured in the Supabase dashboard before use:
+1. Navigate to Supabase Dashboard → Authentication → Providers
+2. Enable the desired OAuth provider (e.g., Google)
+3. Configure OAuth credentials:
+   - Client ID (from provider's developer console)
+   - Client Secret (from provider's developer console)
+4. Set authorized redirect URLs:
+   - Development: `http://localhost:5173/auth`
+   - Production: `https://yourdomain.com/auth`
+5. Save configuration
+
+**Note**: OAuth credentials are managed entirely through the Supabase dashboard - no environment variables needed in the application. The `signInWithProvider` function in `AuthContext` accepts any valid Supabase `Provider` type for extensibility.
 
 ### Routing Structure
 - Uses React Router data router API with `createBrowserRouter` and `RouterProvider`
@@ -376,7 +390,9 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 
 **Time Tracking**: Frontend calculates time saved dynamically using `timesUsed * multiplier` instead of storing accumulated values
 
-**Auth Flow**: Magic-link email → `exchangeCodeForSession` → dashboard redirect
+**Auth Flow**:
+- Google OAuth: `signInWithProvider` → OAuth redirect → `exchangeCodeForSession` → dashboard redirect
+- Magic-link email: `signInWithEmail` → email link click → `exchangeCodeForSession` → dashboard redirect
 
 ## Common Issues & Solutions
 
