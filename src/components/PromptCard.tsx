@@ -43,7 +43,7 @@ const clearVariableValues = (promptId: string): void => {
 interface PromptCardProps {
   prompt: Prompt;
   onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
-  onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onMouseDown?: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
@@ -225,6 +225,7 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
       <AnimatePresence>
         {showSuccessEffect && (
           <motion.div
+            key="success-overlay"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
@@ -232,6 +233,7 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
             className="absolute inset-0 pointer-events-none rounded-lg border-2 border-green-400 bg-green-50/20"
           >
             <motion.div
+              key="success-message"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
