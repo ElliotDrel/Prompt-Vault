@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 interface AuthContextType {
@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithEmail: (email: string, redirectTo?: string) => Promise<{ error: AuthError | null }>;
   signInWithProvider: (
-    provider: 'google',
+    provider: Provider,
     redirectTo?: string,
   ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithProvider = async (provider: 'google', redirectTo?: string) => {
+  const signInWithProvider = async (provider: Provider, redirectTo?: string) => {
     try {
       const fallbackRedirect =
         typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
