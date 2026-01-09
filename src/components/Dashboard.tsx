@@ -67,7 +67,8 @@ export function Dashboard() {
 
     event.preventDefault();
     event.stopPropagation();
-    window.open(`/dashboard/prompt/${promptId}`, '_blank', 'noopener,noreferrer');
+    const promptUrl = `/dashboard/prompt/${promptId}`;
+    window.open(promptUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
