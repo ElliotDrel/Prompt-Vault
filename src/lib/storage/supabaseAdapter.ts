@@ -3,6 +3,7 @@ import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, S
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
+import { withRetry, NetworkError, isNetworkError } from '@/utils/retryUtils';
 
 type PromptRow = {
   id: string;
@@ -71,216 +72,272 @@ async function fetchPromptRowById(userId: string, promptId: string) {
 
 class SupabasePromptsAdapter implements PromptsStorageAdapter {
   async getPrompts(): Promise<Prompt[]> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const { data, error } = await supabase
-      .from('prompts')
-      .select('*')
-      .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('prompts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
 
-    if (error) {
-      throw new Error(`Failed to fetch prompts: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to fetch prompts: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    return (data as PromptRow[]).map(mapPromptRow);
+      return (data as PromptRow[]).map(mapPromptRow);
+    });
   }
 
   async addPrompt(promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const insertPayload = {
-      user_id: userId,
-      title: promptData.title,
-      body: promptData.body,
-      variables: promptData.variables ?? [],
-      is_pinned: promptData.isPinned ?? false,
-      times_used: promptData.timesUsed ?? 0,
-    };
+      const insertPayload = {
+        user_id: userId,
+        title: promptData.title,
+        body: promptData.body,
+        variables: promptData.variables ?? [],
+        is_pinned: promptData.isPinned ?? false,
+        times_used: promptData.timesUsed ?? 0,
+      };
 
-    const { data, error } = await supabase
-      .from('prompts')
-      .insert(insertPayload)
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('prompts')
+        .insert(insertPayload)
+        .select()
+        .single();
 
-    if (error) {
-      throw new Error(`Failed to add prompt: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to add prompt: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    return mapPromptRow(data as PromptRow);
+      return mapPromptRow(data as PromptRow);
+    });
   }
 
   async updatePrompt(id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const updates: Record<string, unknown> = {
-      title: promptData.title,
-      body: promptData.body,
-      variables: promptData.variables ?? [],
-    };
+      const updates: Record<string, unknown> = {
+        title: promptData.title,
+        body: promptData.body,
+        variables: promptData.variables ?? [],
+      };
 
-    if (typeof promptData.isPinned === 'boolean') {
-      updates.is_pinned = promptData.isPinned;
-    }
-    if (typeof promptData.timesUsed === 'number') {
-      updates.times_used = promptData.timesUsed;
-    }
+      if (typeof promptData.isPinned === 'boolean') {
+        updates.is_pinned = promptData.isPinned;
+      }
+      if (typeof promptData.timesUsed === 'number') {
+        updates.times_used = promptData.timesUsed;
+      }
 
-    const { data, error } = await supabase
-      .from('prompts')
-      .update(updates)
-      .eq('id', id)
-      .eq('user_id', userId)
-      .select()
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from('prompts')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .maybeSingle();
 
-    if (error) {
-      throw new Error(`Failed to update prompt: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to update prompt: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    if (!data) {
-      throw new Error(`Prompt not found or you don't have permission to update it`);
-    }
+      if (!data) {
+        throw new Error(`Prompt not found or you don't have permission to update it`);
+      }
 
-    return mapPromptRow(data as PromptRow);
+      return mapPromptRow(data as PromptRow);
+    });
   }
 
   async deletePrompt(id: string): Promise<void> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const { error } = await supabase
-      .from('prompts')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
+      const { error } = await supabase
+        .from('prompts')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
 
-    if (error) {
-      throw new Error(`Failed to delete prompt: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to delete prompt: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
+    });
   }
 
   async togglePinPrompt(id: string): Promise<Prompt> {
-    const userId = await requireUserId();
-    const currentPrompt = await fetchPromptRowById(userId, id);
+    return withRetry(async () => {
+      const userId = await requireUserId();
+      const currentPrompt = await fetchPromptRowById(userId, id);
 
-    const { data, error } = await supabase
-      .from('prompts')
-      .update({ is_pinned: !currentPrompt.is_pinned })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .select()
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from('prompts')
+        .update({ is_pinned: !currentPrompt.is_pinned })
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .maybeSingle();
 
-    if (error) {
-      throw new Error(`Failed to toggle pin: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to toggle pin: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    if (!data) {
-      throw new Error(`Prompt not found or you don't have permission to toggle pin`);
-    }
+      if (!data) {
+        throw new Error(`Prompt not found or you don't have permission to toggle pin`);
+      }
 
-    return mapPromptRow(data as PromptRow);
+      return mapPromptRow(data as PromptRow);
+    });
   }
 
   async incrementPromptUsage(id: string): Promise<Prompt> {
-    await requireUserId();
+    return withRetry(async () => {
+      await requireUserId();
 
-    // Use atomic RPC function instead of read-then-write pattern
-    // This reduces 2 DB roundtrips to 1 and prevents race conditions
-    const { data, error } = await supabase
-      .rpc('increment_prompt_usage', {
-        p_id: id,
-      })
-      .maybeSingle();
+      // Use atomic RPC function instead of read-then-write pattern
+      // This reduces 2 DB roundtrips to 1 and prevents race conditions
+      const { data, error } = await supabase
+        .rpc('increment_prompt_usage', {
+          p_id: id,
+        })
+        .maybeSingle();
 
-    if (error) {
-      throw new Error(`Failed to increment usage: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to increment usage: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    if (!data) {
-      throw new Error(`Prompt not found or you don't have permission to increment usage`);
-    }
+      if (!data) {
+        throw new Error(`Prompt not found or you don't have permission to increment usage`);
+      }
 
-    return mapPromptRow(data as PromptRow);
+      return mapPromptRow(data as PromptRow);
+    });
   }
 }
 
 class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
   async getCopyEvents(offset: number = 0, limit: number = 25): Promise<PaginatedCopyEvents> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    // First query: Get total count (lightweight head-only request)
-    const { count, error: countError } = await supabase
-      .from('copy_events')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      // First query: Get total count (lightweight head-only request)
+      const { count, error: countError } = await supabase
+        .from('copy_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
-    if (countError) {
-      throw new Error(`Failed to fetch copy events count: ${countError.message}`);
-    }
+      if (countError) {
+        const err = new Error(`Failed to fetch copy events count: ${countError.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    const totalCount = count ?? 0;
+      const totalCount = count ?? 0;
 
-    // Second query: Get paginated data
-    const { data, error } = await supabase
-      .from('copy_events')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      // Second query: Get paginated data
+      const { data, error } = await supabase
+        .from('copy_events')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
-    if (error) {
-      throw new Error(`Failed to fetch copy events: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to fetch copy events: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    const events = (data as CopyEventRow[]).map(mapCopyEventRow);
-    const hasMore = offset + events.length < totalCount;
+      const events = (data as CopyEventRow[]).map(mapCopyEventRow);
+      const hasMore = offset + events.length < totalCount;
 
-    return {
-      events,
-      hasMore,
-      totalCount,
-    };
+      return {
+        events,
+        hasMore,
+        totalCount,
+      };
+    });
   }
 
   async getCopyEventsByPromptId(promptId: string, offset: number = 0, limit: number = 10): Promise<PaginatedCopyEvents> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    // First query: Get total count for this specific prompt
-    const { count, error: countError } = await supabase
-      .from('copy_events')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('prompt_id', promptId);
+      // First query: Get total count for this specific prompt
+      const { count, error: countError } = await supabase
+        .from('copy_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('prompt_id', promptId);
 
-    if (countError) {
-      throw new Error(`Failed to fetch copy events count for prompt: ${countError.message}`);
-    }
+      if (countError) {
+        const err = new Error(`Failed to fetch copy events count for prompt: ${countError.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    const totalCount = count ?? 0;
+      const totalCount = count ?? 0;
 
-    // Second query: Get paginated data for this specific prompt
-    const { data, error } = await supabase
-      .from('copy_events')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('prompt_id', promptId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      // Second query: Get paginated data for this specific prompt
+      const { data, error } = await supabase
+        .from('copy_events')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('prompt_id', promptId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
-    if (error) {
-      throw new Error(`Failed to fetch copy events for prompt: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to fetch copy events for prompt: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    const events = (data as CopyEventRow[]).map(mapCopyEventRow);
-    const hasMore = offset + events.length < totalCount;
+      const events = (data as CopyEventRow[]).map(mapCopyEventRow);
+      const hasMore = offset + events.length < totalCount;
 
-    return {
-      events,
-      hasMore,
-      totalCount,
-    };
+      return {
+        events,
+        hasMore,
+        totalCount,
+      };
+    });
   }
 
   async searchCopyEvents(query: string): Promise<CopyEvent[]> {
@@ -288,99 +345,129 @@ class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
       return [];
     }
 
-    const { data, error } = await supabase
-      .rpc('search_copy_events', {
-        search_query: query,
-        result_limit: COPY_HISTORY_SEARCH_LIMIT,
-      });
+    return withRetry(async () => {
+      const { data, error } = await supabase
+        .rpc('search_copy_events', {
+          search_query: query,
+          result_limit: COPY_HISTORY_SEARCH_LIMIT,
+        });
 
-    if (error) {
-      throw new Error(`Failed to search copy events: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to search copy events: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    return (data as CopyEventRow[]).map(mapCopyEventRow);
+      return (data as CopyEventRow[]).map(mapCopyEventRow);
+    });
   }
 
   async addCopyEvent(eventData: Omit<CopyEvent, 'id' | 'timestamp'>): Promise<CopyEvent> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const { data, error } = await supabase
-      .from('copy_events')
-      .insert({
-        user_id: userId,
-        prompt_id: eventData.promptId || null,
-        prompt_title: eventData.promptTitle,
-        variable_values: eventData.variableValues ?? {},
-        copied_text: eventData.copiedText,
-      })
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('copy_events')
+        .insert({
+          user_id: userId,
+          prompt_id: eventData.promptId || null,
+          prompt_title: eventData.promptTitle,
+          variable_values: eventData.variableValues ?? {},
+          copied_text: eventData.copiedText,
+        })
+        .select()
+        .single();
 
-    if (error) {
-      throw new Error(`Failed to add copy event: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to add copy event: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    return mapCopyEventRow(data as CopyEventRow);
+      return mapCopyEventRow(data as CopyEventRow);
+    });
   }
 
   async deleteCopyEvent(id: string): Promise<void> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const { error } = await supabase
-      .from('copy_events')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
+      const { error } = await supabase
+        .from('copy_events')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
 
-    if (error) {
-      throw new Error(`Failed to delete copy event: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to delete copy event: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
+    });
   }
 
   async clearHistory(): Promise<void> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const { error } = await supabase
-      .from('copy_events')
-      .delete()
-      .eq('user_id', userId);
+      const { error } = await supabase
+        .from('copy_events')
+        .delete()
+        .eq('user_id', userId);
 
-    if (error) {
-      throw new Error(`Failed to clear history: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to clear history: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
+    });
   }
 }
 
 class SupabaseStatsAdapter implements StatsStorageAdapter {
   async getStats(): Promise<{ totalPrompts: number; totalCopies: number; totalPromptUses: number; timeSavedMultiplier: number }> {
-    const userId = await requireUserId();
+    return withRetry(async () => {
+      const userId = await requireUserId();
 
-    const { data, error } = await supabase
-      .from('prompt_stats')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from('prompt_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (error) {
-      throw new Error(`Failed to fetch stats: ${error.message}`);
-    }
+      if (error) {
+        const err = new Error(`Failed to fetch stats: ${error.message}`);
+        if (isNetworkError(err)) {
+          throw new NetworkError(err.message, err);
+        }
+        throw err;
+      }
 
-    if (!data) {
-      // New user with no stats yet
+      if (!data) {
+        // New user with no stats yet
+        return {
+          totalPrompts: 0,
+          totalCopies: 0,
+          totalPromptUses: 0,
+          timeSavedMultiplier: 5,
+        };
+      }
+
       return {
-        totalPrompts: 0,
-        totalCopies: 0,
-        totalPromptUses: 0,
-        timeSavedMultiplier: 5,
+        totalPrompts: (data?.total_prompts as number | null) ?? 0,
+        totalCopies: (data?.total_copies as number | null) ?? 0,
+        totalPromptUses: (data?.total_prompt_uses as number | null) ?? 0,
+        timeSavedMultiplier: (data?.time_saved_multiplier as number | null) ?? 5,
       };
-    }
-
-    return {
-      totalPrompts: (data?.total_prompts as number | null) ?? 0,
-      totalCopies: (data?.total_copies as number | null) ?? 0,
-      totalPromptUses: (data?.total_prompt_uses as number | null) ?? 0,
-      timeSavedMultiplier: (data?.time_saved_multiplier as number | null) ?? 5,
-    };
+    });
   }
 
   async incrementCopyCount(): Promise<void> {

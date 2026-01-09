@@ -11,6 +11,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Analytics } from "@vercel/analytics/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { NetworkStatus } from "@/components/NetworkStatus";
 import Index from "./pages/Index";
 import CopyHistory from "./pages/CopyHistory";
 import Auth from "./pages/Auth";
@@ -30,6 +31,7 @@ const queryClient = new QueryClient({
 
 const RootLayout = () => (
   <>
+    <NetworkStatus />
     <Toaster />
     <Sonner />
     <HotToaster

@@ -3,6 +3,8 @@ import { Prompt } from '@/types/prompt';
 import { StorageAdapter } from '@/lib/storage';
 import { sanitizeVariables } from '@/utils/variableUtils';
 import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
+import { isNetworkError, isAuthError } from '@/utils/retryUtils';
+import { toast } from '@/hooks/use-toast';
 
 interface PromptsContextType {
   prompts: Prompt[];
@@ -156,10 +158,38 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       };
       setPrompts((prev) => [sanitizedPrompt, ...prev]);
       await loadStats(adapter);
+
+      toast({
+        title: 'Success',
+        description: 'Prompt created successfully',
+      });
+
       return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to add prompt:', err);
-      setError('Failed to add prompt');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add prompt';
+      setError(errorMessage);
+
+      if (isNetworkError(err)) {
+        toast({
+          title: 'Network Error',
+          description: 'Unable to save prompt. Retrying automatically...',
+          variant: 'destructive',
+        });
+      } else if (isAuthError(err)) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in again to continue.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+
       throw err;
     }
   }, [getAdapter, loadStats]);
@@ -176,10 +206,38 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       };
       setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
       await loadStats(adapter);
+
+      toast({
+        title: 'Success',
+        description: 'Prompt updated successfully',
+      });
+
       return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to update prompt:', err);
-      setError('Failed to update prompt');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update prompt';
+      setError(errorMessage);
+
+      if (isNetworkError(err)) {
+        toast({
+          title: 'Network Error',
+          description: 'Unable to save changes. Retrying automatically...',
+          variant: 'destructive',
+        });
+      } else if (isAuthError(err)) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please sign in again to continue.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+
       throw err;
     }
   }, [getAdapter, loadStats]);
@@ -194,7 +252,23 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       await loadStats(adapter);
     } catch (err) {
       console.error('Failed to delete prompt:', err);
-      setError('Failed to delete prompt');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete prompt';
+      setError(errorMessage);
+
+      if (isNetworkError(err)) {
+        toast({
+          title: 'Network Error',
+          description: 'Unable to delete prompt. Please check your connection.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+
       throw err;
     }
   }, [getAdapter, loadStats]);
@@ -212,7 +286,23 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
     } catch (err) {
       console.error('Failed to toggle pin:', err);
-      setError('Failed to toggle pin');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to toggle pin';
+      setError(errorMessage);
+
+      if (isNetworkError(err)) {
+        toast({
+          title: 'Network Error',
+          description: 'Unable to update pin status. Retrying automatically...',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+
       throw err;
     }
   }, [getAdapter]);
@@ -257,7 +347,8 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       // Stats are refreshed by the realtime subscription in PromptsProvider (prompts/copyEvents events call loadStats).
     } catch (err) {
       console.error('Failed to increment usage:', err);
-      setError('Failed to increment usage');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to increment usage';
+      setError(errorMessage);
 
       // Rollback optimistic updates on error
       if (previousPrompts !== null) {
@@ -265,6 +356,14 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       }
       if (previousStats !== null) {
         setStats(previousStats);
+      }
+
+      if (isNetworkError(err)) {
+        toast({
+          title: 'Network Error',
+          description: 'Unable to track usage. Changes will be retried automatically.',
+          variant: 'destructive',
+        });
       }
 
       throw err;
