@@ -159,11 +159,6 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setPrompts((prev) => [sanitizedPrompt, ...prev]);
       await loadStats(adapter);
 
-      toast({
-        title: 'Success',
-        description: 'Prompt created successfully',
-      });
-
       return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to add prompt:', err);
@@ -173,7 +168,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       if (isNetworkError(err)) {
         toast({
           title: 'Network Error',
-          description: 'Unable to save prompt. Retrying automatically...',
+          description: 'Unable to save prompt. Please check your connection and try again.',
           variant: 'destructive',
         });
       } else if (isAuthError(err)) {
@@ -207,11 +202,6 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setPrompts((prev) => prev.map((prompt) => (prompt.id === id ? sanitizedPrompt : prompt)));
       await loadStats(adapter);
 
-      toast({
-        title: 'Success',
-        description: 'Prompt updated successfully',
-      });
-
       return sanitizedPrompt;
     } catch (err) {
       console.error('Failed to update prompt:', err);
@@ -221,7 +211,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       if (isNetworkError(err)) {
         toast({
           title: 'Network Error',
-          description: 'Unable to save changes. Retrying automatically...',
+          description: 'Unable to save changes. Please check your connection and try again.',
           variant: 'destructive',
         });
       } else if (isAuthError(err)) {
@@ -292,7 +282,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       if (isNetworkError(err)) {
         toast({
           title: 'Network Error',
-          description: 'Unable to update pin status. Retrying automatically...',
+          description: 'Unable to update pin status. Please check your connection.',
           variant: 'destructive',
         });
       } else {
@@ -361,7 +351,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       if (isNetworkError(err)) {
         toast({
           title: 'Network Error',
-          description: 'Unable to track usage. Changes will be retried automatically.',
+          description: 'Unable to track usage. Operation has been rolled back.',
           variant: 'destructive',
         });
       }

@@ -1,34 +1,13 @@
-import { useEffect } from 'react';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { toast } from '@/hooks/use-toast';
-import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 /**
  * Component that monitors network status and displays alerts
- * Shows a persistent banner when offline and a success toast when reconnected
+ * Shows a persistent banner when offline and a brief banner when reconnected
  */
 export function NetworkStatus() {
   const { isOnline, wasOffline } = useNetworkStatus();
-
-  useEffect(() => {
-    if (!isOnline) {
-      // User just went offline
-      toast({
-        title: 'No Internet Connection',
-        description: 'You are currently offline. Changes will be saved when you reconnect.',
-        variant: 'destructive',
-        duration: Infinity, // Keep toast visible while offline
-      });
-    } else if (wasOffline) {
-      // User just came back online
-      toast({
-        title: 'Back Online',
-        description: 'Your connection has been restored. Retrying any failed operations...',
-        duration: 3000,
-      });
-    }
-  }, [isOnline, wasOffline]);
 
   // Show persistent banner when offline
   if (!isOnline) {
@@ -38,7 +17,7 @@ export function NetworkStatus() {
           <WifiOff className="h-4 w-4" />
           <AlertTitle>No Internet Connection</AlertTitle>
           <AlertDescription>
-            You are currently offline. Changes will be saved automatically when your connection is restored.
+            You are currently offline. Please reconnect to save your changes.
           </AlertDescription>
         </Alert>
       </div>
@@ -53,7 +32,7 @@ export function NetworkStatus() {
           <Wifi className="h-4 w-4" />
           <AlertTitle>Connection Restored</AlertTitle>
           <AlertDescription>
-            You are back online. Syncing your changes...
+            You are back online. You can now save changes.
           </AlertDescription>
         </Alert>
       </div>
