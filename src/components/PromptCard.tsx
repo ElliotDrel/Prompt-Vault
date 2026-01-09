@@ -42,11 +42,12 @@ const clearVariableValues = (promptId: string): void => {
 
 interface PromptCardProps {
   prompt: Prompt;
-  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
-  onMouseDown?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  href: string;
+  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  onMouseDown?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
-export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
+export function PromptCard({ prompt, href, onClick, onMouseDown }: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
@@ -116,7 +117,6 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
         : 'Copied';
       toast.success(message);
     } catch (err) {
-      console.error('Failed to handle prompt copy:', err);
       toast.error('Failed to record copy event');
     }
   };
@@ -127,7 +127,6 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
     try {
       await togglePinPrompt(prompt.id);
     } catch (err) {
-      console.error('Failed to toggle pin state:', err);
       toast.error('Failed to update pin state');
     }
   };
@@ -142,19 +141,21 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
   };
 
   return (
-    <motion.div
+    <motion.a
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       className={`prompt-card p-6 cursor-pointer flex flex-col gap-4 relative ${
         prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
       }`}
+      href={href}
       onClick={onClick}
       onMouseDown={onMouseDown}
     >
       {/* Pin button */}
       <Button
         onClick={handlePin}
+        onMouseDown={(event) => event.stopPropagation()}
         variant="ghost"
         size="sm"
         className={`absolute top-2 right-2 h-8 w-8 p-0 ${
@@ -176,7 +177,11 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
 
       {/* Variable inputs */}
       {sanitizedVariables.length > 0 && (
-        <div className="flex flex-col gap-3" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="flex flex-col gap-3"
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
           {sanitizedVariables.map((variable) => (
             <div key={variable} className="space-y-1">
               <Label
@@ -191,6 +196,7 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
                 placeholder={`Enter ${variable}...`}
                 value={variableValues[variable] || ''}
                 onChange={(event) => handleVariableChange(variable, event.target.value)}
+                onMouseDown={(event) => event.stopPropagation()}
                 className="text-sm"
               />
             </div>
@@ -207,6 +213,7 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
       {/* Copy button */}
       <Button
         onClick={handleCopy}
+        onMouseDown={(event) => event.stopPropagation()}
         className={`w-full mt-auto font-medium transition-all duration-300 ${
           isCopied
             ? 'bg-white text-gray-800 border border-gray-200 hover:bg-white'
@@ -248,6 +255,6 @@ export function PromptCard({ prompt, onClick, onMouseDown }: PromptCardProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </motion.a>
   );
 }
