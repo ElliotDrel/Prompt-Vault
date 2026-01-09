@@ -47,11 +47,12 @@ export function Dashboard() {
     navigate('/dashboard/prompt/new');
   };
 
-  const handleOpenPrompt = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
+  const handleOpenPrompt = (event: React.MouseEvent<HTMLAnchorElement>, promptId: string) => {
     const promptUrl = `/dashboard/prompt/${promptId}`;
 
+    event.preventDefault();
+
     if (event.metaKey || event.ctrlKey) {
-      event.preventDefault();
       event.stopPropagation();
       window.open(promptUrl, '_blank', 'noopener,noreferrer');
       return;
@@ -60,8 +61,12 @@ export function Dashboard() {
     navigate(promptUrl);
   };
 
-  const handlePromptMouseDown = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
+  const handlePromptMouseDown = (event: React.MouseEvent<HTMLAnchorElement>, promptId: string) => {
     if (event.button !== 1) {
+      return;
+    }
+
+    if (event.metaKey || event.ctrlKey) {
       return;
     }
 
@@ -194,6 +199,7 @@ export function Dashboard() {
               >
                 <PromptCard
                   prompt={prompt}
+                  href={`/dashboard/prompt/${prompt.id}`}
                   onClick={(event) => handleOpenPrompt(event, prompt.id)}
                   onMouseDown={(event) => handlePromptMouseDown(event, prompt.id)}
                 />
