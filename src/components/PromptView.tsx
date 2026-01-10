@@ -15,6 +15,8 @@ import toast from 'react-hot-toast';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
 import { copyToClipboard, buildPromptPayload } from '@/utils/promptUtils';
 import { sanitizeVariables } from '@/utils/variableUtils';
+import { DASHBOARD_ROUTE } from '@/config/routes';
+import { handleLinkClick, handleLinkMouseDown } from '@/utils/navigation';
 
 // SessionStorage helpers for persisting variable inputs
 const STORAGE_KEY_PREFIX = 'prompt-variables-';
@@ -53,7 +55,6 @@ interface PromptViewProps {
 }
 
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
-  const dashboardHref = '/dashboard';
   const { stats, togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
   const {
     promptHistory,
@@ -107,7 +108,6 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       await togglePinPrompt(prompt.id);
       toast.success(wasPinned ? 'Prompt unpinned' : 'Prompt pinned');
     } catch (err) {
-      console.error('Failed to toggle pin state:', err);
       toast.error('Failed to update pin state');
     }
   };
@@ -118,7 +118,6 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       toast.success('Prompt deleted');
       onNavigateBack();
     } catch (err) {
-      console.error('Failed to delete prompt:', err);
       toast.error('Failed to delete prompt');
     }
   };
@@ -162,7 +161,6 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         : 'Copied';
       toast.success(message);
     } catch (err) {
-      console.error('Failed to handle prompt copy:', err);
       toast.error('Failed to record copy event');
     }
   };
@@ -172,7 +170,6 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       await deletePromptEvent(id);
       toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
     } catch (err) {
-      console.error('Failed to delete copy event:', err);
       toast.error('Failed to delete copy event');
     }
   };
@@ -200,7 +197,6 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
 
       toast.success('Copied from history');
     } catch (err) {
-      console.error('Failed to copy history event:', err);
       toast.error('Failed to copy from history');
     }
   };
@@ -211,31 +207,9 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         {/* Back button */}
         <Button variant="ghost" className="mb-6 -ml-2" asChild>
           <a
-            href={dashboardHref}
-            onClick={(event) => {
-              event.preventDefault();
-
-              if (event.metaKey || event.ctrlKey) {
-                event.stopPropagation();
-                window.open(dashboardHref, '_blank', 'noopener,noreferrer');
-                return;
-              }
-
-              onNavigateBack();
-            }}
-            onMouseDown={(event) => {
-              if (event.button !== 1) {
-                return;
-              }
-
-              if (event.metaKey || event.ctrlKey) {
-                return;
-              }
-
-              event.preventDefault();
-              event.stopPropagation();
-              window.open(dashboardHref, '_blank', 'noopener,noreferrer');
-            }}
+            href={DASHBOARD_ROUTE}
+            onClick={(event) => handleLinkClick(event, { href: DASHBOARD_ROUTE, onNavigate: onNavigateBack })}
+            onMouseDown={(event) => handleLinkMouseDown(event, DASHBOARD_ROUTE)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard

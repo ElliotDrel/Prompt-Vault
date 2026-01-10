@@ -12,7 +12,9 @@ import { useBlocker } from 'react-router-dom';
 import { HighlightedTextarea } from './HighlightedTextarea';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK, parseVariableReferences } from '@/utils/colorUtils';
 import { normalizeVariableName } from '@/config/variableRules';
+import { DASHBOARD_ROUTE } from '@/config/routes';
 import { sanitizeVariables } from '@/utils/variableUtils';
+import { handleLinkClick, handleLinkMouseDown } from '@/utils/navigation';
 
 interface PromptEditorProps {
   mode: 'create' | 'edit';
@@ -25,7 +27,6 @@ interface PromptEditorProps {
 
 export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, onSaveSuccess }: PromptEditorProps) {
   const { togglePinPrompt } = usePrompts();
-  const dashboardHref = '/dashboard';
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [variables, setVariables] = useState<string[]>([]);
@@ -192,7 +193,6 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       toast.success(isEditing ? 'Prompt updated' : 'Prompt created');
       return true;
     } catch (err) {
-      console.error('Failed to save prompt:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to save prompt';
       // Show a more specific error message
       if (errorMessage.includes('not found') || errorMessage.includes('permission')) {
@@ -244,7 +244,6 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       await togglePinPrompt(prompt.id);
       toast.success(wasPinned ? 'Prompt unpinned' : 'Prompt pinned');
     } catch (err) {
-      console.error('Failed to toggle pin state:', err);
       toast.error('Failed to update pin state');
     }
   };
@@ -259,7 +258,6 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
       toast.success('Prompt deleted');
       onNavigateBack();
     } catch (err) {
-      console.error('Failed to delete prompt:', err);
       toast.error('Failed to delete prompt');
     }
   };
@@ -376,31 +374,9 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
         {/* Back button */}
         <Button variant="ghost" className="mb-6 -ml-2" asChild>
           <a
-            href={dashboardHref}
-            onClick={(event) => {
-              event.preventDefault();
-
-              if (event.metaKey || event.ctrlKey) {
-                event.stopPropagation();
-                window.open(dashboardHref, '_blank', 'noopener,noreferrer');
-                return;
-              }
-
-              handleBack();
-            }}
-            onMouseDown={(event) => {
-              if (event.button !== 1) {
-                return;
-              }
-
-              if (event.metaKey || event.ctrlKey) {
-                return;
-              }
-
-              event.preventDefault();
-              event.stopPropagation();
-              window.open(dashboardHref, '_blank', 'noopener,noreferrer');
-            }}
+            href={DASHBOARD_ROUTE}
+            onClick={(event) => handleLinkClick(event, { href: DASHBOARD_ROUTE, onNavigate: handleBack })}
+            onMouseDown={(event) => handleLinkMouseDown(event, DASHBOARD_ROUTE)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard

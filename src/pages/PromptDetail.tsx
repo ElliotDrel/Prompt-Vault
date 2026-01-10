@@ -7,6 +7,8 @@ import { PromptEditor } from '@/components/PromptEditor';
 import { PromptView } from '@/components/PromptView';
 import { Button } from '@/components/ui/button';
 import { Prompt } from '@/types/prompt';
+import { DASHBOARD_ROUTE } from '@/config/routes';
+import { handleLinkClick, handleLinkMouseDown } from '@/utils/navigation';
 
 export default function PromptDetail() {
   const { promptId } = useParams<{ promptId: string }>();
@@ -14,7 +16,6 @@ export default function PromptDetail() {
   const location = useLocation();
   const { prompts, loading, isBackgroundRefresh, addPrompt, updatePrompt, deletePrompt } = usePrompts();
   const defaultTitle = 'Prompt Vault';
-  const dashboardHref = '/dashboard';
 
   // Determine if we're creating a new prompt (check pathname for /new route)
   const isCreating = location.pathname.endsWith('/new');
@@ -50,40 +51,14 @@ export default function PromptDetail() {
 
   // Handle navigation back to dashboard
   const handleNavigateBack = () => {
-    navigate(dashboardHref);
-  };
-
-  const handleDashboardClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-
-    if (event.metaKey || event.ctrlKey) {
-      event.stopPropagation();
-      window.open(dashboardHref, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    navigate(dashboardHref);
-  };
-
-  const handleDashboardMouseDown = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (event.button !== 1) {
-      return;
-    }
-
-    if (event.metaKey || event.ctrlKey) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    window.open(dashboardHref, '_blank', 'noopener,noreferrer');
+    navigate(DASHBOARD_ROUTE);
   };
 
   // Handle cancel in edit mode
   const handleCancelEdit = () => {
     if (isCreating) {
       // If creating, navigate back to dashboard
-      navigate(dashboardHref);
+      navigate(DASHBOARD_ROUTE);
     } else {
       // If editing existing prompt, exit edit mode
       setIsEditing(false);
@@ -110,7 +85,7 @@ export default function PromptDetail() {
       // If prompt not found, redirect to dashboard
       const errorMessage = err instanceof Error ? err.message : String(err);
       if (errorMessage.includes('not found') || errorMessage.includes('permission')) {
-        navigate(dashboardHref);
+        navigate(DASHBOARD_ROUTE);
       }
       throw err; // Re-throw so PromptEditor can show the error toast
     }
@@ -151,9 +126,9 @@ export default function PromptDetail() {
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90">
               <a
-                href={dashboardHref}
-                onClick={handleDashboardClick}
-                onMouseDown={handleDashboardMouseDown}
+                href={DASHBOARD_ROUTE}
+                onClick={(event) => handleLinkClick(event, { href: DASHBOARD_ROUTE, onNavigate: handleNavigateBack })}
+                onMouseDown={(event) => handleLinkMouseDown(event, DASHBOARD_ROUTE)}
               >
                 Back to Dashboard
               </a>
