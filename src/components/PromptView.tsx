@@ -262,14 +262,6 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
           </div>
 
           <div className="space-y-6">
-            {/* Prompt body */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Prompt</Label>
-              <div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap break-all font-mono">
-                {prompt.body}
-              </div>
-            </div>
-
             {/* Variable inputs */}
             {sanitizedVariables.length > 0 && (
               <div className="space-y-3">
@@ -312,6 +304,14 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
                 </>
               )}
             </Button>
+
+            {/* Prompt body */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Prompt</Label>
+              <div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap break-all font-mono">
+                {prompt.body}
+              </div>
+            </div>
 
             {/* Prompt Information */}
             <div className="pt-4 border-t space-y-3">
