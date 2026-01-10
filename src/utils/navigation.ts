@@ -28,10 +28,6 @@ export const handleLinkMouseDown = (
     return;
   }
 
-  if (event.metaKey || event.ctrlKey) {
-    return;
-  }
-
   event.preventDefault();
   event.stopPropagation();
   window.open(href, '_blank', 'noopener,noreferrer');
