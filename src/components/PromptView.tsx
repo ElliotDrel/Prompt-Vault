@@ -53,6 +53,7 @@ interface PromptViewProps {
 }
 
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
+  const dashboardHref = '/dashboard';
   const { stats, togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
   const {
     promptHistory,
@@ -208,13 +209,37 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
         {/* Back button */}
-        <Button
-          variant="ghost"
-          onClick={onNavigateBack}
-          className="mb-6 -ml-2"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
+        <Button variant="ghost" className="mb-6 -ml-2" asChild>
+          <a
+            href={dashboardHref}
+            onClick={(event) => {
+              event.preventDefault();
+
+              if (event.metaKey || event.ctrlKey) {
+                event.stopPropagation();
+                window.open(dashboardHref, '_blank', 'noopener,noreferrer');
+                return;
+              }
+
+              onNavigateBack();
+            }}
+            onMouseDown={(event) => {
+              if (event.button !== 1) {
+                return;
+              }
+
+              if (event.metaKey || event.ctrlKey) {
+                return;
+              }
+
+              event.preventDefault();
+              event.stopPropagation();
+              window.open(dashboardHref, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </a>
         </Button>
 
         {/* Main view card */}

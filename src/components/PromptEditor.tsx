@@ -25,6 +25,7 @@ interface PromptEditorProps {
 
 export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, onSaveSuccess }: PromptEditorProps) {
   const { togglePinPrompt } = usePrompts();
+  const dashboardHref = '/dashboard';
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [variables, setVariables] = useState<string[]>([]);
@@ -373,13 +374,37 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
         {/* Back button */}
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          className="mb-6 -ml-2"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
+        <Button variant="ghost" className="mb-6 -ml-2" asChild>
+          <a
+            href={dashboardHref}
+            onClick={(event) => {
+              event.preventDefault();
+
+              if (event.metaKey || event.ctrlKey) {
+                event.stopPropagation();
+                window.open(dashboardHref, '_blank', 'noopener,noreferrer');
+                return;
+              }
+
+              handleBack();
+            }}
+            onMouseDown={(event) => {
+              if (event.button !== 1) {
+                return;
+              }
+
+              if (event.metaKey || event.ctrlKey) {
+                return;
+              }
+
+              event.preventDefault();
+              event.stopPropagation();
+              window.open(dashboardHref, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </a>
         </Button>
 
         {/* Main editor card */}
