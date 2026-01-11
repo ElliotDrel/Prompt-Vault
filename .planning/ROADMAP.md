@@ -94,14 +94,11 @@ Note: Comparison toggle merged into 06-02 (tightly coupled). Empty state already
 **Goal**: Enable one-click revert with auto-save and integrate history buttons throughout UI
 **Depends on**: Phase 6
 **Research**: Unlikely (standard React Query patterns and context integration)
-**Plans**: TBD
+**Plans**: 2
 
 Plans:
-- [ ] 07-01: Implement revert flow with AlertDialog confirmation
-- [ ] 07-02: Add auto-save current state before revert
-- [ ] 07-03: Add history button to PromptView component
-- [ ] 07-04: Add history button to PromptEditor component
-- [ ] 07-05: Add loading states and error handling
+- [ ] 07-01: Create useRevertToVersion hook and RevertConfirmDialog component
+- [ ] 07-02: Integrate history modal into PromptView and PromptEditor
 
 ### Phase 8: Consolidation Scheduling (DEFERRED)
 **Goal**: Set up automated version consolidation to manage storage growth
