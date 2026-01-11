@@ -16,8 +16,8 @@ None
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Database Schema & RLS** - Create prompt_versions table with consolidation fields, indexes, and RLS policies
-- [ ] **Phase 2: Database Functions & Type Definitions** - Create RPC functions for version CRUD, consolidation logic, TypeScript interfaces
+- [x] **Phase 1: Database Schema & RLS** - Create prompt_versions table with consolidation fields, indexes, and RLS policies
+- [x] **Phase 2: Database Functions & Type Definitions** - Create RPC functions for version CRUD, consolidation logic, TypeScript interfaces
 - [ ] **Phase 3: Storage Adapter Integration** - Extend adapter to capture snapshots on add/update, skip metadata-only changes
 - [ ] **Phase 4: Diff Engine & Utilities** - Install diff library, create computation utilities, build variable change badges
 - [ ] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
@@ -46,7 +46,7 @@ Plans:
 - [x] 02-01: Create create_prompt_version RPC function (completed 2026-01-11)
 - [x] 02-02: Create get_prompt_versions RPC function with pagination (completed 2026-01-11)
 - [x] 02-03: Create consolidate_prompt_versions function (completed 2026-01-11)
-- [ ] 02-04: Define TypeScript interfaces for version data structures
+- [x] 02-04: Define TypeScript interfaces for version data structures (completed 2026-01-11)
 
 ### Phase 3: Storage Adapter Integration
 **Goal**: Wire version tracking into existing prompt CRUD operations transparently
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Schema & RLS | 1/1 | Complete | 2026-01-11 |
-| 2. Database Functions & Type Definitions | 3/4 | In progress | - |
+| 2. Database Functions & Type Definitions | 4/4 | Complete | 2026-01-11 |
 | 3. Storage Adapter Integration | 0/4 | Not started | - |
 | 4. Diff Engine & Utilities | 0/4 | Not started | - |
 | 5. Version List Components | 0/4 | Not started | - |
