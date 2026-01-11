@@ -235,10 +235,16 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
                 </span>
               )}
             </div>
-            <Button onClick={onEdit} className="bg-primary hover:bg-primary/90">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
+                <History className="h-4 w-4 mr-2" />
+                History
+              </Button>
+              <Button onClick={onEdit} className="bg-primary hover:bg-primary/90">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -370,24 +376,18 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               </AlertDialogContent>
             </AlertDialog>
 
-            <div className="flex gap-3">
-              <Button
-                onClick={handlePin}
-                variant="outline"
-                className={`${
-                  prompt.isPinned
-                    ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
-                    : 'hover:bg-yellow-50'
-                }`}
-              >
-                <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
-                {prompt.isPinned ? 'Unpin' : 'Pin'}
-              </Button>
-              <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
-                <History className="h-4 w-4 mr-2" />
-                History
-              </Button>
-            </div>
+            <Button
+              onClick={handlePin}
+              variant="outline"
+              className={`${
+                prompt.isPinned
+                  ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
+                  : 'hover:bg-yellow-50'
+              }`}
+            >
+              <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
+              {prompt.isPinned ? 'Unpin' : 'Pin'}
+            </Button>
           </div>
         </div>
 
