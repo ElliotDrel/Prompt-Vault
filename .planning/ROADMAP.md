@@ -18,8 +18,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Database Schema & RLS** - Create prompt_versions table with consolidation fields, indexes, and RLS policies
 - [x] **Phase 2: Database Functions & Type Definitions** - Create RPC functions for version CRUD, consolidation logic, TypeScript interfaces
-- [ ] **Phase 3: Storage Adapter Integration** - Extend adapter to capture snapshots on add/update, skip metadata-only changes
-- [ ] **Phase 4: Diff Engine & Utilities** - Install diff library, create computation utilities, build variable change badges
+- [x] **Phase 3: Storage Adapter Integration** - Extend adapter to capture snapshots on add/update, skip metadata-only changes
+- [x] **Phase 4: Diff Engine & Utilities** - Install diff library, create computation utilities, build variable change badges
 - [ ] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
 - [ ] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [ ] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
@@ -66,10 +66,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: Install diff npm package and @types/diff
-- [ ] 04-02: Create computeDiff utility function
-- [ ] 04-03: Create groupVersionsByPeriod utility function
-- [ ] 04-04: Build VariableChanges component with +/- badges
+- [x] 04-01: Diff engine and utility functions (completed 2026-01-11)
 
 ### Phase 5: Version List Components
 **Goal**: Build scannable version history UI with time-based grouping
@@ -131,7 +128,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 1. Database Schema & RLS | 1/1 | Complete | 2026-01-11 |
 | 2. Database Functions & Type Definitions | 4/4 | Complete | 2026-01-11 |
 | 3. Storage Adapter Integration | 2/2 | Complete | 2026-01-11 |
-| 4. Diff Engine & Utilities | 0/4 | Not started | - |
+| 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
 | 5. Version List Components | 0/4 | Not started | - |
 | 6. Diff Display & Modal | 0/4 | Not started | - |
 | 7. Revert & Integration | 0/5 | Not started | - |
