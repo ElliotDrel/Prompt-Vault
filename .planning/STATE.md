@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 2 — Database Functions & Type Definitions
+**Current focus:** Phase 3 — Storage Adapter Integration
 
 ## Current Position
 
-Phase: 2 of 8 (Database Functions & Type Definitions)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-01-11 — Completed 02-04-PLAN.md
+Phase: 3 of 8 (Storage Adapter Integration)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-01-11 — Completed 03-01-PLAN.md
 
-Progress: ███░░░░░░░ 19.2%
+Progress: ████░░░░░░ 23.1%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 3 min
-- Total execution time: 0.23 hours
+- Total execution time: 0.30 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: ███░░░░░░░ 19.2%
 |-------|-------|-------|----------|
 | 1 (Database Schema & RLS) | 1 | 6 min | 6 min |
 | 2 (Database Functions & Type Definitions) | 4 | 8 min | 2 min |
+| 3 (Storage Adapter Integration) | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 6, 2, 2, 2, 2 min
-- Trend: Stable at 2 min
+- Last 5 plans: 2, 2, 2, 2, 4 min
+- Trend: Stable at 2-4 min
 
 ## Accumulated Context
 
@@ -53,6 +54,8 @@ Recent decisions affecting current work:
 - CASCADE delete strategy (history dies with prompt) [Phase 1]
 - DECLARE block for ownership validation (clearer than subquery) [Phase 2]
 - Empty result for unauthorized access (consistent with existing patterns) [Phase 2]
+- Realtime event routing: Version changes trigger 'prompts' refresh (avoid breaking context callbacks) [Phase 3]
+- Snake_case RPC parameters to match database function signatures [Phase 3]
 
 ### Deferred Issues
 
@@ -65,5 +68,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: Completed 02-04-PLAN.md (Phase 2 complete)
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
