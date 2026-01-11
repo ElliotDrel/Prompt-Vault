@@ -158,6 +158,7 @@ export function PromptCard({ prompt, onClick, onMouseDown, onKeyDown }: PromptCa
       <Button
         onClick={handlePin}
         onMouseDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
         variant="ghost"
         size="sm"
         className={`absolute top-2 right-2 h-8 w-8 p-0 ${
@@ -183,6 +184,7 @@ export function PromptCard({ prompt, onClick, onMouseDown, onKeyDown }: PromptCa
           className="flex flex-col gap-3"
           onClick={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
         >
           {sanitizedVariables.map((variable) => (
             <div key={variable} className="space-y-1">
@@ -199,6 +201,7 @@ export function PromptCard({ prompt, onClick, onMouseDown, onKeyDown }: PromptCa
                 value={variableValues[variable] || ''}
                 onChange={(event) => handleVariableChange(variable, event.target.value)}
                 onMouseDown={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
                 className="text-sm"
               />
             </div>
@@ -216,6 +219,7 @@ export function PromptCard({ prompt, onClick, onMouseDown, onKeyDown }: PromptCa
       <Button
         onClick={handleCopy}
         onMouseDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
         className={`w-full mt-auto font-medium transition-all duration-300 ${
           isCopied
             ? 'bg-white text-gray-800 border border-gray-200 hover:bg-white'
