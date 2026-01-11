@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 ## Current Position
 
 Phase: 1 of 8 (Database Schema & RLS)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-01-09 — Project initialized with roadmap
+Plan: 1 of 1 in current phase
+Status: Phase complete
+Last activity: 2026-01-11 — Completed 01-01-PLAN.md (Phase 1 complete)
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ███░░░░░░░ 12.5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 6 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
+| 1 (Database Schema & RLS) | 1 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: —
+- Last 5 plans: 6 min
 - Trend: —
 
 ## Accumulated Context
@@ -46,6 +46,10 @@ Recent decisions affecting current work:
 - Word-level diff using `diff` npm package (readable for prose)
 - Auto-save before revert (nothing ever lost)
 - Phase 8 deferred (ship core feature first, optimize later)
+- Separate migrations for schema vs realtime (cleaner history) [Phase 1]
+- Application-controlled version numbers (not auto-increment) [Phase 1]
+- No UPDATE RLS policy for versions (immutable snapshots) [Phase 1]
+- CASCADE delete strategy (history dies with prompt) [Phase 1]
 
 ### Deferred Issues
 
@@ -57,6 +61,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-09
-Stopped at: Roadmap created, ready to begin Phase 1 planning
+Last session: 2026-01-11
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None

@@ -34,9 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 Plans:
-- [ ] 01-01: Create prompt_versions table with columns, constraints, indexes
-- [ ] 01-02: Create RLS policies matching existing security model
-- [ ] 01-03: Enable realtime publication for prompt_versions
+- [x] 01-01: Create prompt_versions table, RLS policies, and realtime publication (completed 2026-01-11)
 
 ### Phase 2: Database Functions & Type Definitions
 **Goal**: Implement server-side CRUD logic and define TypeScript interfaces for version data
@@ -132,7 +130,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Schema & RLS | 0/3 | Not started | - |
+| 1. Database Schema & RLS | 1/1 | Complete | 2026-01-11 |
 | 2. Database Functions & Type Definitions | 0/4 | Not started | - |
 | 3. Storage Adapter Integration | 0/4 | Not started | - |
 | 4. Diff Engine & Utilities | 0/4 | Not started | - |
