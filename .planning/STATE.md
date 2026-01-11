@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 6 — Diff Display & Modal
+**Current focus:** Phase 7 — Revert & Integration
 
 ## Current Position
 
-Phase: 6 of 8 (Diff Display & Modal)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-11 — Completed 06-02-PLAN.md
+Phase: 7 of 8 (Revert & Integration)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-11 — Completed 07-01-PLAN.md
 
-Progress: ███████░░░ 70.6%
+Progress: ████████░░ 76.5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 3.3 min
+- Total plans completed: 13
+- Average duration: 3.2 min
 - Total execution time: 0.7 hours
 
 **By Phase:**
@@ -33,10 +33,11 @@ Progress: ███████░░░ 70.6%
 | 4 (Diff Engine & Utilities) | 1 | 4 min | 4 min |
 | 5 (Version List Components) | 2 | 7 min | 3.5 min |
 | 6 (Diff Display & Modal) | 2 | 6 min | 3 min |
+| 7 (Revert & Integration) | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 4, 3, 4, 3, 3 min
-- Trend: Stable at 3-4 min
+- Last 5 plans: 3, 4, 3, 3, 3 min
+- Trend: Stable at 3 min
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - Memoized VersionDiff component: diff computation can be expensive on large text [Phase 6]
 - Two-column modal layout: 1/3 version list, 2/3 detail view for diff readability [Phase 6]
 - VariableChangesOrEmpty wrapper: gracefully handle empty variable arrays in modal [Phase 6]
+- Auto-save via double updatePrompt: first saves current state, second applies version [Phase 7]
+- Preserve isPinned and timesUsed during revert: metadata unchanged, only content restored [Phase 7]
 
 ### Deferred Issues
 
@@ -88,5 +91,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: Completed 06-02-PLAN.md (Phase 6 complete)
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None

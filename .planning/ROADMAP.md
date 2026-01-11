@@ -97,7 +97,7 @@ Note: Comparison toggle merged into 06-02 (tightly coupled). Empty state already
 **Plans**: 2
 
 Plans:
-- [ ] 07-01: Create useRevertToVersion hook and RevertConfirmDialog component
+- [x] 07-01: Create useRevertToVersion hook and RevertConfirmDialog component (completed 2026-01-11)
 - [ ] 07-02: Integrate history modal into PromptView and PromptEditor
 
 ### Phase 8: Consolidation Scheduling (DEFERRED)
@@ -126,5 +126,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
-| 7. Revert & Integration | 0/5 | Not started | - |
+| 7. Revert & Integration | 1/2 | In progress | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
