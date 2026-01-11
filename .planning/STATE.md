@@ -11,10 +11,44 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 
 Phase: 7 of 8 (Revert & Integration)
 Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-11 — Completed 07-02-PLAN.md
+Status: UAT in progress
+Last activity: 2026-01-11 — UAT testing Phases 1-7
 
 Progress: █████████░ 88.2%
+
+## UAT Status (Phases 1-7)
+
+**Command:** `/gsd:verify-work phases 1-7`
+**Started:** 2026-01-11
+**Issues Found:** 10 (all resolved)
+**Migrations Applied:** 2 (RPC parameter names, return format)
+
+### Completed Tests
+- [x] Pre-flight check
+- [x] Version Creation on New Prompt
+
+### Resume From
+- [ ] Version Creation on Content Edit (needs re-verify after fixes)
+
+### Pending Tests
+- [ ] Metadata-Only Changes Skip Versioning
+- [ ] Version List Time Grouping
+- [ ] Version List Item Display
+- [ ] Diff Comparison - Previous Version
+- [ ] Diff Comparison - Current Version
+- [ ] Variable Changes Display
+- [ ] Revert Confirmation Dialog
+- [ ] Successful Revert
+- [ ] History Button placement (now next to Edit)
+- [ ] History Button Hidden in Create Mode
+
+### UI Changes Made During UAT
+- History button moved to header (next to Edit) in PromptView
+- Pin/History buttons removed from PromptEditor (edit mode)
+- "Current" entry added to version list with "Live" badge
+- Comparison mode toggle now uses solid button for active state
+
+**Issues file:** `.planning/phases/07-revert-integration/07-UAT-ISSUES.md`
 
 ## Performance Metrics
 
@@ -81,6 +115,10 @@ Recent decisions affecting current work:
 - Preserve isPinned and timesUsed during revert: metadata unchanged, only content restored [Phase 7]
 - History button after Pin button in both PromptView and PromptEditor footer [Phase 7]
 - PromptEditor History only in edit mode (create has no history) [Phase 7]
+- History button moved to header next to Edit button in PromptView [UAT]
+- Pin/History buttons removed from PromptEditor entirely [UAT]
+- "Current" entry at top of version list with "Live" badge [UAT]
+- RPC parameter names without p_ prefix to match frontend [UAT - migration fix]
 
 ### Deferred Issues
 
@@ -93,5 +131,10 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: Completed 07-02-PLAN.md (Phase 7 complete)
-Resume file: None
+Stopped at: UAT testing - "Version Creation on Content Edit" test
+Resume with: `/gsd:verify-work phases 1-7`
+Issues file: `.planning/phases/07-revert-integration/07-UAT-ISSUES.md`
+
+**Note:** All 10 issues found during UAT have been resolved. Next session should:
+1. Re-verify "Version Creation on Content Edit" test
+2. Continue with remaining tests in the checklist
