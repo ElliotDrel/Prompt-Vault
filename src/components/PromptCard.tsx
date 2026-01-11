@@ -187,8 +187,8 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
           onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
           onKeyDown={(event) => event.stopPropagation()}
         >
-          {sanitizedVariables.map((variable) => (
-            <div key={variable} className="space-y-1">
+          {sanitizedVariables.map((variable, index) => (
+            <div key={`${variable}-${index}`} className="space-y-1">
               <Label
                 htmlFor={`${prompt.id}-${variable}`}
                 className="text-sm text-muted-foreground"
@@ -201,7 +201,7 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
                 placeholder={`Enter ${variable}...`}
                 value={variableValues[variable] || ''}
                 onChange={(event) => handleVariableChange(variable, event.target.value)}
-                onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
+                onMouseDown={(event) => event.stopPropagation()}
                 onKeyDown={(event) => event.stopPropagation()}
                 className="text-sm"
               />
