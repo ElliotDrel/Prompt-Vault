@@ -40,7 +40,7 @@ export const VersionDiff = memo(function VersionDiff({
   // Identical strings - no diff to show
   if (safeOldText === safeNewText) {
     return (
-      <div className={`whitespace-pre-wrap ${className ?? ''}`}>
+      <div className={`whitespace-pre-wrap text-sm ${className ?? ''}`}>
         {safeNewText}
       </div>
     );
@@ -49,7 +49,7 @@ export const VersionDiff = memo(function VersionDiff({
   const changes = computeDiff(safeOldText, safeNewText);
 
   return (
-    <div className={`whitespace-pre-wrap ${className ?? ''}`}>
+    <div className={`whitespace-pre-wrap text-sm ${className ?? ''}`}>
       {changes.map((change, index) => {
         if (change.added) {
           return (

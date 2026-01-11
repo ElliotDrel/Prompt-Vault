@@ -70,17 +70,18 @@ function BodyChangeSummary({ added, removed }: { added: number; removed: number 
     return null;
   }
 
-  const parts: string[] = [];
-  if (added > 0) {
-    parts.push(`+${added} word${added === 1 ? '' : 's'}`);
-  }
-  if (removed > 0) {
-    parts.push(`-${removed} word${removed === 1 ? '' : 's'}`);
-  }
-
   return (
-    <span className="text-sm text-muted-foreground">
-      Body: {parts.join(', ')}
+    <span className="text-sm text-muted-foreground flex items-center gap-2">
+      {added > 0 && (
+        <span className="text-green-600 dark:text-green-400">
+          +{added} word{added === 1 ? '' : 's'}
+        </span>
+      )}
+      {removed > 0 && (
+        <span className="text-red-600 dark:text-red-400">
+          -{removed} word{removed === 1 ? '' : 's'}
+        </span>
+      )}
     </span>
   );
 }

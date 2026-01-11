@@ -32,6 +32,16 @@ interface VersionListProps {
    * Callback when a version is selected for detailed view
    */
   onVersionSelect: (version: PromptVersion) => void;
+
+  /**
+   * Callback when "Current" is selected (null means current prompt)
+   */
+  onCurrentSelect?: () => void;
+
+  /**
+   * Whether the current prompt is selected
+   */
+  isCurrentSelected?: boolean;
 }
 
 /**
@@ -97,6 +107,8 @@ export const VersionList = memo(function VersionList({
   currentPrompt,
   comparisonMode,
   onVersionSelect,
+  onCurrentSelect,
+  isCurrentSelected,
 }: VersionListProps) {
   const {
     versions,
@@ -147,8 +159,31 @@ export const VersionList = memo(function VersionList({
     <div>
       {/* Version count */}
       <div className="text-sm text-muted-foreground mb-3">
-        {totalCount} version{totalCount !== 1 ? 's' : ''} total
+        {totalCount + 1} version{totalCount !== 0 ? 's' : ''} total
       </div>
+
+      {/* Current version (always at top) */}
+      {onCurrentSelect && (
+        <button
+          type="button"
+          className={`w-full text-left rounded-lg border p-3 mb-3 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+            isCurrentSelected
+              ? 'bg-primary/10 border-primary'
+              : 'hover:bg-muted/50'
+          }`}
+          onClick={onCurrentSelect}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-semibold">Current</span>
+            <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded">
+              Live
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            The current state of this prompt
+          </p>
+        </button>
+      )}
 
       {/* Accordion with time-grouped versions */}
       <Accordion
