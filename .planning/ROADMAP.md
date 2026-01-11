@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Database Functions & Type Definitions** - Create RPC functions for version CRUD, consolidation logic, TypeScript interfaces
 - [x] **Phase 3: Storage Adapter Integration** - Extend adapter to capture snapshots on add/update, skip metadata-only changes
 - [x] **Phase 4: Diff Engine & Utilities** - Install diff library, create computation utilities, build variable change badges
-- [ ] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
+- [x] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
 - [ ] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [ ] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [ ] **Phase 8: Consolidation Scheduling (DEFERRED)** - Set up pg_cron background job for tiered version consolidation
@@ -76,7 +76,7 @@ Plans:
 
 Plans:
 - [x] 05-01: Create usePromptVersions hook and VersionListItem component (completed 2026-01-11)
-- [ ] 05-02: Create VersionHistoryPanel with Accordion time-grouping
+- [x] 05-02: Create VersionList with Accordion time-grouping and pagination (completed 2026-01-11)
 
 ### Phase 6: Diff Display & Modal
 **Goal**: Create inline diff highlighting and main modal interface
@@ -127,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 2. Database Functions & Type Definitions | 4/4 | Complete | 2026-01-11 |
 | 3. Storage Adapter Integration | 2/2 | Complete | 2026-01-11 |
 | 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
-| 5. Version List Components | 1/2 | In progress | - |
+| 5. Version List Components | 2/2 | Complete | 2026-01-11 |
 | 6. Diff Display & Modal | 0/4 | Not started | - |
 | 7. Revert & Integration | 0/5 | Not started | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
