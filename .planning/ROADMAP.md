@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Diff Engine & Utilities** - Install diff library, create computation utilities, build variable change badges
 - [x] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
 - [x] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
-- [ ] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
+- [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [ ] **Phase 8: Consolidation Scheduling (DEFERRED)** - Set up pg_cron background job for tiered version consolidation
 
 ## Phase Details
@@ -98,7 +98,7 @@ Note: Comparison toggle merged into 06-02 (tightly coupled). Empty state already
 
 Plans:
 - [x] 07-01: Create useRevertToVersion hook and RevertConfirmDialog component (completed 2026-01-11)
-- [ ] 07-02: Integrate history modal into PromptView and PromptEditor
+- [x] 07-02: Integrate history modal into PromptView and PromptEditor (completed 2026-01-11)
 
 ### Phase 8: Consolidation Scheduling (DEFERRED)
 **Goal**: Set up automated version consolidation to manage storage growth
@@ -126,5 +126,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
-| 7. Revert & Integration | 1/2 | In progress | - |
+| 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
