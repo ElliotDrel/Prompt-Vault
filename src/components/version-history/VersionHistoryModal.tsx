@@ -13,6 +13,7 @@ import { VersionDiff } from './VersionDiff';
 import { VariableChanges } from './VariableChanges';
 import { format } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
+import { usePromptVersions } from '@/hooks/usePromptVersions';
 
 /**
  * Wrapper for VariableChanges that shows "No variable changes" when no changes exist.
@@ -64,24 +65,43 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
   prompt,
   onRevert,
 }: VersionHistoryModalProps) {
-  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('previous');
+  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('current');
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
+  const [isCurrentSelected, setIsCurrentSelected] = useState(false);
 
-  // Reset selected version when modal opens
+  // Fetch versions to find previous version for comparison
+  const { versions } = usePromptVersions({ promptId: prompt.id, enabled: open });
+
+  // Reset selection when modal opens
   useEffect(() => {
     if (open) {
       setSelectedVersion(null);
+      setIsCurrentSelected(false);
     }
   }, [open]);
 
   const handleVersionSelect = (version: PromptVersion) => {
     setSelectedVersion(version);
+    setIsCurrentSelected(false);
+  };
+
+  const handleCurrentSelect = () => {
+    setSelectedVersion(null);
+    setIsCurrentSelected(true);
   };
 
   const handleRevert = () => {
     if (selectedVersion && onRevert) {
       onRevert(selectedVersion);
     }
+  };
+
+  // Find the previous version for the selected version
+  const getPreviousVersion = (): PromptVersion | null => {
+    if (!selectedVersion || versions.length === 0) return null;
+    const idx = versions.findIndex(v => v.id === selectedVersion.id);
+    if (idx === -1 || idx >= versions.length - 1) return null;
+    return versions[idx + 1]; // Versions are sorted newest first
   };
 
   // Get comparison target based on mode
@@ -93,12 +113,20 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
         variables: prompt.variables,
       };
     }
-    // For 'previous' mode, the diff is computed in VersionListItem
-    // Here we just show the version itself without diff
+    // For 'previous' mode, compare to the previous version
+    const prevVersion = getPreviousVersion();
+    if (prevVersion) {
+      return {
+        title: prevVersion.title,
+        body: prevVersion.body,
+        variables: prevVersion.variables,
+      };
+    }
     return null;
   };
 
   const comparisonTarget = getComparisonTarget();
+  const previousVersion = getPreviousVersion();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,21 +140,19 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
           {/* Comparison mode toggle */}
           <div className="flex gap-2 pt-2">
             <Button
-              variant="outline"
+              variant={comparisonMode === 'previous' ? 'default' : 'outline'}
               size="sm"
               aria-pressed={comparisonMode === 'previous'}
               aria-label="Compare to previous version"
-              className={comparisonMode === 'previous' ? 'bg-muted' : ''}
               onClick={() => setComparisonMode('previous')}
             >
               Compare to Previous
             </Button>
             <Button
-              variant="outline"
+              variant={comparisonMode === 'current' ? 'default' : 'outline'}
               size="sm"
               aria-pressed={comparisonMode === 'current'}
               aria-label="Compare to current version"
-              className={comparisonMode === 'current' ? 'bg-muted' : ''}
               onClick={() => setComparisonMode('current')}
             >
               Compare to Current
@@ -143,16 +169,80 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
               currentPrompt={prompt}
               comparisonMode={comparisonMode}
               onVersionSelect={handleVersionSelect}
+              onCurrentSelect={handleCurrentSelect}
+              isCurrentSelected={isCurrentSelected}
             />
           </div>
 
           {/* Right column: Detail view */}
           <div className="overflow-y-auto max-h-[40vh] md:max-h-[60vh] pl-0 md:pl-4 md:border-l">
-            {!selectedVersion ? (
+            {/* Nothing selected state */}
+            {!selectedVersion && !isCurrentSelected && (
               <div className="text-center py-8 text-muted-foreground">
                 Select a version to see details
               </div>
-            ) : (
+            )}
+
+            {/* Current prompt selected */}
+            {isCurrentSelected && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold">
+                      Current Version
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(prompt.updatedAt), 'PPpp')}
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center justify-center h-10 rounded-md px-4 text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 -mr-1">
+                    Live
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  This is the current state of your prompt
+                </p>
+
+                {/* Title */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Title</h4>
+                  <div className="border rounded p-3 bg-muted/30 text-sm">
+                    {prompt.title}
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Body</h4>
+                  <div className="border rounded p-3 bg-muted/30 whitespace-pre-wrap text-sm">
+                    {prompt.body}
+                  </div>
+                </div>
+
+                {/* Variables */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Variables</h4>
+                  {prompt.variables.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {prompt.variables.map((variable) => (
+                        <span
+                          key={variable}
+                          className="px-2 py-1 rounded bg-muted text-sm"
+                        >
+                          {variable}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No variables</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Historical version selected */}
+            {selectedVersion && (
               <div className="space-y-4">
                 {/* Version header */}
                 <div className="flex items-center justify-between">
@@ -175,29 +265,45 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                   </Button>
                 </div>
 
-                {/* Title diff (only if comparing to current and differs) */}
-                {comparisonTarget && selectedVersion.title !== comparisonTarget.title && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Title Changes</h4>
-                    <div className="border rounded p-3 bg-muted/30">
-                      <VersionDiff
-                        oldText={selectedVersion.title}
-                        newText={comparisonTarget.title}
-                      />
-                    </div>
-                  </div>
+                {/* Comparison context label */}
+                {comparisonTarget && (
+                  <p className="text-sm text-muted-foreground">
+                    {comparisonMode === 'current'
+                      ? 'Showing differences from this version to current prompt'
+                      : `Showing differences from Version ${previousVersion?.versionNumber} to this version`}
+                  </p>
+                )}
+                {!comparisonTarget && comparisonMode === 'previous' && (
+                  <p className="text-sm text-muted-foreground italic">
+                    This is the initial version - no previous version to compare
+                  </p>
                 )}
 
-                {/* Body diff */}
+                {/* Title */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">
-                    {comparisonTarget ? 'Body Changes' : 'Body Content'}
-                  </h4>
+                  <h4 className="text-sm font-medium mb-2">Title</h4>
                   <div className="border rounded p-3 bg-muted/30">
                     {comparisonTarget ? (
                       <VersionDiff
-                        oldText={selectedVersion.body}
-                        newText={comparisonTarget.body}
+                        oldText={comparisonMode === 'current' ? selectedVersion.title : comparisonTarget.title}
+                        newText={comparisonMode === 'current' ? comparisonTarget.title : selectedVersion.title}
+                      />
+                    ) : (
+                      <div className="text-sm">
+                        {selectedVersion.title}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Body</h4>
+                  <div className="border rounded p-3 bg-muted/30">
+                    {comparisonTarget ? (
+                      <VersionDiff
+                        oldText={comparisonMode === 'current' ? selectedVersion.body : comparisonTarget.body}
+                        newText={comparisonMode === 'current' ? comparisonTarget.body : selectedVersion.body}
                       />
                     ) : (
                       <div className="whitespace-pre-wrap text-sm">
@@ -207,31 +313,27 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                   </div>
                 </div>
 
-                {/* Variable changes */}
+                {/* Variables */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">
-                    {comparisonTarget ? 'Variable Changes' : 'Variables'}
-                  </h4>
+                  <h4 className="text-sm font-medium mb-2">Variables</h4>
                   {comparisonTarget ? (
                     <VariableChangesOrEmpty
-                      oldVariables={selectedVersion.variables}
-                      newVariables={comparisonTarget.variables}
+                      oldVariables={comparisonMode === 'current' ? selectedVersion.variables : comparisonTarget.variables}
+                      newVariables={comparisonMode === 'current' ? comparisonTarget.variables : selectedVersion.variables}
                     />
-                  ) : (
+                  ) : selectedVersion.variables.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {selectedVersion.variables.length > 0 ? (
-                        selectedVersion.variables.map((variable) => (
-                          <span
-                            key={variable}
-                            className="px-2 py-1 rounded bg-muted text-sm"
-                          >
-                            {variable}
-                          </span>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">No variables</p>
-                      )}
+                      {selectedVersion.variables.map((variable) => (
+                        <span
+                          key={variable}
+                          className="px-2 py-1 rounded bg-muted text-sm"
+                        >
+                          {variable}
+                        </span>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No variables</p>
                   )}
                 </div>
               </div>
