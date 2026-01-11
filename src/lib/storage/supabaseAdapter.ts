@@ -96,6 +96,12 @@ async function fetchPromptRowById(userId: string, promptId: string) {
 }
 
 class SupabasePromptsAdapter implements PromptsStorageAdapter {
+  private versionsAdapter: SupabaseVersionsAdapter;
+
+  constructor(versionsAdapter: SupabaseVersionsAdapter) {
+    this.versionsAdapter = versionsAdapter;
+  }
+
   async getPrompts(): Promise<Prompt[]> {
     const userId = await requireUserId();
 
@@ -134,7 +140,23 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       throw new Error(`Failed to add prompt: ${error.message}`);
     }
 
-    return mapPromptRow(data as PromptRow);
+    const createdPrompt = mapPromptRow(data as PromptRow);
+
+    // Create version 1 snapshot (initial state)
+    try {
+      await this.versionsAdapter.createVersion({
+        promptId: createdPrompt.id,
+        versionNumber: 1,
+        title: createdPrompt.title,
+        body: createdPrompt.body,
+        variables: createdPrompt.variables,
+      });
+    } catch (versionError) {
+      // Log but don't fail prompt creation
+      console.error('Failed to create initial version:', versionError);
+    }
+
+    return createdPrompt;
   }
 
   async updatePrompt(id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
@@ -512,10 +534,10 @@ export class SupabaseAdapter implements StorageAdapter {
   private subscribeTask: Promise<void> | null = null;
 
   constructor() {
-    this.prompts = new SupabasePromptsAdapter();
+    this.versions = new SupabaseVersionsAdapter();
+    this.prompts = new SupabasePromptsAdapter(this.versions);
     this.copyEvents = new SupabaseCopyEventsAdapter();
     this.stats = new SupabaseStatsAdapter();
-    this.versions = new SupabaseVersionsAdapter();
   }
 
   async isReady(): Promise<boolean> {
