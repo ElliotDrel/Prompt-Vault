@@ -43,7 +43,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 02-01: Create create_prompt_version RPC function
+- [x] 02-01: Create create_prompt_version RPC function (completed 2026-01-11)
 - [ ] 02-02: Create get_prompt_versions RPC function with pagination
 - [ ] 02-03: Create consolidate_prompt_versions function
 - [ ] 02-04: Define TypeScript interfaces for version data structures
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Schema & RLS | 1/1 | Complete | 2026-01-11 |
-| 2. Database Functions & Type Definitions | 0/4 | Not started | - |
+| 2. Database Functions & Type Definitions | 1/4 | In progress | - |
 | 3. Storage Adapter Integration | 0/4 | Not started | - |
 | 4. Diff Engine & Utilities | 0/4 | Not started | - |
 | 5. Version List Components | 0/4 | Not started | - |

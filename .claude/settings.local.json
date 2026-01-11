@@ -12,7 +12,8 @@
       "mcp__supabase__search_docs",
       "Bash(git add:*)",
       "Bash(git log:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__supabase__execute_sql"
     ]
   },
   "enableAllProjectMcpServers": true,
