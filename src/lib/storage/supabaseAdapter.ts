@@ -1,5 +1,5 @@
-import { Prompt, CopyEvent } from '@/types/prompt';
-import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, StorageAdapter, PaginatedCopyEvents } from './types';
+import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
+import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
@@ -23,6 +23,19 @@ type CopyEventRow = {
   created_at: string;
 };
 
+type VersionRow = {
+  id: string;
+  prompt_id: string;
+  user_id: string;
+  version_number: number;
+  title: string;
+  body: string;
+  variables: unknown;
+  is_consolidated: boolean;
+  consolidation_group_id: string | null;
+  created_at: string;
+};
+
 const mapPromptRow = (row: PromptRow): Prompt => ({
   id: row.id,
   title: row.title,
@@ -40,6 +53,19 @@ const mapCopyEventRow = (row: CopyEventRow): CopyEvent => ({
   variableValues: row.variable_values ?? {},
   copiedText: row.copied_text,
   timestamp: row.created_at,
+});
+
+const mapVersionRow = (row: VersionRow): PromptVersion => ({
+  id: row.id,
+  promptId: row.prompt_id,
+  userId: row.user_id,
+  versionNumber: row.version_number,
+  title: row.title,
+  body: row.body,
+  variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
+  isConsolidated: row.is_consolidated,
+  consolidationGroupId: row.consolidation_group_id,
+  createdAt: row.created_at,
 });
 
 async function requireUserId(): Promise<string> {
@@ -385,6 +411,92 @@ class SupabaseStatsAdapter implements StatsStorageAdapter {
 
   async incrementCopyCount(): Promise<void> {
     // Stats view is computed dynamically; no-op required for Supabase implementation.
+  }
+}
+
+class SupabaseVersionsAdapter implements VersionsStorageAdapter {
+  async createVersion(data: {
+    promptId: string;
+    versionNumber: number;
+    title: string;
+    body: string;
+    variables: string[];
+  }): Promise<PromptVersion> {
+    await requireUserId();
+
+    const { data: result, error } = await supabase
+      .rpc('create_prompt_version', {
+        prompt_id: data.promptId,
+        version_number: data.versionNumber,
+        title: data.title,
+        body: data.body,
+        variables: data.variables,
+      })
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to create version: ${error.message}`);
+    }
+
+    if (!result) {
+      throw new Error('Failed to create version: No data returned');
+    }
+
+    return mapVersionRow(result as VersionRow);
+  }
+
+  async getVersions(promptId: string, offset: number = 0, limit: number = 25): Promise<PaginatedVersions> {
+    await requireUserId();
+
+    const { data, error } = await supabase
+      .rpc('get_prompt_versions', {
+        prompt_id: promptId,
+        offset_count: offset,
+        limit_count: limit,
+      });
+
+    if (error) {
+      throw new Error(`Failed to fetch versions: ${error.message}`);
+    }
+
+    if (!data) {
+      return {
+        versions: [],
+        hasMore: false,
+        totalCount: 0,
+      };
+    }
+
+    const result = data as {
+      versions: VersionRow[];
+      total_count: number;
+    };
+
+    const versions = result.versions.map(mapVersionRow);
+    const totalCount = result.total_count ?? 0;
+    const hasMore = offset + versions.length < totalCount;
+
+    return {
+      versions,
+      hasMore,
+      totalCount,
+    };
+  }
+
+  async consolidateVersions(promptId: string): Promise<number> {
+    await requireUserId();
+
+    const { data, error } = await supabase
+      .rpc('consolidate_prompt_versions', {
+        prompt_id: promptId,
+      })
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to consolidate versions: ${error.message}`);
+    }
+
+    return (data as number) ?? 0;
   }
 }
 
