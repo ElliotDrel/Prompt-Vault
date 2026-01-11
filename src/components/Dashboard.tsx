@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -45,56 +45,6 @@ export function Dashboard() {
 
   const handleCreatePrompt = () => {
     navigate('/dashboard/prompt/new');
-  };
-
-  /** Opens a prompt detail page in a new tab (used by Ctrl/⌘-click and middle-click) */
-  const openPromptInNewTab = (promptId: string) => {
-    window.open(`/dashboard/prompt/${promptId}`, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleOpenPrompt = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
-    // Middle-click is handled by handlePromptMouseDown; skip to avoid double navigation
-    if (event.button === 1) {
-      return;
-    }
-
-    if (event.metaKey || event.ctrlKey) {
-      event.stopPropagation();
-      openPromptInNewTab(promptId);
-      return;
-    }
-
-    navigate(`/dashboard/prompt/${promptId}`);
-  };
-
-  const handlePromptMouseDown = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
-    if (event.button !== 1) {
-      return;
-    }
-
-    if (event.metaKey || event.ctrlKey) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    openPromptInNewTab(promptId);
-  };
-
-  const handlePromptKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, promptId: string) => {
-    if (event.key !== 'Enter' && event.key !== ' ') {
-      return;
-    }
-
-    event.preventDefault();
-
-    if (event.metaKey || event.ctrlKey) {
-      event.stopPropagation();
-      openPromptInNewTab(promptId);
-      return;
-    }
-
-    navigate(`/dashboard/prompt/${promptId}`);
   };
 
   const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
@@ -220,9 +170,7 @@ export function Dashboard() {
               >
                 <PromptCard
                   prompt={prompt}
-                  onClick={(event) => handleOpenPrompt(event, prompt.id)}
-                  onMouseDown={(event) => handlePromptMouseDown(event, prompt.id)}
-                  onKeyDown={(event) => handlePromptKeyDown(event, prompt.id)}
+                  to={`/dashboard/prompt/${prompt.id}`}
                 />
               </motion.div>
             ))}
