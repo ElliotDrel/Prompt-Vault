@@ -6,9 +6,9 @@ import { Navigation } from '@/components/Navigation';
 import { PromptEditor } from '@/components/PromptEditor';
 import { PromptView } from '@/components/PromptView';
 import { Button } from '@/components/ui/button';
+import { NavLink } from '@/components/ui/NavLink';
 import { Prompt } from '@/types/prompt';
 import { DASHBOARD_ROUTE } from '@/config/routes';
-import { handleLinkClick, handleLinkMouseDown } from '@/utils/navigation';
 
 export default function PromptDetail() {
   const { promptId } = useParams<{ promptId: string }>();
@@ -125,13 +125,9 @@ export default function PromptDetail() {
               This prompt doesn't exist or you don't have permission to access it.
             </p>
             <Button asChild className="bg-primary hover:bg-primary/90">
-              <a
-                href={DASHBOARD_ROUTE}
-                onClick={(event) => handleLinkClick(event, { href: DASHBOARD_ROUTE, onNavigate: handleNavigateBack })}
-                onMouseDown={(event) => handleLinkMouseDown(event, DASHBOARD_ROUTE)}
-              >
+              <NavLink to={DASHBOARD_ROUTE}>
                 Back to Dashboard
-              </a>
+              </NavLink>
             </Button>
           </div>
         </div>

@@ -16,7 +16,7 @@ import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LI
 import { copyToClipboard, buildPromptPayload } from '@/utils/promptUtils';
 import { sanitizeVariables } from '@/utils/variableUtils';
 import { DASHBOARD_ROUTE } from '@/config/routes';
-import { handleLinkClick, handleLinkMouseDown } from '@/utils/navigation';
+import { NavLink } from '@/components/ui/NavLink';
 
 // SessionStorage helpers for persisting variable inputs
 const STORAGE_KEY_PREFIX = 'prompt-variables-';
@@ -206,14 +206,10 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       <div className="max-w-4xl mx-auto p-6">
         {/* Back button */}
         <Button variant="ghost" className="mb-6 -ml-2" asChild>
-          <a
-            href={DASHBOARD_ROUTE}
-            onClick={(event) => handleLinkClick(event, { href: DASHBOARD_ROUTE, onNavigate: onNavigateBack })}
-            onMouseDown={(event) => handleLinkMouseDown(event, DASHBOARD_ROUTE)}
-          >
+          <NavLink to={DASHBOARD_ROUTE} onNavigate={onNavigateBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
-          </a>
+          </NavLink>
         </Button>
 
         {/* Main view card */}
