@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Storage Adapter Integration** - Extend adapter to capture snapshots on add/update, skip metadata-only changes
 - [x] **Phase 4: Diff Engine & Utilities** - Install diff library, create computation utilities, build variable change badges
 - [x] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
-- [ ] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
+- [x] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [ ] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [ ] **Phase 8: Consolidation Scheduling (DEFERRED)** - Set up pg_cron background job for tiered version consolidation
 
@@ -86,7 +86,7 @@ Plans:
 
 Plans:
 - [x] 06-01: Create VersionDiff component with inline highlighting (completed 2026-01-11)
-- [ ] 06-02: Build VersionHistoryModal with two-column layout and comparison toggle
+- [x] 06-02: Build VersionHistoryModal with two-column layout and comparison toggle (completed 2026-01-11)
 
 Note: Comparison toggle merged into 06-02 (tightly coupled). Empty state already handled by VersionList (Phase 5).
 
@@ -128,6 +128,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 3. Storage Adapter Integration | 2/2 | Complete | 2026-01-11 |
 | 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
-| 6. Diff Display & Modal | 1/2 | In progress | - |
+| 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 0/5 | Not started | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
