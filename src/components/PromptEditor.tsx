@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Info, Plus, Trash2, Pin } from 'lucide-react';
+import { ArrowLeft, Info, Plus, Trash2, Pin, History } from 'lucide-react';
 import { Prompt } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePrompts } from '@/contexts/PromptsContext';
+import { useRevertToVersion } from '@/hooks/useRevertToVersion';
+import { VersionHistoryModal, RevertConfirmDialog } from '@/components/version-history';
 import toast from 'react-hot-toast';
 import { useBlocker } from 'react-router-dom';
 import { HighlightedTextarea } from './HighlightedTextarea';
@@ -39,6 +41,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   const [hasShownUndefinedDialog, setHasShownUndefinedDialog] = useState(false);
   const [isVariableTooltipOpen, setIsVariableTooltipOpen] = useState(false);
   const [isVariableTooltipPinned, setIsVariableTooltipPinned] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const variableTooltipTriggerRef = useRef<HTMLButtonElement | null>(null);
   const variableTooltipContentRef = useRef<HTMLDivElement | null>(null);
   const isMountedRef = useRef(true);
@@ -46,6 +49,23 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
   const isSavingRef = useRef(false);
 
   const isEditing = mode === 'edit';
+
+  // Create a stable prompt object for the revert hook (handles missing prompt in create mode)
+  const currentPromptForRevert: Prompt = prompt ?? {
+    id: '',
+    title: '',
+    body: '',
+    variables: [],
+    isPinned: false,
+    timesUsed: 0,
+    updatedAt: '',
+  };
+
+  const { isReverting, pendingVersion, requestRevert, confirmRevert, cancelRevert } = useRevertToVersion({
+    promptId: prompt?.id ?? '',
+    currentPrompt: currentPromptForRevert,
+    onSuccess: () => setHistoryModalOpen(false),
+  });
 
   // Update colors when variables or body changes
   useEffect(() => {
@@ -590,6 +610,12 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
                   {prompt?.isPinned ? 'Unpin' : 'Pin'}
                 </Button>
               )}
+              {isEditing && (
+                <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
+                  <History className="h-4 w-4 mr-2" />
+                  History
+                </Button>
+              )}
               <Button variant="outline" onClick={handleBack}>
                 Cancel
               </Button>
@@ -660,6 +686,26 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Version History Modal (edit mode only) */}
+      {isEditing && prompt && (
+        <>
+          <VersionHistoryModal
+            open={historyModalOpen}
+            onOpenChange={setHistoryModalOpen}
+            prompt={prompt}
+            onRevert={requestRevert}
+          />
+          <RevertConfirmDialog
+            open={!!pendingVersion}
+            onOpenChange={(open) => !open && cancelRevert()}
+            versionNumber={pendingVersion?.versionNumber ?? 0}
+            onConfirm={confirmRevert}
+            onCancel={cancelRevert}
+            isReverting={isReverting}
+          />
+        </>
+      )}
     </div>
   );
 }
