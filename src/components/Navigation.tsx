@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { useLocation, useNavigate } from 'react-router-dom';
+import { NavLink } from "@/components/ui/NavLink";
+import { useLocation } from 'react-router-dom';
 
 export const Navigation = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const isActive = (path: string) => {
     // For dashboard, match all /dashboard/* routes
@@ -20,17 +20,21 @@ export const Navigation = () => {
         <nav className="flex space-x-4">
           <Button
             variant={isActive('/dashboard') ? 'default' : 'ghost'}
-            onClick={() => navigate('/dashboard')}
             className="text-sm font-medium"
+            asChild
           >
-            Dashboard
+            <NavLink to="/dashboard">
+              Dashboard
+            </NavLink>
           </Button>
           <Button
             variant={isActive('/history') ? 'default' : 'ghost'}
-            onClick={() => navigate('/history')}
             className="text-sm font-medium"
+            asChild
           >
-            Copy History
+            <NavLink to="/history">
+              Copy History
+            </NavLink>
           </Button>
         </nav>
       </div>
