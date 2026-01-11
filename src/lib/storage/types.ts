@@ -1,4 +1,4 @@
-import { Prompt, CopyEvent } from '@/types/prompt';
+import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
 
 // Storage interface for prompts
 export interface PromptsStorageAdapter {
@@ -38,11 +38,25 @@ export interface StatsStorageAdapter {
   incrementCopyCount(): Promise<void>;
 }
 
+// Storage interface for versions
+export interface VersionsStorageAdapter {
+  createVersion(data: {
+    promptId: string;
+    versionNumber: number;
+    title: string;
+    body: string;
+    variables: string[];
+  }): Promise<PromptVersion>;
+  getVersions(promptId: string, offset?: number, limit?: number): Promise<PaginatedVersions>;
+  consolidateVersions(promptId: string): Promise<number>;
+}
+
 // Combined storage interface
 export interface StorageAdapter {
   prompts: PromptsStorageAdapter;
   copyEvents: CopyEventsStorageAdapter;
   stats: StatsStorageAdapter;
+  versions: VersionsStorageAdapter;
 
   // Event subscription for real-time updates
   subscribe?: (callback: (type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void) => () => void;
