@@ -14,6 +14,28 @@ import { VariableChanges } from './VariableChanges';
 import { format } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
 
+/**
+ * Wrapper for VariableChanges that shows "No variable changes" when no changes exist.
+ * VariableChanges returns null when oldVariables equals newVariables.
+ */
+function VariableChangesOrEmpty({
+  oldVariables,
+  newVariables,
+}: {
+  oldVariables: string[];
+  newVariables: string[];
+}) {
+  // Compute if there are any changes
+  const hasAdditions = newVariables.some((v) => !oldVariables.includes(v));
+  const hasRemovals = oldVariables.some((v) => !newVariables.includes(v));
+
+  if (!hasAdditions && !hasRemovals) {
+    return <p className="text-sm text-muted-foreground">No variable changes</p>;
+  }
+
+  return <VariableChanges oldVariables={oldVariables} newVariables={newVariables} />;
+}
+
 interface VersionHistoryModalProps {
   /** Whether the modal is open */
   open: boolean;
@@ -191,12 +213,10 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                     {comparisonTarget ? 'Variable Changes' : 'Variables'}
                   </h4>
                   {comparisonTarget ? (
-                    <VariableChanges
+                    <VariableChangesOrEmpty
                       oldVariables={selectedVersion.variables}
                       newVariables={comparisonTarget.variables}
-                    /> || (
-                      <p className="text-sm text-muted-foreground">No variable changes</p>
-                    )
+                    />
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {selectedVersion.variables.length > 0 ? (
