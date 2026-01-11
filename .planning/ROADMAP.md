@@ -82,13 +82,13 @@ Plans:
 **Goal**: Create inline diff highlighting and main modal interface
 **Depends on**: Phase 5
 **Research**: Unlikely (following existing modal patterns from variable input dialog)
-**Plans**: TBD
+**Plans**: 2
 
 Plans:
 - [ ] 06-01: Create VersionDiff component with inline highlighting
-- [ ] 06-02: Build VersionHistoryModal with two-column layout
-- [ ] 06-03: Add comparison mode toggle (previous vs current)
-- [ ] 06-04: Implement empty state for prompts without history
+- [ ] 06-02: Build VersionHistoryModal with two-column layout and comparison toggle
+
+Note: Comparison toggle merged into 06-02 (tightly coupled). Empty state already handled by VersionList (Phase 5).
 
 ### Phase 7: Revert & Integration
 **Goal**: Enable one-click revert with auto-save and integrate history buttons throughout UI
@@ -128,6 +128,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 3. Storage Adapter Integration | 2/2 | Complete | 2026-01-11 |
 | 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
-| 6. Diff Display & Modal | 0/4 | Not started | - |
+| 6. Diff Display & Modal | 0/2 | Not started | - |
 | 7. Revert & Integration | 0/5 | Not started | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
