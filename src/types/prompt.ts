@@ -24,3 +24,22 @@ export interface CopyEvent {
   copiedText: string;
   timestamp: string;
 }
+
+export interface PromptVersion {
+  id: string;
+  promptId: string;
+  userId: string;
+  versionNumber: number;
+  title: string;
+  body: string;
+  variables: string[];
+  isConsolidated: boolean;
+  consolidationGroupId: string | null;
+  createdAt: string;
+}
+
+export interface PaginatedVersions {
+  versions: PromptVersion[];
+  hasMore: boolean;
+  totalCount: number;
+}
