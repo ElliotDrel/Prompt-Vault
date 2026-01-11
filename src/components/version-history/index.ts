@@ -1,3 +1,4 @@
+export { RevertConfirmDialog } from './RevertConfirmDialog';
 export { VariableChanges } from './VariableChanges';
 export { VersionDiff } from './VersionDiff';
 export { VersionHistoryModal } from './VersionHistoryModal';
