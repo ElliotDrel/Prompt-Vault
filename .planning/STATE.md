@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 5 — Version List Components
+**Current focus:** Phase 6 — Diff Display & Modal
 
 ## Current Position
 
-Phase: 5 of 8 (Version List Components)
-Plan: 2 of 2 in current phase
-Status: Complete
-Last activity: 2026-01-11 — Completed 05-02-PLAN.md (Phase 5 complete)
+Phase: 6 of 8 (Diff Display & Modal)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-11 — Completed 06-01-PLAN.md
 
-Progress: █████░░░░░ 42.3%
+Progress: █████░░░░░ 46.2%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 3.4 min
 - Total execution time: 0.6 hours
 
@@ -32,9 +32,10 @@ Progress: █████░░░░░ 42.3%
 | 3 (Storage Adapter Integration) | 2 | 9 min | 4 min |
 | 4 (Diff Engine & Utilities) | 1 | 4 min | 4 min |
 | 5 (Version List Components) | 2 | 7 min | 3.5 min |
+| 6 (Diff Display & Modal) | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 4, 4, 4, 3, 4 min
+- Last 5 plans: 4, 4, 3, 4, 3 min
 - Trend: Stable at 3-4 min
 
 ## Accumulated Context
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 - Summary-level diff display: word counts (+X/-Y) in list, full diff in modal [Phase 5]
 - Auto-expand Today and Yesterday accordion sections by default (most relevant) [Phase 5]
 - Barrel export for version-history components (clean imports in Phase 6) [Phase 5]
+- Inline spans for diff rendering: natural reading flow vs separate blocks [Phase 6]
+- Memoized VersionDiff component: diff computation can be expensive on large text [Phase 6]
 
 ### Deferred Issues
 
@@ -83,5 +86,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: Completed 05-02-PLAN.md (Phase 5 complete)
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
