@@ -50,8 +50,6 @@ export function Dashboard() {
   const handleOpenPrompt = (event: React.MouseEvent<HTMLDivElement>, promptId: string) => {
     const promptUrl = `/dashboard/prompt/${promptId}`;
 
-    event.preventDefault();
-
     if (event.metaKey || event.ctrlKey) {
       event.stopPropagation();
       window.open(promptUrl, '_blank', 'noopener,noreferrer');
@@ -83,6 +81,13 @@ export function Dashboard() {
 
     event.preventDefault();
     const promptUrl = `/dashboard/prompt/${promptId}`;
+
+    if (event.metaKey || event.ctrlKey) {
+      event.stopPropagation();
+      window.open(promptUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     navigate(promptUrl);
   };
 
