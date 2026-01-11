@@ -42,12 +42,12 @@ const clearVariableValues = (promptId: string): void => {
 
 interface PromptCardProps {
   prompt: Prompt;
-  href: string;
-  onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
-  onMouseDown?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onMouseDown?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
 }
 
-export function PromptCard({ prompt, href, onClick, onMouseDown }: PromptCardProps) {
+export function PromptCard({ prompt, onClick, onMouseDown, onKeyDown }: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
@@ -141,16 +141,18 @@ export function PromptCard({ prompt, href, onClick, onMouseDown }: PromptCardPro
   };
 
   return (
-    <motion.a
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       className={`prompt-card p-6 cursor-pointer flex flex-col gap-4 relative ${
         prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
       }`}
-      href={href}
       onClick={onClick}
       onMouseDown={onMouseDown}
+      onKeyDown={onKeyDown}
+      role="link"
+      tabIndex={0}
     >
       {/* Pin button */}
       <Button
@@ -255,6 +257,6 @@ export function PromptCard({ prompt, href, onClick, onMouseDown }: PromptCardPro
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.a>
+    </motion.div>
   );
 }
