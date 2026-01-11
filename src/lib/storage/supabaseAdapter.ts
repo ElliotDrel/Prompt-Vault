@@ -95,6 +95,14 @@ async function fetchPromptRowById(userId: string, promptId: string) {
   return data as PromptRow;
 }
 
+function hasContentChanges(oldPrompt: Prompt, newData: Omit<Prompt, 'id' | 'updatedAt'>): boolean {
+  return (
+    oldPrompt.title !== newData.title ||
+    oldPrompt.body !== newData.body ||
+    JSON.stringify(oldPrompt.variables) !== JSON.stringify(newData.variables)
+  );
+}
+
 class SupabasePromptsAdapter implements PromptsStorageAdapter {
   private versionsAdapter: SupabaseVersionsAdapter;
 
@@ -161,6 +169,41 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 
   async updatePrompt(id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
     const userId = await requireUserId();
+
+    // Fetch current prompt state to check for content changes
+    const oldPromptRow = await fetchPromptRowById(userId, id);
+    const oldPrompt = mapPromptRow(oldPromptRow);
+
+    // Check if content changed (title, body, or variables)
+    const contentChanged = hasContentChanges(oldPrompt, promptData);
+
+    // If content changed, create snapshot of OLD state before update
+    if (contentChanged) {
+      try {
+        // Get current max version number
+        const { data: versionsData } = await supabase
+          .rpc('get_prompt_versions', {
+            prompt_id: id,
+            offset_count: 0,
+            limit_count: 1,
+          });
+
+        const maxVersion = versionsData?.versions?.[0]?.version_number ?? 0;
+        const nextVersion = maxVersion + 1;
+
+        // Create snapshot of OLD state before update
+        await this.versionsAdapter.createVersion({
+          promptId: id,
+          versionNumber: nextVersion,
+          title: oldPromptRow.title,
+          body: oldPromptRow.body,
+          variables: Array.isArray(oldPromptRow.variables) ? oldPromptRow.variables as string[] : [],
+        });
+      } catch (versionError) {
+        console.error('Failed to create version snapshot:', versionError);
+        // Continue with update even if versioning fails
+      }
+    }
 
     const updates: Record<string, unknown> = {
       title: promptData.title,
