@@ -72,13 +72,13 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
   // Fetch versions to find previous version for comparison
   const { versions } = usePromptVersions({ promptId: prompt.id, enabled: open });
 
-  // Reset selection when modal opens
+  // Select first version by default when modal opens
   useEffect(() => {
-    if (open) {
-      setSelectedVersion(null);
+    if (open && versions.length > 0 && !selectedVersion) {
+      setSelectedVersion(versions[0]);
       setIsCurrentSelected(false);
     }
-  }, [open]);
+  }, [open, versions, selectedVersion]);
 
   const handleVersionSelect = (version: PromptVersion) => {
     setSelectedVersion(version);
