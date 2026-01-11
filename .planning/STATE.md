@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 3 — Storage Adapter Integration
+**Current focus:** Phase 5 — Version List Components
 
 ## Current Position
 
-Phase: 4 of 8 (Diff Engine & Utilities)
+Phase: 5 of 8 (Version List Components)
 Plan: 1 of 4 in current phase
 Status: In progress
-Last activity: 2026-01-11 — Completed 04-01-PLAN.md
+Last activity: 2026-01-11 — Completed 05-01-PLAN.md
 
-Progress: ████░░░░░░ 30.8%
+Progress: ████░░░░░░ 34.6%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 3 min
-- Total execution time: 0.45 hours
+- Total execution time: 0.5 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: ████░░░░░░ 30.8%
 | 2 (Database Functions & Type Definitions) | 4 | 8 min | 2 min |
 | 3 (Storage Adapter Integration) | 2 | 9 min | 4 min |
 | 4 (Diff Engine & Utilities) | 1 | 4 min | 4 min |
+| 5 (Version List Components) | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 2, 2, 4, 4, 4 min
-- Trend: Stable at 4 min
+- Last 5 plans: 2, 4, 4, 4, 3 min
+- Trend: Stable at 3-4 min
 
 ## Accumulated Context
 
@@ -64,6 +65,10 @@ Recent decisions affecting current work:
 - Word-level diffing: diffWords API for better prose readability (not character-level) [Phase 4]
 - Time grouping periods: Today, Yesterday, Last 7 Days, monthly groups (per PROJECT.md UI spec) [Phase 4]
 - Variable change visualization: Badge component with Plus/Minus icons, added success variant [Phase 4]
+- Simplified hook pattern: no mutations for versions (immutable), no realtime subscription [Phase 5]
+- Query key structure: ['promptVersions', userId, promptId] for proper cache isolation [Phase 5]
+- Button element for clickable VersionListItem (accessibility semantic) [Phase 5]
+- Summary-level diff display: word counts (+X/-Y) in list, full diff in modal [Phase 5]
 
 ### Deferred Issues
 
@@ -76,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None

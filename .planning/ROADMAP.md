@@ -75,10 +75,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 05-01: Create VersionListItem component
-- [ ] 05-02: Create VersionList with Accordion time-grouping
-- [ ] 05-03: Add pagination with "Load more" functionality
-- [ ] 05-04: Create usePromptVersions React Query hook
+- [x] 05-01: Create usePromptVersions hook and VersionListItem component (completed 2026-01-11)
+- [ ] 05-02: Create VersionHistoryPanel with Accordion time-grouping
 
 ### Phase 6: Diff Display & Modal
 **Goal**: Create inline diff highlighting and main modal interface
@@ -129,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 2. Database Functions & Type Definitions | 4/4 | Complete | 2026-01-11 |
 | 3. Storage Adapter Integration | 2/2 | Complete | 2026-01-11 |
 | 4. Diff Engine & Utilities | 1/1 | Complete | 2026-01-11 |
-| 5. Version List Components | 0/4 | Not started | - |
+| 5. Version List Components | 1/2 | In progress | - |
 | 6. Diff Display & Modal | 0/4 | Not started | - |
 | 7. Revert & Integration | 0/5 | Not started | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
