@@ -504,6 +504,7 @@ export class SupabaseAdapter implements StorageAdapter {
   public prompts: PromptsStorageAdapter;
   public copyEvents: CopyEventsStorageAdapter;
   public stats: StatsStorageAdapter;
+  public versions: VersionsStorageAdapter;
   private channel: RealtimeChannel | null = null;
   private channelUserId: string | null = null;
   private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void>();
@@ -514,6 +515,7 @@ export class SupabaseAdapter implements StorageAdapter {
     this.prompts = new SupabasePromptsAdapter();
     this.copyEvents = new SupabaseCopyEventsAdapter();
     this.stats = new SupabaseStatsAdapter();
+    this.versions = new SupabaseVersionsAdapter();
   }
 
   async isReady(): Promise<boolean> {
@@ -623,6 +625,16 @@ export class SupabaseAdapter implements StorageAdapter {
         filter: `user_id=eq.${userId}`
       }, (payload) => {
         this.notifySubscribers('copyEvents', payload);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'prompt_versions',
+        filter: `user_id=eq.${userId}`
+      }, (payload) => {
+        // Version changes affect prompt context; trigger prompts refresh
+        // Future phases will add dedicated version event handling
+        this.notifySubscribers('prompts', payload);
       });
 
     if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
