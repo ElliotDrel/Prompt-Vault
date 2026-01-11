@@ -52,6 +52,53 @@ export type Database = {
           },
         ]
       }
+      prompt_versions: {
+        Row: {
+          body: string
+          consolidation_group_id: string | null
+          created_at: string | null
+          id: string
+          is_consolidated: boolean | null
+          prompt_id: string
+          title: string
+          user_id: string
+          variables: Json
+          version_number: number
+        }
+        Insert: {
+          body: string
+          consolidation_group_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_consolidated?: boolean | null
+          prompt_id: string
+          title: string
+          user_id: string
+          variables?: Json
+          version_number: number
+        }
+        Update: {
+          body?: string
+          consolidation_group_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_consolidated?: boolean | null
+          prompt_id?: string
+          title?: string
+          user_id?: string
+          variables?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_versions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompts: {
         Row: {
           body: string
@@ -123,7 +170,84 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      consolidate_prompt_versions: {
+        Args: { p_prompt_id: string }
+        Returns: number
+      }
+      create_prompt_version: {
+        Args: {
+          p_body: string
+          p_prompt_id: string
+          p_title: string
+          p_variables: Json
+          p_version_number: number
+        }
+        Returns: {
+          body: string
+          consolidation_group_id: string
+          created_at: string
+          id: string
+          is_consolidated: boolean
+          prompt_id: string
+          title: string
+          user_id: string
+          variables: Json
+          version_number: number
+        }[]
+      }
+      get_prompt_versions: {
+        Args: { p_limit?: number; p_offset?: number; p_prompt_id: string }
+        Returns: {
+          body: string
+          consolidation_group_id: string | null
+          created_at: string | null
+          id: string
+          is_consolidated: boolean | null
+          prompt_id: string
+          title: string
+          user_id: string
+          variables: Json
+          version_number: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "prompt_versions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      increment_prompt_usage: {
+        Args: { p_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          times_used: number
+          title: string
+          updated_at: string
+          user_id: string
+          variables: Json
+        }[]
+      }
+      search_copy_events: {
+        Args: { result_limit?: number; search_query: string }
+        Returns: {
+          copied_text: string
+          created_at: string | null
+          id: string
+          prompt_id: string | null
+          prompt_title: string
+          user_id: string | null
+          variable_values: Json | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "copy_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
