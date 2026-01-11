@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History } from 'lucide-react';
 import { Prompt, VariableValues, CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { CopyEventCard } from '@/components/CopyEventCard';
 import { InfiniteScrollContainer } from '@/components/InfiniteScrollContainer';
+import { VersionHistoryModal, RevertConfirmDialog } from '@/components/version-history';
 import { usePrompts } from '@/contexts/PromptsContext';
+import { useRevertToVersion } from '@/hooks/useRevertToVersion';
 import { usePromptCopyHistory } from '@/hooks/usePromptCopyHistory';
 import toast from 'react-hot-toast';
 import { assignVariableColors, getContrastTextColor, getGreyColor, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils/colorUtils';
@@ -73,12 +75,19 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
   const [isCopied, setIsCopied] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const sanitizedVariables = useMemo(() => sanitizeVariables(prompt.variables), [prompt.variables]);
   const sanitizedPrompt = useMemo(
     () => ({ ...prompt, variables: sanitizedVariables }),
     [prompt, sanitizedVariables]
   );
   const variableColors = assignVariableColors(sanitizedVariables, prompt.body);
+
+  const { isReverting, pendingVersion, requestRevert, confirmRevert, cancelRevert } = useRevertToVersion({
+    promptId: prompt.id,
+    currentPrompt: prompt,
+    onSuccess: () => setHistoryModalOpen(false),
+  });
 
   // Auto-save variable values to sessionStorage whenever they change
   useEffect(() => {
@@ -374,9 +383,31 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
                 <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
                 {prompt.isPinned ? 'Unpin' : 'Pin'}
               </Button>
+              <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
+                <History className="h-4 w-4 mr-2" />
+                History
+              </Button>
             </div>
           </div>
         </div>
+
+        {/* Version History Modal */}
+        <VersionHistoryModal
+          open={historyModalOpen}
+          onOpenChange={setHistoryModalOpen}
+          prompt={prompt}
+          onRevert={requestRevert}
+        />
+
+        {/* Revert Confirmation Dialog */}
+        <RevertConfirmDialog
+          open={!!pendingVersion}
+          onOpenChange={(open) => !open && cancelRevert()}
+          versionNumber={pendingVersion?.versionNumber ?? 0}
+          onConfirm={confirmRevert}
+          onCancel={cancelRevert}
+          isReverting={isReverting}
+        />
 
         {/* Usage History - Separate Card */}
         <div className="mt-6">
