@@ -47,14 +47,22 @@ export function Dashboard() {
     navigate('/dashboard/prompt/new');
   };
 
+  const openPromptInNewTab = (promptId: string) => {
+    window.open(`/dashboard/prompt/${promptId}`, '_blank', 'noopener,noreferrer');
+  };
+
   const handleOpenPrompt = (event: React.MouseEvent<HTMLAnchorElement>, promptId: string) => {
     const promptUrl = `/dashboard/prompt/${promptId}`;
 
     event.preventDefault();
 
+    if (event.defaultPrevented || event.button === 1) {
+      return;
+    }
+
     if (event.metaKey || event.ctrlKey) {
       event.stopPropagation();
-      window.open(promptUrl, '_blank', 'noopener,noreferrer');
+      openPromptInNewTab(promptId);
       return;
     }
 
@@ -72,8 +80,7 @@ export function Dashboard() {
 
     event.preventDefault();
     event.stopPropagation();
-    const promptUrl = `/dashboard/prompt/${promptId}`;
-    window.open(promptUrl, '_blank', 'noopener,noreferrer');
+    openPromptInNewTab(promptId);
   };
 
   const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
