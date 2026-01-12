@@ -1,5 +1,37 @@
 import { diffWords, type Change } from 'diff';
 
+export type ComparisonMode = 'previous' | 'current';
+
+/**
+ * Returns the correct old/new values for diff comparison based on mode.
+ *
+ * Diff direction semantics:
+ * - 'previous' mode: Shows what changed FROM previous TO this version
+ *   → old = previousVersion, new = version
+ * - 'current' mode: Shows what changed FROM this version TO current
+ *   → old = version, new = currentPrompt
+ *
+ * This ensures "added" (green) always means content that exists in the
+ * more recent state, and "removed" (red) means content from the older state.
+ *
+ * @param version - The historical version being displayed
+ * @param comparisonTarget - Either previousVersion or currentPrompt depending on mode
+ * @param comparisonMode - 'previous' or 'current'
+ * @returns Object with old and new values in correct order for diffing
+ */
+export function getComparisonPair<T>(
+  version: T,
+  comparisonTarget: T,
+  comparisonMode: ComparisonMode
+): { old: T; new: T } {
+  if (comparisonMode === 'current') {
+    // version -> current (old to new)
+    return { old: version, new: comparisonTarget };
+  }
+  // previous -> version (old to new)
+  return { old: comparisonTarget, new: version };
+}
+
 /**
  * Computes word-level diff between two text strings.
  *

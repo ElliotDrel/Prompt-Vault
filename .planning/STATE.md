@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 
 Phase: 7 of 8 (Revert & Integration)
 Plan: 2 of 2 in current phase
-Status: UAT in progress
-Last activity: 2026-01-11 — UAT testing Phases 1-7
+Status: UAT COMPLETE ✓
+Last activity: 2026-01-11 — UAT completed for Phases 1-7
 
 Progress: █████████░ 88.2%
 
@@ -20,33 +20,33 @@ Progress: █████████░ 88.2%
 
 **Command:** `/gsd:verify-work phases 1-7`
 **Started:** 2026-01-11
-**Issues Found:** 10 (all resolved)
+**Completed:** 2026-01-11
+**Issues Found:** 11 (all resolved)
 **Migrations Applied:** 2 (RPC parameter names, return format)
 
-### Completed Tests
+### All Tests Passed ✓
 - [x] Pre-flight check
 - [x] Version Creation on New Prompt
-
-### Resume From
-- [ ] Version Creation on Content Edit (needs re-verify after fixes)
-
-### Pending Tests
-- [ ] Metadata-Only Changes Skip Versioning
-- [ ] Version List Time Grouping
-- [ ] Version List Item Display
-- [ ] Diff Comparison - Previous Version
-- [ ] Diff Comparison - Current Version
-- [ ] Variable Changes Display
-- [ ] Revert Confirmation Dialog
-- [ ] Successful Revert
-- [ ] History Button placement (now next to Edit)
-- [ ] History Button Hidden in Create Mode
+- [x] Version Creation on Content Edit
+- [x] Metadata-Only Changes Skip Versioning
+- [x] Version List Time Grouping
+- [x] Version List Item Display
+- [x] Diff Comparison - Previous Version
+- [x] Diff Comparison - Current Version
+- [x] Variable Changes Display
+- [x] Revert Confirmation Dialog
+- [x] Successful Revert
+- [x] History Button placement (next to Edit in header)
+- [x] History Button Hidden in Create Mode
 
 ### UI Changes Made During UAT
 - History button moved to header (next to Edit) in PromptView
 - Pin/History buttons removed from PromptEditor (edit mode)
 - "Current" entry added to version list with "Live" badge
 - Comparison mode toggle now uses solid button for active state
+
+### Code Improvements During UAT
+- Created `getComparisonPair()` utility in diffUtils.ts for consistent diff direction
 
 **Issues file:** `.planning/phases/07-revert-integration/07-UAT-ISSUES.md`
 
@@ -131,10 +131,10 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: UAT testing - "Version Creation on Content Edit" test
-Resume with: `/gsd:verify-work phases 1-7`
-Issues file: `.planning/phases/07-revert-integration/07-UAT-ISSUES.md`
+Status: UAT COMPLETE
+Issues resolved: 11 (including UAT-011 for diff colors)
 
-**Note:** All 10 issues found during UAT have been resolved. Next session should:
-1. Re-verify "Version Creation on Content Edit" test
-2. Continue with remaining tests in the checklist
+**Next steps:**
+- Feature is validated and ready for merge
+- Phase 8 (Consolidation Scheduling) remains deferred per PROJECT.md
+- Consider creating PR to merge feature/prompt-version-history into main

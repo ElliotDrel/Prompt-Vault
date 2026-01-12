@@ -14,6 +14,7 @@ import { VariableChanges } from './VariableChanges';
 import { format } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
 import { usePromptVersions } from '@/hooks/usePromptVersions';
+import { getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
 
 /**
  * Wrapper for VariableChanges that shows "No variable changes" when no changes exist.
@@ -48,7 +49,7 @@ interface VersionHistoryModalProps {
   onRevert?: (version: PromptVersion) => void;
 }
 
-type ComparisonMode = 'previous' | 'current';
+// ComparisonMode imported from diffUtils
 
 /**
  * Modal dialog displaying version history with two-column layout.
@@ -282,12 +283,10 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 <div>
                   <h4 className="text-sm font-medium mb-2">Title</h4>
                   <div className="border rounded p-3 bg-muted/30">
-                    {comparisonTarget ? (
-                      <VersionDiff
-                        oldText={comparisonMode === 'current' ? selectedVersion.title : comparisonTarget.title}
-                        newText={comparisonMode === 'current' ? comparisonTarget.title : selectedVersion.title}
-                      />
-                    ) : (
+                    {comparisonTarget ? (() => {
+                      const { old: oldTitle, new: newTitle } = getComparisonPair(selectedVersion.title, comparisonTarget.title, comparisonMode);
+                      return <VersionDiff oldText={oldTitle} newText={newTitle} />;
+                    })() : (
                       <div className="text-sm">
                         {selectedVersion.title}
                       </div>
@@ -299,12 +298,10 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 <div>
                   <h4 className="text-sm font-medium mb-2">Body</h4>
                   <div className="border rounded p-3 bg-muted/30">
-                    {comparisonTarget ? (
-                      <VersionDiff
-                        oldText={comparisonMode === 'current' ? selectedVersion.body : comparisonTarget.body}
-                        newText={comparisonMode === 'current' ? comparisonTarget.body : selectedVersion.body}
-                      />
-                    ) : (
+                    {comparisonTarget ? (() => {
+                      const { old: oldBody, new: newBody } = getComparisonPair(selectedVersion.body, comparisonTarget.body, comparisonMode);
+                      return <VersionDiff oldText={oldBody} newText={newBody} />;
+                    })() : (
                       <div className="whitespace-pre-wrap text-sm">
                         {selectedVersion.body}
                       </div>
@@ -315,12 +312,10 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 {/* Variables */}
                 <div>
                   <h4 className="text-sm font-medium mb-2">Variables</h4>
-                  {comparisonTarget ? (
-                    <VariableChangesOrEmpty
-                      oldVariables={comparisonMode === 'current' ? selectedVersion.variables : comparisonTarget.variables}
-                      newVariables={comparisonMode === 'current' ? comparisonTarget.variables : selectedVersion.variables}
-                    />
-                  ) : selectedVersion.variables.length > 0 ? (
+                  {comparisonTarget ? (() => {
+                    const { old: oldVars, new: newVars } = getComparisonPair(selectedVersion.variables, comparisonTarget.variables, comparisonMode);
+                    return <VariableChangesOrEmpty oldVariables={oldVars} newVariables={newVars} />;
+                  })() : selectedVersion.variables.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {selectedVersion.variables.map((variable) => (
                         <span

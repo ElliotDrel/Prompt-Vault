@@ -130,28 +130,37 @@
 **Resolution:** Added `&& !isCurrentSelected` condition to auto-select effect
 **Resolved:** 2026-01-11
 
+### UAT-011: Diff colors swapped in Compare to Current mode
+
+**Discovered:** 2026-01-11
+**Phase/Plan:** 05-01 (VersionListItem)
+**Severity:** Major
+**Feature:** Version list diff summary
+**Description:** In "Compare to Current" mode, added content shows in red (removed) and removed content shows in green (added)
+**Expected:** Green for additions, red for removals
+**Actual:** Colors swapped - red for additions, green for removals
+**Root Cause:** VersionListItem passed diff arguments in wrong order for 'current' mode. It always used `comparisonTarget` as old and `version` as new, but for "Compare to Current" mode it should be `version → currentPrompt` (not `currentPrompt → version`)
+**Resolution:** Created `getComparisonPair()` utility function in diffUtils.ts to standardize diff direction logic. Updated both VersionListItem and VersionHistoryModal to use this utility, ensuring consistent comparison direction across all components.
+**Resolved:** 2026-01-11
+
 ---
 
 ## Testing Progress
 
-### Completed Tests (Pass)
+### Completed Tests (All Pass)
 - [x] Pre-flight check (app running, logged in)
 - [x] Version Creation on New Prompt
-
-### Tests In Progress
-- [ ] Version Creation on Content Edit (issues fixed, needs re-verification)
-
-### Pending Tests
-- [ ] Metadata-Only Changes Skip Versioning
-- [ ] Version List Time Grouping
-- [ ] Version List Item Display
-- [ ] Diff Comparison - Previous Version
-- [ ] Diff Comparison - Current Version
-- [ ] Variable Changes Display
-- [ ] Revert Confirmation Dialog
-- [ ] Successful Revert
-- [ ] History Button in PromptView (moved to header)
-- [ ] History Button Hidden in Create Mode
+- [x] Version Creation on Content Edit
+- [x] Metadata-Only Changes Skip Versioning
+- [x] Version List Time Grouping
+- [x] Version List Item Display
+- [x] Diff Comparison - Previous Version
+- [x] Diff Comparison - Current Version (fixed UAT-011)
+- [x] Variable Changes Display
+- [x] Revert Confirmation Dialog
+- [x] Successful Revert
+- [x] History Button in PromptView (in header next to Edit)
+- [x] History Button Hidden in Create Mode
 
 ### Tests No Longer Applicable
 - History Button in PromptEditor - Removed per user request

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { PromptVersion, Prompt } from '@/types/prompt';
-import { computeDiff } from '@/utils/diffUtils';
+import { computeDiff, getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
 import { VariableChanges } from './VariableChanges';
 
 interface VersionListItemProps {
@@ -23,7 +23,7 @@ interface VersionListItemProps {
   /**
    * Whether to compare against previous version or current prompt state
    */
-  comparisonMode: 'previous' | 'current';
+  comparisonMode: ComparisonMode;
 
   /**
    * Callback when this version is selected for detailed view
@@ -111,7 +111,10 @@ export const VersionListItem = memo(function VersionListItem({
   // Compute changes if we have a comparison target
   const titleChanged = comparisonTarget ? version.title !== comparisonTarget.title : false;
   const bodyChanges = comparisonTarget
-    ? computeWordChangeCounts(comparisonTarget.body, version.body)
+    ? (() => {
+        const { old: oldBody, new: newBody } = getComparisonPair(version.body, comparisonTarget.body, comparisonMode);
+        return computeWordChangeCounts(oldBody, newBody);
+      })()
     : { added: 0, removed: 0 };
 
   // Format relative time
@@ -144,12 +147,10 @@ export const VersionListItem = memo(function VersionListItem({
         </div>
 
         {/* Variable changes */}
-        {comparisonTarget && (
-          <VariableChanges
-            oldVariables={comparisonTarget.variables}
-            newVariables={version.variables}
-          />
-        )}
+        {comparisonTarget && (() => {
+          const { old: oldVars, new: newVars } = getComparisonPair(version.variables, comparisonTarget.variables, comparisonMode);
+          return <VariableChanges oldVariables={oldVars} newVariables={newVars} />;
+        })()}
 
         {/* No comparison target message for oldest version in 'previous' mode */}
         {!comparisonTarget && comparisonMode === 'previous' && (
