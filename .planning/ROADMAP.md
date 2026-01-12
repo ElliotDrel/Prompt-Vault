@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [ ] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
-- [ ] **Phase 8: Consolidation Scheduling (DEFERRED)** - Set up pg_cron background job for tiered version consolidation
+- [ ] **Phase 8: Day-Level Diff View** - Add combined diff when clicking day headers in version history
 - [ ] **Phase 9: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
 
 ## Phase Details
@@ -120,18 +120,14 @@ Plans:
 - [ ] 7.1-02: Layout flip and diff toggle implementation
 - [ ] 7.1-03: Current version diff display and revert tracking UI
 
-### Phase 8: Consolidation Scheduling (DEFERRED)
-**Goal**: Set up automated version consolidation to manage storage growth
-**Depends on**: Phase 7
-**Research**: Likely (new infrastructure setup)
-**Research topics**: pg_cron extension setup in Supabase, cron syntax, scheduled function monitoring patterns
+### Phase 8: Day-Level Diff View
+**Goal**: Add Google Docs-style day grouping where clicking a day header shows combined diff of all changes that day
+**Depends on**: Phase 7.1
+**Research**: Unlikely (UI-only change using existing diff utilities)
 **Plans**: TBD
 
-**Note**: Per PROJECT.md decision, this phase is deferred until storage needs prove it's necessary. Ship core feature first (Phases 1-7), optimize later based on real usage patterns.
-
 Plans:
-- [ ] 08-01: Enable pg_cron extension in Supabase
-- [ ] 08-02: Create migration to schedule daily consolidation job
+- [ ] TBD (run /gsd:plan-phase 8 to break down)
 
 ### Phase 9: Backfill Existing Prompts as Version One
 **Goal**: Create a migration that captures the current state of all existing prompts as version 1, ensuring users have complete history from feature launch
@@ -145,7 +141,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 9 → 8 (deferred)
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8 → 9
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -157,5 +153,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 7.1. Version History UI Enhancements (INSERTED) | 0/3 | Planned | - |
-| 9. Backfill Existing Prompts as Version One | 0/1 | Not Started | - |
-| 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
+| 8. Day-Level Diff View | 0/TBD | Not Started | - |
+| 9. Backfill Existing Prompts as Version One | 0/TBD | Not Started | - |

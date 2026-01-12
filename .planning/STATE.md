@@ -9,7 +9,7 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 
 ## Current Position
 
-Phase: 7.1 of 8 (Version History UI Enhancements)
+Phase: 7.1 of 9 (Version History UI Enhancements)
 Plan: 0 of 3 in current phase
 Status: Planned, ready for execution
 Last activity: 2026-01-11 — Phase 7.1 plans created
@@ -85,7 +85,7 @@ Recent decisions affecting current work:
 - Skip versions for metadata changes (focus on content only)
 - Word-level diff using `diff` npm package (readable for prose)
 - Auto-save before revert (nothing ever lost)
-- Phase 8 deferred (ship core feature first, optimize later)
+- Phase 8 renamed from "Consolidation Scheduling" to "Day-Level Diff View" (combined diff on day click)
 - Separate migrations for schema vs realtime (cleaner history) [Phase 1]
 - Application-controlled version numbers (not auto-increment) [Phase 1]
 - No UPDATE RLS policy for versions (immutable snapshots) [Phase 1]
@@ -131,6 +131,10 @@ Recent decisions affecting current work:
 - Phase 9 added: Backfill Existing Prompts as Version One
   - Create migration to capture current state of all existing prompts as version 1
   - Ensures users have complete history from feature launch
+- Phase 8 renamed: Day-Level Diff View (was Consolidation Scheduling)
+  - Click day header → combined diff of all changes that day
+  - Expand arrow → see individual versions (existing behavior)
+  - pg_cron consolidation concept removed (not needed)
 
 ### Deferred Issues
 
@@ -148,4 +152,5 @@ Issues resolved: 11 (including UAT-011 for diff colors)
 
 **Next steps:**
 - Execute Phase 7.1 plans (run `/gsd:execute-plan .planning/phases/7.1-version-history-ui-enhancements/7.1-01-PLAN.md`)
-- Phase 8 (Consolidation Scheduling) remains deferred per PROJECT.md
+- Phase 8 (Day-Level Diff View) follows Phase 7.1
+- Phase 9 (Backfill Existing Prompts) completes the milestone
