@@ -52,6 +52,63 @@ export type Database = {
           },
         ]
       }
+      prompt_versions: {
+        Row: {
+          body: string
+          consolidation_group_id: string | null
+          created_at: string | null
+          id: string
+          is_consolidated: boolean | null
+          prompt_id: string
+          reverted_from_version_id: string | null
+          title: string
+          user_id: string
+          variables: Json
+          version_number: number
+        }
+        Insert: {
+          body: string
+          consolidation_group_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_consolidated?: boolean | null
+          prompt_id: string
+          reverted_from_version_id?: string | null
+          title: string
+          user_id: string
+          variables?: Json
+          version_number: number
+        }
+        Update: {
+          body?: string
+          consolidation_group_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_consolidated?: boolean | null
+          prompt_id?: string
+          reverted_from_version_id?: string | null
+          title?: string
+          user_id?: string
+          variables?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_versions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_versions_reverted_from_version_id_fkey"
+            columns: ["reverted_from_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompts: {
         Row: {
           body: string
@@ -123,6 +180,35 @@ export type Database = {
       }
     }
     Functions: {
+      consolidate_prompt_versions: {
+        Args: { prompt_id: string }
+        Returns: number
+      }
+      create_prompt_version: {
+        Args: {
+          body: string
+          prompt_id: string
+          title: string
+          variables: Json
+          version_number: number
+        }
+        Returns: {
+          consolidation_group_id: string
+          created_at: string
+          id: string
+          is_consolidated: boolean
+          out_body: string
+          out_prompt_id: string
+          out_title: string
+          out_variables: Json
+          out_version_number: number
+          user_id: string
+        }[]
+      }
+      get_prompt_versions: {
+        Args: { limit_count?: number; offset_count?: number; prompt_id: string }
+        Returns: Json
+      }
       increment_prompt_usage: {
         Args: { p_id: string }
         Returns: {
