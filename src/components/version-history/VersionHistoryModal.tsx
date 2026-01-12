@@ -160,22 +160,10 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
           </div>
         </DialogHeader>
 
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0">
-          {/* Left column: Version list */}
-          <div className="overflow-y-auto max-h-[40vh] md:max-h-[60vh] pr-2">
-            <VersionList
-              promptId={prompt.id}
-              currentPrompt={prompt}
-              comparisonMode={comparisonMode}
-              onVersionSelect={handleVersionSelect}
-              onCurrentSelect={handleCurrentSelect}
-              isCurrentSelected={isCurrentSelected}
-            />
-          </div>
-
-          {/* Right column: Detail view */}
-          <div className="overflow-y-auto max-h-[40vh] md:max-h-[60vh] pl-0 md:pl-4 md:border-l">
+        {/* Two-column layout: Detail (2/3) | History List (1/3) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0">
+          {/* Left column: Detail view (2/3 width) */}
+          <div className="order-1 md:order-1 overflow-y-auto max-h-[40vh] md:max-h-[60vh] pr-0 md:pr-4 md:col-span-2">
             {/* Nothing selected state */}
             {!selectedVersion && !isCurrentSelected && (
               <div className="text-center py-8 text-muted-foreground">
@@ -332,6 +320,18 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Right column: Version list (1/3 width) */}
+          <div className="order-2 md:order-2 overflow-y-auto max-h-[40vh] md:max-h-[60vh] pl-0 md:pl-4 md:border-l md:col-span-1">
+            <VersionList
+              promptId={prompt.id}
+              currentPrompt={prompt}
+              comparisonMode={comparisonMode}
+              onVersionSelect={handleVersionSelect}
+              onCurrentSelect={handleCurrentSelect}
+              isCurrentSelected={isCurrentSelected}
+            />
           </div>
         </div>
       </DialogContent>
