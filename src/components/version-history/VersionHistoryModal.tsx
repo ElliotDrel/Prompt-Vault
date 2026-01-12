@@ -14,7 +14,7 @@ import { VariableChanges } from './VariableChanges';
 import { format } from 'date-fns';
 import { RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { usePromptVersions } from '@/hooks/usePromptVersions';
-import { getComparisonPair, arePromptsIdentical, type ComparisonMode } from '@/utils/diffUtils';
+import { getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
 
 /**
  * Wrapper for VariableChanges that shows "No variable changes" when no changes exist.
@@ -90,27 +90,20 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
 }: VersionHistoryModalProps) {
   const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('current');
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
-  const [isCurrentSelected, setIsCurrentSelected] = useState(false);
   const [showDiffHighlighting, setShowDiffHighlighting] = useState(true);
 
   // Fetch versions to find previous version for comparison
   const { versions } = usePromptVersions({ promptId: prompt.id, enabled: open });
 
-  // Select first version by default when modal opens (only if nothing is selected)
+  // Select latest version by default when modal opens (only if nothing is selected)
   useEffect(() => {
-    if (open && versions.length > 0 && !selectedVersion && !isCurrentSelected) {
+    if (open && versions.length > 0 && !selectedVersion) {
       setSelectedVersion(versions[0]);
     }
-  }, [open, versions, selectedVersion, isCurrentSelected]);
+  }, [open, versions, selectedVersion]);
 
   const handleVersionSelect = (version: PromptVersion) => {
     setSelectedVersion(version);
-    setIsCurrentSelected(false);
-  };
-
-  const handleCurrentSelect = () => {
-    setSelectedVersion(null);
-    setIsCurrentSelected(true);
   };
 
   const handleRevert = () => {
@@ -168,21 +161,9 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
   // Check if selected version is Version 1 (first version) - disable "Compare to Previous" (UAT-002)
   const isFirstVersion = selectedVersion?.versionNumber === 1;
 
-  // Check if selected version content matches current prompt - hide revert button (UAT-003)
-  const selectedVersionMatchesCurrent = selectedVersion
-    ? arePromptsIdentical(selectedVersion, prompt)
-    : false;
-
-  // Get revert info for Current tab (UAT-007)
-  // Show if latest version has revertedFromVersionId and Current matches latest version
-  const latestVersion = versions.length > 0 ? versions[0] : null;
-  const currentMatchesLatest = latestVersion
-    ? arePromptsIdentical(prompt, latestVersion)
-    : false;
-  const currentRevertedFromVersionNumber =
-    currentMatchesLatest && latestVersion?.revertedFromVersionId
-      ? versionNumberMap.get(latestVersion.revertedFromVersionId)
-      : undefined;
+  // Check if selected version is the latest (current) version - hide revert button
+  // Can't revert to what you're already at
+  const isLatestVersion = versions.length > 0 && selectedVersion?.id === versions[0].id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -201,8 +182,8 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
               aria-pressed={comparisonMode === 'previous'}
               aria-label="Compare to previous version"
               onClick={() => setComparisonMode('previous')}
-              disabled={isFirstVersion && !isCurrentSelected}
-              title={isFirstVersion && !isCurrentSelected ? 'No previous version to compare' : undefined}
+              disabled={isFirstVersion}
+              title={isFirstVersion ? 'No previous version to compare' : undefined}
             >
               Compare to Previous
             </Button>
@@ -242,119 +223,28 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
           {/* Left column: Detail view (2/3 width) */}
           <div className="order-1 md:order-1 overflow-y-auto max-h-[40vh] md:max-h-[60vh] pr-0 md:pr-4 md:col-span-2">
             {/* Nothing selected state */}
-            {!selectedVersion && !isCurrentSelected && (
+            {!selectedVersion && (
               <div className="text-center py-8 text-muted-foreground">
                 Select a version to see details
               </div>
             )}
 
-            {/* Current prompt selected */}
-            {isCurrentSelected && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">
-                      Current Version
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(prompt.updatedAt), 'PPpp')}
-                    </p>
-                    {/* Revert tracking info for Current tab (UAT-007) */}
-                    {currentRevertedFromVersionNumber !== undefined && (
-                      <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                        <RotateCcw className="h-3 w-3" />
-                        Current state was restored from Version {currentRevertedFromVersionNumber}
-                      </p>
-                    )}
-                  </div>
-                  <div className="inline-flex items-center justify-center h-10 rounded-md px-4 text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 -mr-1">
-                    Live
-                  </div>
-                </div>
-
-                {/* Comparison context label for Current version */}
-                {comparisonMode === 'previous' && versions.length > 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Showing differences from Version {versions[0].versionNumber} to current
-                  </p>
-                ) : comparisonMode === 'previous' && versions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground italic">
-                    No previous versions to compare
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    This is the current state of your prompt
-                  </p>
-                )}
-
-                {/* Title */}
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Title</h4>
-                  <div className="border rounded p-3 bg-muted/30">
-                    {comparisonMode === 'previous' && versions.length > 0 ? (
-                      <VersionDiff
-                        oldText={versions[0].title}
-                        newText={prompt.title}
-                        showHighlighting={showDiffHighlighting}
-                      />
-                    ) : (
-                      <div className="text-sm">{prompt.title}</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Body */}
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Body</h4>
-                  <div className="border rounded p-3 bg-muted/30">
-                    {comparisonMode === 'previous' && versions.length > 0 ? (
-                      <VersionDiff
-                        oldText={versions[0].body}
-                        newText={prompt.body}
-                        showHighlighting={showDiffHighlighting}
-                      />
-                    ) : (
-                      <div className="whitespace-pre-wrap text-sm">{prompt.body}</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Variables */}
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Variables</h4>
-                  {comparisonMode === 'previous' && versions.length > 0 ? (
-                    <VariableChangesOrEmpty
-                      oldVariables={versions[0].variables}
-                      newVariables={prompt.variables}
-                      showHighlighting={showDiffHighlighting}
-                    />
-                  ) : prompt.variables.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {prompt.variables.map((variable) => (
-                        <span
-                          key={variable}
-                          className="px-2 py-1 rounded bg-muted text-sm"
-                        >
-                          {variable}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No variables</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Historical version selected */}
+            {/* Version detail view */}
             {selectedVersion && (
               <div className="space-y-4">
                 {/* Version header */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">
-                      Version {selectedVersion.versionNumber}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">
+                        Version {selectedVersion.versionNumber}
+                      </h3>
+                      {isLatestVersion && (
+                        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded">
+                          Current
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(selectedVersion.createdAt), 'PPpp')}
                     </p>
@@ -365,9 +255,15 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                         This version was created by reverting to Version {revertedToVersionNumber}
                       </p>
                     )}
+                    {/* Initial version indicator */}
+                    {isFirstVersion && versions.length === 1 && (
+                      <p className="text-sm text-muted-foreground mt-1 italic">
+                        This is the initial version
+                      </p>
+                    )}
                   </div>
-                  {/* Revert button - hidden when version matches current (UAT-003) */}
-                  {!selectedVersionMatchesCurrent && (
+                  {/* Revert button - hidden for latest version (can't revert to current) */}
+                  {!isLatestVersion && (
                     <Button
                       variant="default"
                       size="sm"
@@ -456,8 +352,6 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
               currentPrompt={prompt}
               comparisonMode={comparisonMode}
               onVersionSelect={handleVersionSelect}
-              onCurrentSelect={handleCurrentSelect}
-              isCurrentSelected={isCurrentSelected}
             />
           </div>
         </div>
