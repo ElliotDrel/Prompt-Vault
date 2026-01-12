@@ -23,6 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
 - [x] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
+- [ ] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
 - [ ] **Phase 8: Consolidation Scheduling (DEFERRED)** - Set up pg_cron background job for tiered version consolidation
 
 ## Phase Details
@@ -100,6 +101,22 @@ Plans:
 - [x] 07-01: Create useRevertToVersion hook and RevertConfirmDialog component (completed 2026-01-11)
 - [x] 07-02: Integrate history modal into PromptView and PromptEditor (completed 2026-01-11)
 
+### Phase 7.1: Version History UI Enhancements (INSERTED)
+**Goal**: Improve version history UX with layout changes, diff toggle, revert tracking, and component reuse
+**Depends on**: Phase 7
+**Research**: Unlikely (refactoring existing components)
+**Plans**: TBD
+
+**Requirements:**
+1. **Current version shows diff from previous** - In "Compare to Previous" mode, the Current version card should show changes from the previous version (consistent with other cards)
+2. **Revert tracking** - When a version is reverted, display in version history that "this version was reverted to from version X"
+3. **Diff toggle** - Add a toggle button to show/hide diff highlighting, allowing users to see the exact original version without markup
+4. **Layout flip** - Move history panel to right side, prompt detail to left side
+5. **Component reuse** - Prompt detail area should use the same base components as the detail page (single implementation)
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 7.1 to break down)
+
 ### Phase 8: Consolidation Scheduling (DEFERRED)
 **Goal**: Set up automated version consolidation to manage storage growth
 **Depends on**: Phase 7
@@ -116,7 +133,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (deferred)
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8 (deferred)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -127,4 +144,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (de
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
+| 7.1. Version History UI Enhancements (INSERTED) | 0/TBD | Not Started | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |

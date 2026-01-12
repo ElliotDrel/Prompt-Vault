@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 7 — Revert & Integration
+**Current focus:** Phase 7.1 — Version History UI Enhancements (INSERTED)
 
 ## Current Position
 
-Phase: 7 of 8 (Revert & Integration)
-Plan: 2 of 2 in current phase
-Status: UAT COMPLETE ✓
-Last activity: 2026-01-11 — UAT completed for Phases 1-7
+Phase: 7.1 of 8 (Version History UI Enhancements)
+Plan: 0 of TBD in current phase
+Status: Not planned yet
+Last activity: 2026-01-11 — Phase 7.1 inserted for urgent UI enhancements
 
 Progress: █████████░ 88.2%
 
@@ -120,6 +120,15 @@ Recent decisions affecting current work:
 - "Current" entry at top of version list with "Live" badge [UAT]
 - RPC parameter names without p_ prefix to match frontend [UAT - migration fix]
 
+### Roadmap Evolution
+
+- Phase 7.1 inserted after Phase 7: Version History UI Enhancements (URGENT)
+  - Current version shows diff from previous in "Compare to Previous" mode
+  - Revert tracking displays which version was reverted to
+  - Diff toggle to show/hide highlighting
+  - Layout flip: history right, prompt left
+  - Component reuse: same elements as detail page
+
 ### Deferred Issues
 
 None yet.
@@ -131,10 +140,10 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Status: UAT COMPLETE
+Status: Phase 7.1 inserted
 Issues resolved: 11 (including UAT-011 for diff colors)
 
 **Next steps:**
-- Feature is validated and ready for merge
+- Plan Phase 7.1 (run `/gsd:plan-phase 7.1`)
+- Execute Phase 7.1 plans
 - Phase 8 (Consolidation Scheduling) remains deferred per PROJECT.md
-- Consider creating PR to merge feature/prompt-version-history into main
