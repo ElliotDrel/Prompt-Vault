@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useMemo } from 'react';
 import { Prompt, PromptVersion } from '@/types/prompt';
 import {
   Dialog,
@@ -128,6 +128,20 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
 
   const comparisonTarget = getComparisonTarget();
   const previousVersion = getPreviousVersion();
+
+  // Create a map from version ID to version number for revert tracking display
+  const versionNumberMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const version of versions) {
+      map.set(version.id, version.versionNumber);
+    }
+    return map;
+  }, [versions]);
+
+  // Lookup reverted-from version number for the selected version
+  const revertedToVersionNumber = selectedVersion?.revertedFromVersionId
+    ? versionNumberMap.get(selectedVersion.revertedFromVersionId)
+    : undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -293,6 +307,13 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(selectedVersion.createdAt), 'PPpp')}
                     </p>
+                    {/* Revert tracking info */}
+                    {revertedToVersionNumber !== undefined && (
+                      <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                        <RotateCcw className="h-3 w-3" />
+                        This version was created by reverting to Version {revertedToVersionNumber}
+                      </p>
+                    )}
                   </div>
                   <Button
                     variant="default"

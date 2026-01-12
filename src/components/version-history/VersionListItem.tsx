@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { RotateCcw } from 'lucide-react';
 import { PromptVersion, Prompt } from '@/types/prompt';
 import { computeDiff, getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
 import { VariableChanges } from './VariableChanges';
@@ -24,6 +25,11 @@ interface VersionListItemProps {
    * Whether to compare against previous version or current prompt state
    */
   comparisonMode: ComparisonMode;
+
+  /**
+   * Map from version ID to version number for revert tracking display
+   */
+  versionNumberMap: Map<string, number>;
 
   /**
    * Callback when this version is selected for detailed view
@@ -99,6 +105,7 @@ export const VersionListItem = memo(function VersionListItem({
   previousVersion,
   currentPrompt,
   comparisonMode,
+  versionNumberMap,
   onSelect,
 }: VersionListItemProps) {
   // Determine comparison target based on mode
@@ -107,6 +114,11 @@ export const VersionListItem = memo(function VersionListItem({
     : previousVersion
       ? { title: previousVersion.title, body: previousVersion.body, variables: previousVersion.variables }
       : null;
+
+  // Lookup reverted-from version number if this version was created by a revert
+  const revertedToVersionNumber = version.revertedFromVersionId
+    ? versionNumberMap.get(version.revertedFromVersionId)
+    : undefined;
 
   // Compute changes if we have a comparison target
   const titleChanged = comparisonTarget ? version.title !== comparisonTarget.title : false;
@@ -126,9 +138,17 @@ export const VersionListItem = memo(function VersionListItem({
       className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
       onClick={() => onSelect(version)}
     >
-      {/* Header: Version number and timestamp */}
+      {/* Header: Version number, revert indicator, and timestamp */}
       <div className="flex items-center justify-between mb-2">
-        <span className="font-semibold">Version {version.versionNumber}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">Version {version.versionNumber}</span>
+          {revertedToVersionNumber !== undefined && (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+              <RotateCcw className="h-3 w-3" />
+              Reverted to V{revertedToVersionNumber}
+            </span>
+          )}
+        </div>
         <span className="text-sm text-muted-foreground">{relativeTime}</span>
       </div>
 

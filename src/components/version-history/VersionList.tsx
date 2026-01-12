@@ -140,6 +140,15 @@ export const VersionList = memo(function VersionList({
     return map;
   }, [versions]);
 
+  // Create a map from version ID to version number for revert tracking display
+  const versionNumberMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const version of versions) {
+      map.set(version.id, version.versionNumber);
+    }
+    return map;
+  }, [versions]);
+
   // Handle loading state
   if (loading) {
     return <VersionListSkeleton />;
@@ -214,6 +223,7 @@ export const VersionList = memo(function VersionList({
                       previousVersion={previousVersionMap.get(version.id)}
                       currentPrompt={currentPrompt}
                       comparisonMode={comparisonMode}
+                      versionNumberMap={versionNumberMap}
                       onSelect={onVersionSelect}
                     />
                   ))}
