@@ -128,6 +128,9 @@ Recent decisions affecting current work:
   - Diff toggle to show/hide highlighting
   - Layout flip: history right, prompt left
   - Component reuse: same elements as detail page
+- Phase 9 added: Backfill Existing Prompts as Version One
+  - Create migration to capture current state of all existing prompts as version 1
+  - Ensures users have complete history from feature launch
 
 ### Deferred Issues
 

@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [ ] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
 - [ ] **Phase 8: Consolidation Scheduling (DEFERRED)** - Set up pg_cron background job for tiered version consolidation
+- [ ] **Phase 9: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
 
 ## Phase Details
 
@@ -132,10 +133,19 @@ Plans:
 - [ ] 08-01: Enable pg_cron extension in Supabase
 - [ ] 08-02: Create migration to schedule daily consolidation job
 
+### Phase 9: Backfill Existing Prompts as Version One
+**Goal**: Create a migration that captures the current state of all existing prompts as version 1, ensuring users have complete history from feature launch
+**Depends on**: Phase 7.1
+**Research**: Unlikely (standard SQL migration pattern)
+**Plans**: TBD
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 9 to break down)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8 (deferred)
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 9 → 8 (deferred)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -147,4 +157,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 7.1. Version History UI Enhancements (INSERTED) | 0/3 | Planned | - |
+| 9. Backfill Existing Prompts as Version One | 0/1 | Not Started | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |
