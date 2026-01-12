@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Prompt } from '@/types/prompt';
-import { StorageAdapter } from '@/lib/storage';
+import { StorageAdapter, UpdatePromptOptions } from '@/lib/storage';
 import { sanitizeVariables } from '@/utils/variableUtils';
 import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
 
@@ -10,7 +10,7 @@ interface PromptsContextType {
   error: string | null;
   isBackgroundRefresh: boolean;
   addPrompt: (prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<Prompt>;
-  updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>) => Promise<Prompt>;
+  updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions) => Promise<Prompt>;
   deletePrompt: (id: string) => Promise<void>;
   togglePinPrompt: (id: string) => Promise<void>;
   stats: {
@@ -164,12 +164,12 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [getAdapter, loadStats]);
 
-  const updatePrompt = useCallback(async (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> => {
+  const updatePrompt = useCallback(async (id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt> => {
     const adapter = getAdapter();
 
     try {
       setError(null);
-      const updatedPrompt = await adapter.prompts.updatePrompt(id, promptData);
+      const updatedPrompt = await adapter.prompts.updatePrompt(id, promptData, options);
       const sanitizedPrompt = {
         ...updatedPrompt,
         variables: sanitizeVariables(updatedPrompt.variables ?? []),

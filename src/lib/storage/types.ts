@@ -1,10 +1,16 @@
 import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
 
+// Optional metadata for prompt updates (e.g., for revert tracking)
+export interface UpdatePromptOptions {
+  /** Version ID this update is reverting to (for version history tracking) */
+  revertedFromVersionId?: string;
+}
+
 // Storage interface for prompts
 export interface PromptsStorageAdapter {
   getPrompts(): Promise<Prompt[]>;
   addPrompt(prompt: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt>;
-  updatePrompt(id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt>;
+  updatePrompt(id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt>;
   deletePrompt(id: string): Promise<void>;
   togglePinPrompt(id: string): Promise<Prompt>;
   incrementPromptUsage(id: string): Promise<Prompt>;
@@ -46,6 +52,7 @@ export interface VersionsStorageAdapter {
     title: string;
     body: string;
     variables: string[];
+    revertedFromVersionId?: string;
   }): Promise<PromptVersion>;
   getVersions(promptId: string, offset?: number, limit?: number): Promise<PaginatedVersions>;
   consolidateVersions(promptId: string): Promise<number>;

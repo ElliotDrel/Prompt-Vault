@@ -88,12 +88,15 @@ export function useRevertToVersion({
       });
 
       // Step 2: Revert to the selected version's content
+      // Pass revertedFromVersionId to track which version was reverted to
       await updatePrompt(promptId, {
         title: pendingVersion.title,
         body: pendingVersion.body,
         variables: pendingVersion.variables,
         isPinned: currentPrompt.isPinned, // Preserve pin state
         timesUsed: currentPrompt.timesUsed, // Preserve usage count
+      }, {
+        revertedFromVersionId: pendingVersion.id,
       });
 
       toast.success(`Reverted to version ${pendingVersion.versionNumber}`);

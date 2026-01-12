@@ -1,5 +1,5 @@
 import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
-import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents } from './types';
+import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
@@ -33,6 +33,7 @@ type VersionRow = {
   variables: unknown;
   is_consolidated: boolean;
   consolidation_group_id: string | null;
+  reverted_from_version_id: string | null;
   created_at: string;
 };
 
@@ -65,6 +66,7 @@ const mapVersionRow = (row: VersionRow): PromptVersion => ({
   variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
   isConsolidated: row.is_consolidated,
   consolidationGroupId: row.consolidation_group_id,
+  revertedFromVersionId: row.reverted_from_version_id,
   createdAt: row.created_at,
 });
 
@@ -167,7 +169,7 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     return createdPrompt;
   }
 
-  async updatePrompt(id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
+  async updatePrompt(id: string, promptData: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt> {
     const userId = await requireUserId();
 
     // Fetch current prompt state to check for content changes
@@ -192,12 +194,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
         const nextVersion = maxVersion + 1;
 
         // Create snapshot of OLD state before update
+        // Include revertedFromVersionId if this is a revert operation
         await this.versionsAdapter.createVersion({
           promptId: id,
           versionNumber: nextVersion,
           title: oldPromptRow.title,
           body: oldPromptRow.body,
           variables: Array.isArray(oldPromptRow.variables) ? oldPromptRow.variables as string[] : [],
+          revertedFromVersionId: options?.revertedFromVersionId,
         });
       } catch (versionError) {
         console.error('Failed to create version snapshot:', versionError);
@@ -486,6 +490,7 @@ class SupabaseVersionsAdapter implements VersionsStorageAdapter {
     title: string;
     body: string;
     variables: string[];
+    revertedFromVersionId?: string;
   }): Promise<PromptVersion> {
     await requireUserId();
 
@@ -496,6 +501,7 @@ class SupabaseVersionsAdapter implements VersionsStorageAdapter {
         title: data.title,
         body: data.body,
         variables: data.variables,
+        reverted_from_version_id: data.revertedFromVersionId ?? null,
       })
       .maybeSingle();
 
