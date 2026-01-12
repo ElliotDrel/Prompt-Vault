@@ -179,7 +179,7 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     // Check if content changed (title, body, or variables)
     const contentChanged = hasContentChanges(oldPrompt, promptData);
 
-    // If content changed, create snapshot of OLD state before update
+    // If content changed, create snapshot of NEW state being saved
     if (contentChanged) {
       try {
         // Get current max version number
@@ -193,14 +193,15 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
         const maxVersion = versionsData?.versions?.[0]?.version_number ?? 0;
         const nextVersion = maxVersion + 1;
 
-        // Create snapshot of OLD state before update
+        // Create snapshot of NEW state being saved
+        // Version N = content AFTER the Nth save (not before)
         // Include revertedFromVersionId if this is a revert operation
         await this.versionsAdapter.createVersion({
           promptId: id,
           versionNumber: nextVersion,
-          title: oldPromptRow.title,
-          body: oldPromptRow.body,
-          variables: Array.isArray(oldPromptRow.variables) ? oldPromptRow.variables as string[] : [],
+          title: promptData.title,
+          body: promptData.body,
+          variables: promptData.variables ?? [],
           revertedFromVersionId: options?.revertedFromVersionId,
         });
       } catch (versionError) {
