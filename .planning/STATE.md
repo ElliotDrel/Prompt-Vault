@@ -10,27 +10,25 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 ## Current Position
 
 Phase: 7.1 of 9 (Version History UI Enhancements)
-Plan: 3 of 3 in current phase (code complete, UAT issues found)
-Status: Blocked - UAT issues require fixes
-Last activity: 2026-01-11 — 7.1-03 code done, UAT found 10 issues
+Plan: 3 of 3 + FIX in current phase (all UAT issues fixed)
+Status: Phase complete, ready for next phase
+Last activity: 2026-01-11 — Completed 7.1-03-FIX (10 UAT issues addressed)
 
 Progress: █████████░ 93.8%
 
-### 7.1-03 UAT Status
+### 7.1-03-FIX UAT Status
 
-**Issues Found:** 10
-**Issues File:** `.planning/phases/7.1-version-history-ui-enhancements/7.1-03-ISSUES.md`
+**All 10 issues fixed:**
+- UAT-001: Version count now excludes "Current" entry ✓
+- UAT-002: "Compare to Previous" disabled for Version 1 ✓
+- UAT-003: Revert button hidden when version matches Current ✓
+- UAT-004/005: Current entry only shown when unsaved changes exist ✓
+- UAT-006: Detail view shows revert tracking info ✓
+- UAT-007: Current tab shows revert info when restored from version ✓
+- UAT-008: Comparison buttons right-aligned ✓
+- UAT-009: Data flow verified working; Hide Diff affects variables ✓
 
-| Severity | Count | Summary |
-|----------|-------|---------|
-| Blocker | 1 | revertedFromVersionId data flow broken |
-| Major | 5 | Version count wrong, Compare to Previous for V1, Revert on V1, false diffs, Current/V1 confusion |
-| Minor | 3 | Detail view missing revert info, Current missing revert info, Hide Diff doesn't affect variables |
-| Cosmetic | 1 | Comparison buttons should be right-aligned |
-
-**Root cause:** "Current" entry in version list creates conceptual mismatch with saved versions. When there's only Version 1 and no unsaved changes, Current and V1 represent the same state but are shown separately.
-
-**Next:** Run `/gsd:plan-fix 7.1 03` to create fix plan for these issues.
+**Key fix:** Added `arePromptsIdentical()` utility to compare prompt content and conditionally show Current entry only when there are actual unsaved changes.
 
 ## UAT Status (Phases 1-7)
 
@@ -168,11 +166,10 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-11
-Stopped at: 7.1-03 UAT verification - 10 issues found
+Stopped at: Completed 7.1-03-FIX plan
 Resume file: None
 
 **Next steps:**
-- Fix 7.1-03 UAT issues (run `/gsd:plan-fix 7.1 03` to create fix plan)
-- Complete 7.1-03 SUMMARY and phase completion after fixes verified
+- Run `/gsd:verify-work 7.1` to re-verify Phase 7.1 with fixes
 - Phase 8 (Day-Level Diff View) follows Phase 7.1
 - Phase 9 (Backfill Existing Prompts) completes the milestone
