@@ -32,6 +32,11 @@ interface VersionListItemProps {
   versionNumberMap: Map<string, number>;
 
   /**
+   * Whether this is the latest (current) version
+   */
+  isLatest?: boolean;
+
+  /**
    * Callback when this version is selected for detailed view
    */
   onSelect: (version: PromptVersion) => void;
@@ -106,6 +111,7 @@ export const VersionListItem = memo(function VersionListItem({
   currentPrompt,
   comparisonMode,
   versionNumberMap,
+  isLatest,
   onSelect,
 }: VersionListItemProps) {
   // Determine comparison target based on mode
@@ -138,10 +144,15 @@ export const VersionListItem = memo(function VersionListItem({
       className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
       onClick={() => onSelect(version)}
     >
-      {/* Header: Version number, revert indicator, and timestamp */}
+      {/* Header: Version number, current badge, revert indicator, and timestamp */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="font-semibold">Version {version.versionNumber}</span>
+          {isLatest && (
+            <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded">
+              Current
+            </span>
+          )}
           {revertedToVersionNumber !== undefined && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
               <RotateCcw className="h-3 w-3" />

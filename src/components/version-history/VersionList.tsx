@@ -2,7 +2,6 @@ import { memo, useMemo } from 'react';
 import { Prompt, PromptVersion } from '@/types/prompt';
 import { usePromptVersions } from '@/hooks/usePromptVersions';
 import { groupVersionsByPeriod } from '@/utils/versionUtils';
-import { arePromptsIdentical } from '@/utils/diffUtils';
 import {
   Accordion,
   AccordionContent,
@@ -33,16 +32,6 @@ interface VersionListProps {
    * Callback when a version is selected for detailed view
    */
   onVersionSelect: (version: PromptVersion) => void;
-
-  /**
-   * Callback when "Current" is selected (null means current prompt)
-   */
-  onCurrentSelect?: () => void;
-
-  /**
-   * Whether the current prompt is selected
-   */
-  isCurrentSelected?: boolean;
 }
 
 /**
@@ -108,8 +97,6 @@ export const VersionList = memo(function VersionList({
   currentPrompt,
   comparisonMode,
   onVersionSelect,
-  onCurrentSelect,
-  isCurrentSelected,
 }: VersionListProps) {
   const {
     versions,
@@ -150,13 +137,8 @@ export const VersionList = memo(function VersionList({
     return map;
   }, [versions]);
 
-  // Detect if current prompt has unsaved changes compared to latest version
-  // When no unsaved changes exist, don't show separate "Current" entry (UAT-005)
-  const hasUnsavedChanges = useMemo(() => {
-    if (versions.length === 0) return false;
-    const latestVersion = versions[0];
-    return !arePromptsIdentical(currentPrompt, latestVersion);
-  }, [currentPrompt, versions]);
+  // Get the latest version ID for marking it as "Current"
+  const latestVersionId = versions.length > 0 ? versions[0].id : null;
 
   // Handle loading state
   if (loading) {
@@ -175,33 +157,10 @@ export const VersionList = memo(function VersionList({
 
   return (
     <div>
-      {/* Version count - only count saved versions, not Current (UAT-001) */}
+      {/* Version count */}
       <div className="text-sm text-muted-foreground mb-3">
         {totalCount} version{totalCount !== 1 ? 's' : ''} total
       </div>
-
-      {/* Current version entry - only show when there are unsaved changes (UAT-005) */}
-      {onCurrentSelect && hasUnsavedChanges && (
-        <button
-          type="button"
-          className={`w-full text-left rounded-lg border p-3 mb-3 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-            isCurrentSelected
-              ? 'bg-primary/10 border-primary'
-              : 'hover:bg-muted/50'
-          }`}
-          onClick={onCurrentSelect}
-        >
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-semibold">Current</span>
-            <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded">
-              Live
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Unsaved changes to this prompt
-          </p>
-        </button>
-      )}
 
       {/* Accordion with time-grouped versions */}
       <Accordion
@@ -233,6 +192,7 @@ export const VersionList = memo(function VersionList({
                       currentPrompt={currentPrompt}
                       comparisonMode={comparisonMode}
                       versionNumberMap={versionNumberMap}
+                      isLatest={version.id === latestVersionId}
                       onSelect={onVersionSelect}
                     />
                   ))}
