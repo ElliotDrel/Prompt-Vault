@@ -208,30 +208,62 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
-                  This is the current state of your prompt
-                </p>
+                {/* Comparison context label for Current version */}
+                {comparisonMode === 'previous' && versions.length > 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Showing differences from Version {versions[0].versionNumber} to current
+                  </p>
+                ) : comparisonMode === 'previous' && versions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">
+                    No previous versions to compare
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    This is the current state of your prompt
+                  </p>
+                )}
 
                 {/* Title */}
                 <div>
                   <h4 className="text-sm font-medium mb-2">Title</h4>
-                  <div className="border rounded p-3 bg-muted/30 text-sm">
-                    {prompt.title}
+                  <div className="border rounded p-3 bg-muted/30">
+                    {comparisonMode === 'previous' && versions.length > 0 ? (
+                      <VersionDiff
+                        oldText={versions[0].title}
+                        newText={prompt.title}
+                        showHighlighting={showDiffHighlighting}
+                      />
+                    ) : (
+                      <div className="text-sm">{prompt.title}</div>
+                    )}
                   </div>
                 </div>
 
                 {/* Body */}
                 <div>
                   <h4 className="text-sm font-medium mb-2">Body</h4>
-                  <div className="border rounded p-3 bg-muted/30 whitespace-pre-wrap text-sm">
-                    {prompt.body}
+                  <div className="border rounded p-3 bg-muted/30">
+                    {comparisonMode === 'previous' && versions.length > 0 ? (
+                      <VersionDiff
+                        oldText={versions[0].body}
+                        newText={prompt.body}
+                        showHighlighting={showDiffHighlighting}
+                      />
+                    ) : (
+                      <div className="whitespace-pre-wrap text-sm">{prompt.body}</div>
+                    )}
                   </div>
                 </div>
 
                 {/* Variables */}
                 <div>
                   <h4 className="text-sm font-medium mb-2">Variables</h4>
-                  {prompt.variables.length > 0 ? (
+                  {comparisonMode === 'previous' && versions.length > 0 ? (
+                    <VariableChangesOrEmpty
+                      oldVariables={versions[0].variables}
+                      newVariables={prompt.variables}
+                    />
+                  ) : prompt.variables.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {prompt.variables.map((variable) => (
                         <span
