@@ -3,6 +3,30 @@ import { diffWords, type Change } from 'diff';
 export type ComparisonMode = 'previous' | 'current';
 
 /**
+ * Compares two prompts for content equality.
+ * Only compares content fields (title, body, variables), not metadata.
+ *
+ * @param prompt1 - First prompt content
+ * @param prompt2 - Second prompt content
+ * @returns true if title, body, and variables are all identical
+ */
+export function arePromptsIdentical(
+  prompt1: { title: string; body: string; variables: string[] },
+  prompt2: { title: string; body: string; variables: string[] }
+): boolean {
+  if (prompt1.title !== prompt2.title) return false;
+  if (prompt1.body !== prompt2.body) return false;
+
+  // Compare variables arrays
+  if (prompt1.variables.length !== prompt2.variables.length) return false;
+  for (let i = 0; i < prompt1.variables.length; i++) {
+    if (prompt1.variables[i] !== prompt2.variables[i]) return false;
+  }
+
+  return true;
+}
+
+/**
  * Returns the correct old/new values for diff comparison based on mode.
  *
  * Diff direction semantics:

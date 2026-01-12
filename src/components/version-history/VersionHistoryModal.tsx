@@ -14,25 +14,47 @@ import { VariableChanges } from './VariableChanges';
 import { format } from 'date-fns';
 import { RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { usePromptVersions } from '@/hooks/usePromptVersions';
-import { getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
+import { getComparisonPair, arePromptsIdentical, type ComparisonMode } from '@/utils/diffUtils';
 
 /**
  * Wrapper for VariableChanges that shows "No variable changes" when no changes exist.
  * VariableChanges returns null when oldVariables equals newVariables.
+ *
+ * When showHighlighting is false, shows variables as plain text without diff styling (UAT-009).
  */
 function VariableChangesOrEmpty({
   oldVariables,
   newVariables,
+  showHighlighting = true,
 }: {
   oldVariables: string[];
   newVariables: string[];
+  showHighlighting?: boolean;
 }) {
   // Compute if there are any changes
-  const hasAdditions = newVariables.some((v) => !oldVariables.includes(v));
-  const hasRemovals = oldVariables.some((v) => !newVariables.includes(v));
+  const added = newVariables.filter((v) => !oldVariables.includes(v));
+  const removed = oldVariables.filter((v) => !newVariables.includes(v));
+  const hasChanges = added.length > 0 || removed.length > 0;
 
-  if (!hasAdditions && !hasRemovals) {
+  if (!hasChanges) {
     return <p className="text-sm text-muted-foreground">No variable changes</p>;
+  }
+
+  // When highlighting is hidden, show plain text summary (UAT-009)
+  if (!showHighlighting) {
+    const allVariables = [...new Set([...oldVariables, ...newVariables])].sort();
+    return (
+      <div className="flex flex-wrap gap-2">
+        {allVariables.map((variable) => (
+          <span
+            key={variable}
+            className="px-2 py-1 rounded bg-muted text-sm"
+          >
+            {variable}
+          </span>
+        ))}
+      </div>
+    );
   }
 
   return <VariableChanges oldVariables={oldVariables} newVariables={newVariables} />;
@@ -143,6 +165,25 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
     ? versionNumberMap.get(selectedVersion.revertedFromVersionId)
     : undefined;
 
+  // Check if selected version is Version 1 (first version) - disable "Compare to Previous" (UAT-002)
+  const isFirstVersion = selectedVersion?.versionNumber === 1;
+
+  // Check if selected version content matches current prompt - hide revert button (UAT-003)
+  const selectedVersionMatchesCurrent = selectedVersion
+    ? arePromptsIdentical(selectedVersion, prompt)
+    : false;
+
+  // Get revert info for Current tab (UAT-007)
+  // Show if latest version has revertedFromVersionId and Current matches latest version
+  const latestVersion = versions.length > 0 ? versions[0] : null;
+  const currentMatchesLatest = latestVersion
+    ? arePromptsIdentical(prompt, latestVersion)
+    : false;
+  const currentRevertedFromVersionNumber =
+    currentMatchesLatest && latestVersion?.revertedFromVersionId
+      ? versionNumberMap.get(latestVersion.revertedFromVersionId)
+      : undefined;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
@@ -152,14 +193,16 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
             {prompt.title}
           </DialogDescription>
 
-          {/* Comparison mode toggle and diff highlighting toggle */}
-          <div className="flex gap-2 pt-2 flex-wrap">
+          {/* Comparison mode toggle and diff highlighting toggle - right-aligned (UAT-008) */}
+          <div className="flex gap-2 pt-2 flex-wrap justify-end">
             <Button
               variant={comparisonMode === 'previous' ? 'default' : 'outline'}
               size="sm"
               aria-pressed={comparisonMode === 'previous'}
               aria-label="Compare to previous version"
               onClick={() => setComparisonMode('previous')}
+              disabled={isFirstVersion && !isCurrentSelected}
+              title={isFirstVersion && !isCurrentSelected ? 'No previous version to compare' : undefined}
             >
               Compare to Previous
             </Button>
@@ -216,6 +259,13 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(prompt.updatedAt), 'PPpp')}
                     </p>
+                    {/* Revert tracking info for Current tab (UAT-007) */}
+                    {currentRevertedFromVersionNumber !== undefined && (
+                      <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                        <RotateCcw className="h-3 w-3" />
+                        Current state was restored from Version {currentRevertedFromVersionNumber}
+                      </p>
+                    )}
                   </div>
                   <div className="inline-flex items-center justify-center h-10 rounded-md px-4 text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 -mr-1">
                     Live
@@ -276,6 +326,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                     <VariableChangesOrEmpty
                       oldVariables={versions[0].variables}
                       newVariables={prompt.variables}
+                      showHighlighting={showDiffHighlighting}
                     />
                   ) : prompt.variables.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
@@ -315,15 +366,18 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={!onRevert}
-                    onClick={handleRevert}
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Revert
-                  </Button>
+                  {/* Revert button - hidden when version matches current (UAT-003) */}
+                  {!selectedVersionMatchesCurrent && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={!onRevert}
+                      onClick={handleRevert}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Revert
+                    </Button>
+                  )}
                 </div>
 
                 {/* Comparison context label */}
@@ -375,7 +429,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                   <h4 className="text-sm font-medium mb-2">Variables</h4>
                   {comparisonTarget ? (() => {
                     const { old: oldVars, new: newVars } = getComparisonPair(selectedVersion.variables, comparisonTarget.variables, comparisonMode);
-                    return <VariableChangesOrEmpty oldVariables={oldVars} newVariables={newVars} />;
+                    return <VariableChangesOrEmpty oldVariables={oldVars} newVariables={newVars} showHighlighting={showDiffHighlighting} />;
                   })() : selectedVersion.variables.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {selectedVersion.variables.map((variable) => (
