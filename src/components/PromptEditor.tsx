@@ -375,7 +375,7 @@ export function PromptEditor({ mode, prompt, onSave, onDelete, onNavigateBack, o
         <Button variant="ghost" className="mb-6 -ml-2" asChild>
           <NavLink to={DASHBOARD_ROUTE} onNavigate={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            {isEditing ? 'Back to Prompt Details' : 'Back to Dashboard'}
           </NavLink>
         </Button>
 
