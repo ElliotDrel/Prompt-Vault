@@ -3,6 +3,88 @@ import { assignVariableColors, GREY_COLOR_LIGHT, GREY_COLOR_DARK } from '@/utils
 import { VARIABLE_PATTERN, findMatchingVariable } from '@/config/variableRules';
 import { cn } from '@/lib/utils';
 
+interface HighlightedTextPartsConfig {
+  value: string;
+  variables: string[];
+  variableColors: Map<string, string>;
+}
+
+export const getHighlightedTextParts = ({
+  value,
+  variables,
+  variableColors,
+}: HighlightedTextPartsConfig): React.ReactNode[] => {
+  if (!value) {
+    return [];
+  }
+
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  const regex = new RegExp(VARIABLE_PATTERN.source, 'g');
+  let match;
+  let keyCounter = 0;
+
+  while ((match = regex.exec(value)) !== null) {
+    const variableName = match[1].trim();
+    const matchStart = match.index;
+    const matchEnd = matchStart + match[0].length;
+
+    if (matchStart > lastIndex) {
+      parts.push(
+        <span key={`text-${keyCounter++}`}>
+          {value.substring(lastIndex, matchStart)}
+        </span>
+      );
+    }
+
+    const matchingVariable = findMatchingVariable(variableName, variables);
+
+    if (matchingVariable) {
+      const color = variableColors.get(matchingVariable);
+      const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
+      if (color && !isGrey) {
+        parts.push(
+          <mark
+            key={`highlight-${keyCounter++}`}
+            style={{
+              backgroundColor: color,
+              padding: '2px 0',
+              borderRadius: '2px',
+              color: 'inherit',
+            }}
+          >
+            {match[0]}
+          </mark>
+        );
+      } else {
+        parts.push(
+          <span key={`text-${keyCounter++}`}>
+            {match[0]}
+          </span>
+        );
+      }
+    } else {
+      parts.push(
+        <span key={`text-${keyCounter++}`}>
+          {match[0]}
+        </span>
+      );
+    }
+
+    lastIndex = matchEnd;
+  }
+
+  if (lastIndex < value.length) {
+    parts.push(
+      <span key={`text-${keyCounter++}`}>
+        {value.substring(lastIndex)}
+      </span>
+    );
+  }
+
+  return parts;
+};
+
 interface HighlightedTextareaProps {
   value: string;
   onChange: (value: string) => void;
@@ -46,82 +128,7 @@ export function HighlightedTextarea({
 
   // Generate highlighted HTML for the background layer
   const getHighlightedText = (): React.ReactNode[] => {
-    if (!value) {
-      return [];
-    }
-
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    const regex = new RegExp(VARIABLE_PATTERN.source, 'g');
-    let match;
-    let keyCounter = 0;
-
-    while ((match = regex.exec(value)) !== null) {
-      const variableName = match[1].trim();
-      const matchStart = match.index;
-      const matchEnd = matchStart + match[0].length;
-
-      // Add text before the match
-      if (matchStart > lastIndex) {
-        parts.push(
-          <span key={`text-${keyCounter++}`}>
-            {value.substring(lastIndex, matchStart)}
-          </span>
-        );
-      }
-
-      // Find the matching variable using centralized matching logic
-      const matchingVariable = findMatchingVariable(variableName, variables);
-
-      // Add the highlighted variable or plain text if not found
-      if (matchingVariable) {
-        const color = variableColors.get(matchingVariable);
-
-        // Only highlight if the variable has a color and is not grey (is used)
-        const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
-        if (color && !isGrey) {
-          parts.push(
-            <mark
-              key={`highlight-${keyCounter++}`}
-              style={{
-                backgroundColor: color,
-                padding: '2px 0',
-                borderRadius: '2px',
-              }}
-            >
-              {match[0]}
-            </mark>
-          );
-        } else {
-          // Grey color means not used, don't highlight
-          parts.push(
-            <span key={`text-${keyCounter++}`}>
-              {match[0]}
-            </span>
-          );
-        }
-      } else {
-        // Variable not in the list, don't highlight
-        parts.push(
-          <span key={`text-${keyCounter++}`}>
-            {match[0]}
-          </span>
-        );
-      }
-
-      lastIndex = matchEnd;
-    }
-
-    // Add remaining text
-    if (lastIndex < value.length) {
-      parts.push(
-        <span key={`text-${keyCounter++}`}>
-          {value.substring(lastIndex)}
-        </span>
-      );
-    }
-
-    return parts;
+    return getHighlightedTextParts({ value, variables, variableColors });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -191,4 +198,3 @@ export function HighlightedTextarea({
     </div>
   );
 }
-

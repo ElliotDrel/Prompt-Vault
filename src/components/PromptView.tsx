@@ -17,6 +17,7 @@ import { copyToClipboard, buildPromptPayload } from '@/utils/promptUtils';
 import { sanitizeVariables } from '@/utils/variableUtils';
 import { DASHBOARD_ROUTE } from '@/config/routes';
 import { NavLink } from '@/components/ui/NavLink';
+import { HighlightedPromptBody } from '@/components/HighlightedPromptBody';
 
 // SessionStorage helpers for persisting variable inputs
 const STORAGE_KEY_PREFIX = 'prompt-variables-';
@@ -278,8 +279,12 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
             {/* Prompt body */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Prompt</Label>
-              <div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap break-all font-mono">
-                {prompt.body}
+              <div className="bg-muted/50 rounded-md p-4 font-mono">
+                <HighlightedPromptBody
+                  value={prompt.body}
+                  variables={sanitizedVariables}
+                  className="whitespace-pre-wrap break-all"
+                />
               </div>
             </div>
 
