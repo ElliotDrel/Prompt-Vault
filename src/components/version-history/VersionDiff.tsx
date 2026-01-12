@@ -8,6 +8,8 @@ interface VersionDiffProps {
   newText: string;
   /** Optional additional CSS classes */
   className?: string;
+  /** Whether to show diff highlighting (default: true) */
+  showHighlighting?: boolean;
 }
 
 /**
@@ -32,10 +34,20 @@ export const VersionDiff = memo(function VersionDiff({
   oldText,
   newText,
   className,
+  showHighlighting = true,
 }: VersionDiffProps) {
   // Handle edge cases: null/undefined inputs
   const safeOldText = oldText ?? '';
   const safeNewText = newText ?? '';
+
+  // When highlighting is off, just show the new text without diff markup
+  if (!showHighlighting) {
+    return (
+      <div className={`whitespace-pre-wrap text-sm ${className ?? ''}`}>
+        {safeNewText}
+      </div>
+    );
+  }
 
   // Identical strings - no diff to show
   if (safeOldText === safeNewText) {

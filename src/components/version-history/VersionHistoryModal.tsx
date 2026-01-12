@@ -12,7 +12,7 @@ import { VersionList } from './VersionList';
 import { VersionDiff } from './VersionDiff';
 import { VariableChanges } from './VariableChanges';
 import { format } from 'date-fns';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { usePromptVersions } from '@/hooks/usePromptVersions';
 import { getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
 
@@ -69,6 +69,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
   const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('current');
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
   const [isCurrentSelected, setIsCurrentSelected] = useState(false);
+  const [showDiffHighlighting, setShowDiffHighlighting] = useState(true);
 
   // Fetch versions to find previous version for comparison
   const { versions } = usePromptVersions({ promptId: prompt.id, enabled: open });
@@ -137,8 +138,8 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
             {prompt.title}
           </DialogDescription>
 
-          {/* Comparison mode toggle */}
-          <div className="flex gap-2 pt-2">
+          {/* Comparison mode toggle and diff highlighting toggle */}
+          <div className="flex gap-2 pt-2 flex-wrap">
             <Button
               variant={comparisonMode === 'previous' ? 'default' : 'outline'}
               size="sm"
@@ -156,6 +157,25 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
               onClick={() => setComparisonMode('current')}
             >
               Compare to Current
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-pressed={showDiffHighlighting}
+              aria-label={showDiffHighlighting ? 'Hide diff highlighting' : 'Show diff highlighting'}
+              onClick={() => setShowDiffHighlighting(!showDiffHighlighting)}
+            >
+              {showDiffHighlighting ? (
+                <>
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  Hide Diff
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Show Diff
+                </>
+              )}
             </Button>
           </div>
         </DialogHeader>
@@ -273,7 +293,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                   <div className="border rounded p-3 bg-muted/30">
                     {comparisonTarget ? (() => {
                       const { old: oldTitle, new: newTitle } = getComparisonPair(selectedVersion.title, comparisonTarget.title, comparisonMode);
-                      return <VersionDiff oldText={oldTitle} newText={newTitle} />;
+                      return <VersionDiff oldText={oldTitle} newText={newTitle} showHighlighting={showDiffHighlighting} />;
                     })() : (
                       <div className="text-sm">
                         {selectedVersion.title}
@@ -288,7 +308,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                   <div className="border rounded p-3 bg-muted/30">
                     {comparisonTarget ? (() => {
                       const { old: oldBody, new: newBody } = getComparisonPair(selectedVersion.body, comparisonTarget.body, comparisonMode);
-                      return <VersionDiff oldText={oldBody} newText={newBody} />;
+                      return <VersionDiff oldText={oldBody} newText={newBody} showHighlighting={showDiffHighlighting} />;
                     })() : (
                       <div className="whitespace-pre-wrap text-sm">
                         {selectedVersion.body}
