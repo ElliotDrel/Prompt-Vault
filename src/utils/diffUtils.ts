@@ -3,8 +3,14 @@ import { diffWords, type Change } from 'diff';
 export type ComparisonMode = 'previous' | 'current';
 
 /**
- * Compares two prompts for content equality.
+ * Compares two prompt-like objects to check if their content is identical.
  * Only compares content fields (title, body, variables), not metadata.
+ *
+ * Used for diff visualization purposes (to determine if there are changes to show).
+ *
+ * Note: This should NOT be used to determine whether to show a separate "Current" entry
+ * or to control revert button visibility. Those UI decisions should be based on
+ * version position (e.g., isLatestVersion), not content comparison.
  *
  * @param prompt1 - First prompt content
  * @param prompt2 - Second prompt content
