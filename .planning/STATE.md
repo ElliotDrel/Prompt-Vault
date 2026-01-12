@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 ## Current Position
 
 Phase: 7.1 of 9 (Version History UI Enhancements)
-Plan: 0 of 3 in current phase
-Status: Planned, ready for execution
-Last activity: 2026-01-11 — Phase 7.1 plans created
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-12 — Completed 7.1-01-PLAN.md
 
-Progress: █████████░ 88.2%
+Progress: █████████░ 90.9%
 
 ## UAT Status (Phases 1-7)
 
@@ -119,6 +119,8 @@ Recent decisions affecting current work:
 - Pin/History buttons removed from PromptEditor entirely [UAT]
 - "Current" entry at top of version list with "Live" badge [UAT]
 - RPC parameter names without p_ prefix to match frontend [UAT - migration fix]
+- Self-referential FK with ON DELETE SET NULL for reverted_from_version_id [Phase 7.1]
+- UpdatePromptOptions interface for threading metadata through update chain [Phase 7.1]
 
 ### Roadmap Evolution
 
@@ -146,11 +148,12 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-11
-Status: Phase 7.1 inserted
-Issues resolved: 11 (including UAT-011 for diff colors)
+Last session: 2026-01-12
+Stopped at: Completed 7.1-01-PLAN.md
+Resume file: None
 
 **Next steps:**
-- Execute Phase 7.1 plans (run `/gsd:execute-plan .planning/phases/7.1-version-history-ui-enhancements/7.1-01-PLAN.md`)
+- Execute 7.1-02-PLAN.md (run `/gsd:execute-plan .planning/phases/7.1-version-history-ui-enhancements/7.1-02-PLAN.md`)
+- Then execute 7.1-03-PLAN.md
 - Phase 8 (Day-Level Diff View) follows Phase 7.1
 - Phase 9 (Backfill Existing Prompts) completes the milestone
