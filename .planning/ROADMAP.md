@@ -105,7 +105,7 @@ Plans:
 **Goal**: Improve version history UX with layout changes, diff toggle, revert tracking, and component reuse
 **Depends on**: Phase 7
 **Research**: Unlikely (refactoring existing components)
-**Plans**: TBD
+**Plans**: 3
 
 **Requirements:**
 1. **Current version shows diff from previous** - In "Compare to Previous" mode, the Current version card should show changes from the previous version (consistent with other cards)
@@ -115,7 +115,9 @@ Plans:
 5. **Component reuse** - Prompt detail area should use the same base components as the detail page (single implementation)
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 7.1 to break down)
+- [ ] 7.1-01: Add revert tracking database column and update types/adapter
+- [ ] 7.1-02: Layout flip and diff toggle implementation
+- [ ] 7.1-03: Current version diff display and revert tracking UI
 
 ### Phase 8: Consolidation Scheduling (DEFERRED)
 **Goal**: Set up automated version consolidation to manage storage growth
@@ -144,5 +146,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
-| 7.1. Version History UI Enhancements (INSERTED) | 0/TBD | Not Started | - |
+| 7.1. Version History UI Enhancements (INSERTED) | 0/3 | Planned | - |
 | 8. Consolidation Scheduling (DEFERRED) | 0/2 | Deferred | - |

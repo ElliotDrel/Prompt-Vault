@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 ## Current Position
 
 Phase: 7.1 of 8 (Version History UI Enhancements)
-Plan: 0 of TBD in current phase
-Status: Not planned yet
-Last activity: 2026-01-11 — Phase 7.1 inserted for urgent UI enhancements
+Plan: 0 of 3 in current phase
+Status: Planned, ready for execution
+Last activity: 2026-01-11 — Phase 7.1 plans created
 
 Progress: █████████░ 88.2%
 
@@ -144,6 +144,5 @@ Status: Phase 7.1 inserted
 Issues resolved: 11 (including UAT-011 for diff colors)
 
 **Next steps:**
-- Plan Phase 7.1 (run `/gsd:plan-phase 7.1`)
-- Execute Phase 7.1 plans
+- Execute Phase 7.1 plans (run `/gsd:execute-plan .planning/phases/7.1-version-history-ui-enhancements/7.1-01-PLAN.md`)
 - Phase 8 (Consolidation Scheduling) remains deferred per PROJECT.md
