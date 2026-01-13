@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** MILESTONE COMPLETE
+**Current focus:** Phase 8.1 — Discover Version History from Copy Events (INSERTED)
 
 ## Current Position
 
-Phase: 8 of 8 (Backfill Existing Prompts as Version One)
-Plan: 1 of 1 in current phase
-Status: MILESTONE COMPLETE
-Last activity: 2026-01-12 — Completed 08-01 (backfill + cleanup)
+Phase: 8.1 of 8.2 (Discover Version History from Copy Events)
+Plan: 0 of TBD in current phase
+Status: Phase inserted, needs planning
+Last activity: 2026-01-12 — Inserted Phase 8.1 for version history archaeology
 
-Progress: ██████████ 100%
+Progress: ██████████░ 95% (milestone extended)
 
 ### 7.1-03-FIX2 UAT Status (Re-test)
 
@@ -149,6 +149,15 @@ Recent decisions affecting current work:
 
 ### Roadmap Evolution
 
+- Phase 8.1 inserted after Phase 8: Discover Version History from Copy Events (URGENT)
+  - Analyze copy_events to reconstruct historical versions
+  - 707 copy events across 40 prompts contain snapshot data
+  - Sub-agent approach for parallel processing
+  - Output structured report for user verification
+- Phase 8.2 inserted after Phase 8.1: Apply Verified Version History to Database
+  - Takes verified versions from Phase 8.1
+  - Creates migration to insert into prompt_versions table
+  - User must approve Phase 8.1 output before 8.2 runs
 - Phase 7.1 inserted after Phase 7: Version History UI Enhancements (URGENT)
   - Current version shows diff from previous in "Compare to Previous" mode
   - Revert tracking displays which version was reverted to
@@ -174,8 +183,10 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-12
-Stopped at: Completed 08-01 plan (MILESTONE COMPLETE)
+Stopped at: Inserted Phase 8.1 for version history archaeology
 Resume file: None
 
 **Next steps:**
-- `/gsd:complete-milestone` to archive and prepare for next version
+- Execute Phase 8.1: Launch sub-agents to discover version history
+- User verifies output in DISCOVERED-VERSIONS.md
+- Phase 8.2: Apply verified versions to database

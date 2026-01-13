@@ -25,6 +25,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [x] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
 - [x] **Phase 8: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
+- [ ] **Phase 8.1: Discover Version History from Copy Events (INSERTED)** - Analyze copy_events to reconstruct historical versions, output for user verification
+- [ ] **Phase 8.2: Apply Verified Version History to Database (INSERTED)** - Insert user-verified versions into prompt_versions table
 
 ## Phase Details
 
@@ -130,10 +132,61 @@ Plans:
 Plans:
 - [x] 08-01: Backfill existing prompts as version one and cleanup consolidation (completed 2026-01-12)
 
+### Phase 8.1: Discover Version History from Copy Events (INSERTED)
+**Goal**: Analyze copy_events table to reconstruct historical versions and output findings for user verification
+**Depends on**: Phase 8
+**Research**: Unlikely (data analysis)
+**Plans**: TBD
+
+**Context:**
+- 707 copy events across 40 prompts contain historical snapshots
+- Each copy event stores: prompt_title, variable_values (keys = variable names), copied_text (body with vars substituted)
+- 7 prompts have documented title changes in history
+- Data spans Sept 2025 - Jan 2026
+
+**Approach:**
+1. For each prompt with copy history, extract all events chronologically
+2. Reconstruct template by reverse-substituting variable values back to {{placeholders}}
+3. Detect changes between consecutive events (title, body, variables)
+4. Create version entries for each distinct state with appropriate timestamps
+5. Use sub-agents for parallel processing (one per prompt)
+6. Main agent verifies all reconstructions
+7. Output structured report for user verification
+
+**Algorithm:**
+- No-variable prompts: copied_text IS the exact body
+- Variable prompts: Replace values with {{name}}, sort by length (longest first) to avoid partial matches
+
+**Output:**
+- `.planning/phases/8.1-.../DISCOVERED-VERSIONS.md` - Full report of all discovered versions per prompt
+- User reviews and approves before Phase 8.2
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8.1 to break down)
+
+### Phase 8.2: Apply Verified Version History to Database (INSERTED)
+**Goal**: Insert user-verified versions from Phase 8.1 into the prompt_versions table
+**Depends on**: Phase 8.1
+**Research**: Unlikely (SQL migration)
+**Plans**: TBD
+
+**Input:**
+- Verified version data from Phase 8.1
+
+**Approach:**
+1. Read verified versions from Phase 8.1 output
+2. Generate SQL migration to insert versions
+3. Handle version numbering (insert before existing v1, renumber if needed)
+4. Apply migration to database
+5. Verify version history displays correctly in UI
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8.2 after 8.1 complete)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8 → 8.1 → 8.2
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -146,3 +199,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 7.1. Version History UI Enhancements (INSERTED) | 5/5 | Complete | 2026-01-12 |
 | 8. Backfill Existing Prompts as Version One | 1/1 | Complete | 2026-01-12 |
+| 8.1. Discover Version History from Copy Events (INSERTED) | 0/TBD | Not Started | - |
+| 8.2. Apply Verified Version History to Database (INSERTED) | 0/TBD | Blocked (8.1) | - |
