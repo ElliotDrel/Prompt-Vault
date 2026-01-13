@@ -93,7 +93,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
   prompt,
   onRevert,
 }: VersionHistoryModalProps) {
-  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('current');
+  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('previous');
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
   const [showDiffHighlighting, setShowDiffHighlighting] = useState(true);
 
@@ -187,8 +187,6 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
               aria-pressed={comparisonMode === 'previous'}
               aria-label="Compare to previous version"
               onClick={() => setComparisonMode('previous')}
-              disabled={isFirstVersion}
-              title={isFirstVersion ? 'No previous version to compare' : undefined}
             >
               Compare to Previous
             </Button>
@@ -356,6 +354,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
               promptId={prompt.id}
               currentPrompt={prompt}
               comparisonMode={comparisonMode}
+              selectedVersionId={selectedVersion?.id}
               onVersionSelect={handleVersionSelect}
             />
           </div>

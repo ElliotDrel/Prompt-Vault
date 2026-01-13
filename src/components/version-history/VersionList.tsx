@@ -29,6 +29,11 @@ interface VersionListProps {
   comparisonMode: 'previous' | 'current';
 
   /**
+   * The currently selected version ID (for visual indication)
+   */
+  selectedVersionId?: string;
+
+  /**
    * Callback when a version is selected for detailed view
    */
   onVersionSelect: (version: PromptVersion) => void;
@@ -96,6 +101,7 @@ export const VersionList = memo(function VersionList({
   promptId,
   currentPrompt,
   comparisonMode,
+  selectedVersionId,
   onVersionSelect,
 }: VersionListProps) {
   const {
@@ -162,10 +168,10 @@ export const VersionList = memo(function VersionList({
         {totalCount} version{totalCount !== 1 ? 's' : ''} total
       </div>
 
-      {/* Accordion with time-grouped versions */}
+      {/* Accordion with time-grouped versions - all periods expanded by default */}
       <Accordion
         type="multiple"
-        defaultValue={['Today', 'Yesterday']}
+        defaultValue={periods}
         className="space-y-2"
       >
         {periods.map((period) => {
@@ -193,6 +199,7 @@ export const VersionList = memo(function VersionList({
                       comparisonMode={comparisonMode}
                       versionNumberMap={versionNumberMap}
                       isLatest={version.id === latestVersionId}
+                      isSelected={version.id === selectedVersionId}
                       onSelect={onVersionSelect}
                     />
                   ))}
