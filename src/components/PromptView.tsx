@@ -167,7 +167,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       }, 1500);
 
       const message = payload.length > 50000
-        ? 'Copied (Prompt duplicated because limit exceeded)'
+        ? 'Copied (FYI this prompt is 50k+ characters)'
         : 'Copied';
       toast.success(message);
     } catch (err) {

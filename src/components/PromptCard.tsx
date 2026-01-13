@@ -117,7 +117,7 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
       }, 2000);
 
       const message = payload.length > 50000
-        ? 'Copied (Prompt duplicated because limit exceeded)'
+        ? 'Copied (FYI this prompt is 50k+ characters)'
         : 'Copied';
       toast.success(message);
     } catch (err) {
