@@ -89,7 +89,7 @@ Progress: ██████████ 100%
 **Milestone Complete:**
 - Total plans completed: 20
 - Total execution time: ~1.5 hours
-- Total versions in database: 124
+- Total versions in database: 122
 - Prompts with complete history: 26
 
 ## Accumulated Context
@@ -186,15 +186,20 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-13
-Stopped at: MILESTONE COMPLETE
+Stopped at: MILESTONE COMPLETE + UAT VERIFIED
 Resume file: None
 
 **Phase 8.2 Completed:**
 - Applied migration inserting 71 discovered historical versions
 - Renumbered existing v1 entries to highest version for 26 prompts
 - Verified all version numbers sequential (no gaps)
-- Total versions in database: 124
+- Total versions in database: 122
+
+**UAT Fix (2026-01-13):**
+- Found 2 prompts with duplicate latest versions (backfill created identical copy of last discovered version)
+- Applied migration `delete_duplicate_latest_versions.sql` to remove duplicates
+- Affected: "Clear, Install, Build..." (v4→v3) and "Implement Features Step by Step..." (v3→v2)
 
 **Milestone Complete:**
 Version History feature fully implemented. All 20 plans across 10 phases completed.
-Users can now see complete edit history for their prompts.
+All 26 prompts with historical versions verified by user. Ready for `/gsd:complete-milestone`.
