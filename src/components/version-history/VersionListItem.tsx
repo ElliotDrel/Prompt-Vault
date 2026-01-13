@@ -52,9 +52,12 @@ function countWords(text: string): number {
 
 /**
  * Computes word count changes between two texts.
- * Returns counts of added and removed words.
+ * Returns counts of added and removed words, plus whether texts differ.
  */
-function computeWordChangeCounts(oldText: string, newText: string): { added: number; removed: number } {
+function computeWordChangeCounts(oldText: string, newText: string): { added: number; removed: number; textsDiffer: boolean } {
+  // Check if texts are different at all
+  const textsDiffer = oldText !== newText;
+
   const changes = computeDiff(oldText, newText);
 
   let added = 0;
@@ -69,15 +72,24 @@ function computeWordChangeCounts(oldText: string, newText: string): { added: num
     }
   }
 
-  return { added, removed };
+  return { added, removed, textsDiffer };
 }
 
 /**
  * Renders a summary line showing word additions and removals.
- * Returns null if no changes.
+ * Shows "Formatting changed" for whitespace-only changes.
+ * Returns null if no changes at all.
  */
-function BodyChangeSummary({ added, removed }: { added: number; removed: number }) {
+function BodyChangeSummary({ added, removed, textsDiffer }: { added: number; removed: number; textsDiffer: boolean }) {
+  // No word changes but text differs = whitespace/formatting only
   if (added === 0 && removed === 0) {
+    if (textsDiffer) {
+      return (
+        <span className="text-sm text-muted-foreground italic">
+          Formatting changed
+        </span>
+      );
+    }
     return null;
   }
 
@@ -133,7 +145,7 @@ export const VersionListItem = memo(function VersionListItem({
         const { old: oldBody, new: newBody } = getComparisonPair(version.body, comparisonTarget.body, comparisonMode);
         return computeWordChangeCounts(oldBody, newBody);
       })()
-    : { added: 0, removed: 0 };
+    : { added: 0, removed: 0, textsDiffer: false };
 
   // Format relative time
   const relativeTime = formatDistanceToNow(new Date(version.createdAt), { addSuffix: true });
@@ -174,7 +186,7 @@ export const VersionListItem = memo(function VersionListItem({
 
         {/* Body word changes */}
         <div>
-          <BodyChangeSummary added={bodyChanges.added} removed={bodyChanges.removed} />
+          <BodyChangeSummary added={bodyChanges.added} removed={bodyChanges.removed} textsDiffer={bodyChanges.textsDiffer} />
         </div>
 
         {/* Variable changes */}

@@ -1,6 +1,37 @@
 import { memo } from 'react';
 import { computeDiff } from '@/utils/diffUtils';
 
+/**
+ * Makes whitespace visible in diff output by replacing newlines with visible symbols.
+ * Only applies to change spans (added/removed), not unchanged text.
+ * Shows ↵ symbol before each newline to make the change obvious.
+ */
+function renderWithVisibleWhitespace(text: string, isChange: boolean): React.ReactNode {
+  if (!isChange) {
+    // Unchanged text - render as-is
+    return text;
+  }
+
+  // For changes, make newlines visible with ↵ symbol
+  const parts = text.split('\n');
+  if (parts.length === 1) {
+    return text; // No newlines, render as-is
+  }
+
+  // Render each line with visible newline symbols
+  return parts.map((part, i) => (
+    <span key={i}>
+      {part}
+      {i < parts.length - 1 && (
+        <>
+          <span className="opacity-90">↵</span>
+          {'\n'}
+        </>
+      )}
+    </span>
+  ));
+}
+
 interface VersionDiffProps {
   /** Original text (previous version) */
   oldText: string;
@@ -69,7 +100,7 @@ export const VersionDiff = memo(function VersionDiff({
               key={index}
               className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
             >
-              {change.value}
+              {renderWithVisibleWhitespace(change.value, true)}
             </span>
           );
         }
@@ -80,13 +111,13 @@ export const VersionDiff = memo(function VersionDiff({
               key={index}
               className="bg-red-100 text-red-800 line-through dark:bg-red-900/30 dark:text-red-300"
             >
-              {change.value}
+              {renderWithVisibleWhitespace(change.value, true)}
             </span>
           );
         }
 
         // Unchanged text
-        return <span key={index}>{change.value}</span>;
+        return <span key={index}>{renderWithVisibleWhitespace(change.value, false)}</span>;
       })}
     </div>
   );

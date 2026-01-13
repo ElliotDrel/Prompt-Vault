@@ -1,4 +1,4 @@
-import { diffWords, type Change } from 'diff';
+import { diffWordsWithSpace, type Change } from 'diff';
 
 export type ComparisonMode = 'previous' | 'current';
 
@@ -71,7 +71,7 @@ export function getComparisonPair<T>(
  * - Objects with `removed: true` represent text deleted from oldText
  *
  * Uses word-level diffing for better readability with prose content.
- * Whitespace is ignored when computing the diff but preserved in output.
+ * Whitespace (including newlines) is treated as significant content.
  *
  * @param oldText - Original text (previous version)
  * @param newText - Modified text (current version)
@@ -86,5 +86,5 @@ export function getComparisonPair<T>(
  * // ]
  */
 export function computeDiff(oldText: string, newText: string): Change[] {
-  return diffWords(oldText, newText);
+  return diffWordsWithSpace(oldText, newText);
 }
