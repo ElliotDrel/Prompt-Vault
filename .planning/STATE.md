@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 8.1 — Discover Version History from Copy Events (INSERTED)
+**Current focus:** Phase 8.2 — Apply Verified Version History to Database
 
 ## Current Position
 
-Phase: 8.1 of 8.2 (Discover Version History from Copy Events)
-Plan: 0 of TBD in current phase
-Status: Phase inserted, needs planning
-Last activity: 2026-01-12 — Inserted Phase 8.1 for version history archaeology
+Phase: 8.1 of 8.2 (Discover Version History from Copy Events) - COMPLETE
+Plan: 1 of 1 in current phase - DONE
+Status: Ready for Phase 8.2
+Last activity: 2026-01-13 — Completed Phase 8.1 analysis with merged v1+v2 findings
 
-Progress: ██████████░ 95% (milestone extended)
+Progress: ██████████░ 97% (Phase 8.2 remaining)
 
 ### 7.1-03-FIX2 UAT Status (Re-test)
 
@@ -146,6 +146,9 @@ Recent decisions affecting current work:
 - Latest version IS current - no separate "Current" concept [Phase 7.1-FIX2]
 - Revert button visibility based on position (isLatestVersion), not content comparison [Phase 7.1-FIX2]
 - arePromptsIdentical for diff visualization only, not UI flow control [Phase 7.1-FIX2]
+- Dual analysis (v1+v2) for version history discovery validation [Phase 8.1]
+- v2 as base for merge (more accurate body text), supplement with 2 prompts from v1 [Phase 8.1]
+- Version numbering: discovered versions start at 0, existing backfill becomes highest [Phase 8.1]
 
 ### Roadmap Evolution
 
@@ -183,18 +186,17 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-13
-Stopped at: Phase 8.1-01 - v1 vs v2 discrepancy review (user selected "Review specific discrepancies first")
-Resume file: .planning/phases/8.1-discover-version-history-from-copy-events/.continue-here.md
+Stopped at: Phase 8.1 COMPLETE - Ready for Phase 8.2
+Resume file: None (phase complete)
 
-**Session Progress:**
-- Completed fresh v2 analysis of all 38 prompts (parallel sub-agents)
-- Created DISCOVERED-VERSIONS-v2.md with ~58 discovered versions
-- Compared v1 vs v2 and identified discrepancies
-- User wants to drill into specific discrepancies before merge decision
+**Phase 8.1 Completed:**
+- Ran dual v1/v2 analysis for validation
+- Investigated all discrepancies (v2 more accurate for body text)
+- Merged findings: v2 base + 2 prompts from v1
+- Created DISCOVERED-VERSIONS-FINAL.md with ~60 versions across 26 prompts
+- Created 8.1-01-SUMMARY.md
 
-**Next steps:**
-- Review 3 body text discrepancies (prompts 1, 5, 6)
-- Investigate 2 prompts in v1 but not v2
-- Get user merge strategy decision
-- Complete checkpoint approval and create SUMMARY.md
-- Phase 8.2: Apply verified versions to database
+**Next step:**
+- Phase 8.2: Apply Verified Version History to Database
+- Use DISCOVERED-VERSIONS-FINAL.md as migration source
+- Requires careful SQL migration planning to avoid data corruption
