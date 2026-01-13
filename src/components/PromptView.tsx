@@ -78,7 +78,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
     () => ({ ...prompt, variables: sanitizedVariables }),
     [prompt, sanitizedVariables]
   );
-  const variableColors = assignVariableColors(prompt.variables, prompt.body);
+  const variableColors = assignVariableColors(sanitizedVariables, prompt.body);
 
   // Auto-save variable values to sessionStorage whenever they change
   useEffect(() => {
@@ -293,11 +293,11 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               <Label className="text-sm font-medium">Prompt Information</Label>
 
               {/* Variables */}
-              {prompt.variables.length > 0 && (
+              {sanitizedVariables.length > 0 && (
                 <div className="space-y-2 text-sm">
                   <span className="text-muted-foreground">Variables:</span>
                   <div className="flex flex-wrap gap-2">
-                    {prompt.variables.map((variable, index) => {
+                    {sanitizedVariables.map((variable, index) => {
                       const color = variableColors.get(variable) || getGreyColor();
                       const isGrey = color === GREY_COLOR_LIGHT || color === GREY_COLOR_DARK;
                       const textColor = isGrey ? undefined : getContrastTextColor(color);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { assignVariableColors } from '@/utils/colorUtils';
 import { cn } from '@/lib/utils';
 import { getHighlightedTextParts } from '@/components/HighlightedTextarea';
@@ -14,22 +14,19 @@ export function HighlightedPromptBody({
   variables,
   className,
 }: HighlightedPromptBodyProps) {
-  const [variableColors, setVariableColors] = useState<Map<string, string>>(new Map());
-
-  useEffect(() => {
-    const colors = assignVariableColors(variables, value);
-    setVariableColors(colors);
-  }, [variables, value]);
+  const variableColors = useMemo(
+    () => assignVariableColors(variables, value),
+    [variables, value]
+  );
 
   return (
     <div
       className={cn(
-        'text-sm whitespace-pre-wrap break-words',
+        'text-sm whitespace-pre-wrap',
         className
       )}
     >
       {getHighlightedTextParts({ value, variables, variableColors })}
-      {value.endsWith('\n') && <span>{'\n'}</span>}
     </div>
   );
 }
