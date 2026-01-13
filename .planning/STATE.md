@@ -183,10 +183,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-12
-Stopped at: Inserted Phase 8.1 for version history archaeology
-Resume file: None
+Stopped at: Phase 8.1-01 checkpoint - user requested format revision to show exact DB records
+Resume file: .planning/phases/8.1-discover-version-history-from-copy-events/.continue-here.md
 
 **Next steps:**
-- Execute Phase 8.1: Launch sub-agents to discover version history
-- User verifies output in DISCOVERED-VERSIONS.md
+- Resume Phase 8.1-01: Revise DISCOVERED-VERSIONS.md to show exact DB record format
+- Complete checkpoint verification with user
+- Create SUMMARY.md and commit plan completion
 - Phase 8.2: Apply verified versions to database
