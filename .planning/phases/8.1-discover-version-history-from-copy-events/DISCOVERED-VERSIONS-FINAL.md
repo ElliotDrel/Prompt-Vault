@@ -24,12 +24,17 @@ Each discovered version will be inserted into `prompt_versions` with:
 - `id` - auto-generated UUID
 - `prompt_id` - from prompt
 - `user_id` - `a39a8008-3fb2-4f56-b336-c08f082ff670`
-- `version_number` - integer starting at 0 for oldest discovered
+- `version_number` - integer starting at 1 for oldest discovered (prompt_versions requires > 0)
 - `title` - text
 - `body` - text (template with `{{variable}}` placeholders)
 - `variables` - jsonb array
 - `created_at` - timestamp from first copy event with this version
 - `reverted_from_version_id` - null for discovered versions
+
+Version numbering strategy after backfill:
+- Discovered versions: 1..N (oldest to newest)
+- Existing backfill (current state) is renumbered to N+1
+- New versions continue incrementing from the highest existing version per prompt
 
 ---
 
