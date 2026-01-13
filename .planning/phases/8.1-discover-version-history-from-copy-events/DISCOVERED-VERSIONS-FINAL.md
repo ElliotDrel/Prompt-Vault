@@ -13,8 +13,8 @@
 | Total prompts with copy events | 40 |
 | Prompts with discovered historical versions | 26 |
 | Prompts with NO version changes | 14 |
-| Total historical versions to insert | ~60 |
-| Prompts where current differs from last copy | 9 |
+| Total historical versions to insert | 71 |
+| Prompts where current differs from last copy | 13 |
 
 ---
 
