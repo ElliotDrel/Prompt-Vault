@@ -29,15 +29,15 @@ export function VariableChanges({ oldVariables, newVariables }: VariableChangesP
 
   return (
     <div className="flex flex-wrap gap-2">
-      {removals.map((variable) => (
-        <Badge key={`removed-${variable}`} variant="destructive" className="gap-1">
+      {removals.map((variable, index) => (
+        <Badge key={`removed-${variable || 'empty'}-${index}`} variant="destructive" className="gap-1">
           <Minus className="h-3 w-3" />
           {variable}
         </Badge>
       ))}
 
-      {additions.map((variable) => (
-        <Badge key={`added-${variable}`} variant="success" className="gap-1">
+      {additions.map((variable, index) => (
+        <Badge key={`added-${variable || 'empty'}-${index}`} variant="success" className="gap-1">
           <Plus className="h-3 w-3" />
           {variable}
         </Badge>
