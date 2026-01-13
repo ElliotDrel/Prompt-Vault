@@ -23,9 +23,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Version List Components** - Build time-grouped version list with Accordion UI and pagination
 - [x] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
-- [ ] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
-- [ ] **Phase 8: Day-Level Diff View** - Add combined diff when clicking day headers in version history
-- [ ] **Phase 9: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
+- [x] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
+- [ ] **Phase 8: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
 
 ## Phase Details
 
@@ -122,28 +121,19 @@ Plans:
 - [x] 7.1-03-FIX: Fix 10 UAT issues from initial testing (completed 2026-01-11)
 - [x] 7.1-03-FIX2: Fix 4 UAT issues from re-testing - versioning model correction (completed 2026-01-12)
 
-### Phase 8: Day-Level Diff View
-**Goal**: Add Google Docs-style day grouping where clicking a day header shows combined diff of all changes that day
-**Depends on**: Phase 7.1
-**Research**: Unlikely (UI-only change using existing diff utilities)
-**Plans**: TBD
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
-
-### Phase 9: Backfill Existing Prompts as Version One
+### Phase 8: Backfill Existing Prompts as Version One
 **Goal**: Create a migration that captures the current state of all existing prompts as version 1, ensuring users have complete history from feature launch
 **Depends on**: Phase 7.1
 **Research**: Unlikely (standard SQL migration pattern)
 **Plans**: TBD
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 9 to break down)
+- [ ] TBD (run /gsd:plan-phase 8 to break down)
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8 → 9
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -155,5 +145,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 7.1. Version History UI Enhancements (INSERTED) | 5/5 | Complete | 2026-01-12 |
-| 8. Day-Level Diff View | 0/TBD | Not Started | - |
-| 9. Backfill Existing Prompts as Version One | 0/TBD | Not Started | - |
+| 8. Backfill Existing Prompts as Version One | 0/TBD | Not Started | - |

@@ -9,9 +9,9 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 
 ## Current Position
 
-Phase: 7.1 of 9 (Version History UI Enhancements)
+Phase: 7.1 of 8 (Version History UI Enhancements)
 Plan: 3 of 3 + FIX + FIX2 in current phase
-Status: Phase 7.1 COMPLETE, ready for Phase 8
+Status: Phase 7.1 COMPLETE, ready for Phase 8 (Backfill)
 Last activity: 2026-01-12 — Completed 7.1-03-FIX2 (4 re-test issues addressed)
 
 Progress: █████████░ 93.8%
@@ -99,7 +99,7 @@ Recent decisions affecting current work:
 - Skip versions for metadata changes (focus on content only)
 - Word-level diff using `diff` npm package (readable for prose)
 - Auto-save before revert (nothing ever lost)
-- Phase 8 renamed from "Consolidation Scheduling" to "Day-Level Diff View" (combined diff on day click)
+- Day-Level Diff View removed (was Phase 8) - complexity not worth the benefit
 - Separate migrations for schema vs realtime (cleaner history) [Phase 1]
 - Application-controlled version numbers (not auto-increment) [Phase 1]
 - No UPDATE RLS policy for versions (immutable snapshots) [Phase 1]
@@ -150,13 +150,13 @@ Recent decisions affecting current work:
   - Diff toggle to show/hide highlighting
   - Layout flip: history right, prompt left
   - Component reuse: same elements as detail page
-- Phase 9 added: Backfill Existing Prompts as Version One
+- Day-Level Diff View removed: Was Phase 8 (Consolidation Scheduling → Day-Level Diff View → removed)
+  - Complexity not worth the benefit
+  - pg_cron consolidation concept also removed (not needed)
+- Phase 8: Backfill Existing Prompts as Version One (was Phase 9)
   - Create migration to capture current state of all existing prompts as version 1
   - Ensures users have complete history from feature launch
-- Phase 8 renamed: Day-Level Diff View (was Consolidation Scheduling)
-  - Click day header → combined diff of all changes that day
-  - Expand arrow → see individual versions (existing behavior)
-  - pg_cron consolidation concept removed (not needed)
+  - Final phase of milestone
 
 ### Deferred Issues
 
@@ -173,5 +173,5 @@ Stopped at: Completed 7.1-03-FIX2 plan (Phase 7.1 COMPLETE)
 Resume file: None
 
 **Next steps:**
-- Phase 8 (Day-Level Diff View) - `/gsd:plan-phase 8`
-- Phase 9 (Backfill Existing Prompts) completes the milestone
+- Phase 8 (Backfill Existing Prompts as Version One) - `/gsd:plan-phase 8`
+- Phase 8 completes the milestone
