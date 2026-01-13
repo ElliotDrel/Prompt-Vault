@@ -31,8 +31,6 @@ type VersionRow = {
   title: string;
   body: string;
   variables: unknown;
-  is_consolidated: boolean;
-  consolidation_group_id: string | null;
   reverted_from_version_id: string | null;
   created_at: string;
 };
@@ -64,8 +62,6 @@ const mapVersionRow = (row: VersionRow): PromptVersion => ({
   title: row.title,
   body: row.body,
   variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
-  isConsolidated: row.is_consolidated,
-  consolidationGroupId: row.consolidation_group_id,
   revertedFromVersionId: row.reverted_from_version_id,
   createdAt: row.created_at,
 });

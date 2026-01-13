@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -55,10 +55,8 @@ export type Database = {
       prompt_versions: {
         Row: {
           body: string
-          consolidation_group_id: string | null
           created_at: string | null
           id: string
-          is_consolidated: boolean | null
           prompt_id: string
           reverted_from_version_id: string | null
           title: string
@@ -68,10 +66,8 @@ export type Database = {
         }
         Insert: {
           body: string
-          consolidation_group_id?: string | null
           created_at?: string | null
           id?: string
-          is_consolidated?: boolean | null
           prompt_id: string
           reverted_from_version_id?: string | null
           title: string
@@ -81,10 +77,8 @@ export type Database = {
         }
         Update: {
           body?: string
-          consolidation_group_id?: string | null
           created_at?: string | null
           id?: string
-          is_consolidated?: boolean | null
           prompt_id?: string
           reverted_from_version_id?: string | null
           title?: string
@@ -188,17 +182,17 @@ export type Database = {
         Args: {
           body: string
           prompt_id: string
+          reverted_from_version_id?: string
           title: string
           variables: Json
           version_number: number
         }
         Returns: {
-          consolidation_group_id: string
           created_at: string
           id: string
-          is_consolidated: boolean
           out_body: string
           out_prompt_id: string
+          out_reverted_from_version_id: string
           out_title: string
           out_variables: Json
           out_version_number: number

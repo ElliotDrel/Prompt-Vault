@@ -33,8 +33,6 @@ export interface PromptVersion {
   title: string;
   body: string;
   variables: string[];
-  isConsolidated: boolean;
-  consolidationGroupId: string | null;
   revertedFromVersionId: string | null;
   createdAt: string;
 }
