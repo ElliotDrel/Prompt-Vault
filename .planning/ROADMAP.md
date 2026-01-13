@@ -25,8 +25,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [x] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
 - [x] **Phase 8: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
-- [ ] **Phase 8.1: Discover Version History from Copy Events (INSERTED)** - Analyze copy_events to reconstruct historical versions, output for user verification
-- [ ] **Phase 8.2: Apply Verified Version History to Database (INSERTED)** - Insert user-verified versions into prompt_versions table
+- [x] **Phase 8.1: Discover Version History from Copy Events (INSERTED)** - Analyze copy_events to reconstruct historical versions, output for user verification
+- [x] **Phase 8.2: Apply Verified Version History to Database (INSERTED)** - Insert user-verified versions into prompt_versions table
 
 ## Phase Details
 
@@ -162,13 +162,13 @@ Plans:
 - User reviews and approves before Phase 8.2
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 8.1 to break down)
+- [x] 8.1-01: Discover version history from copy events with dual analysis (completed 2026-01-13)
 
 ### Phase 8.2: Apply Verified Version History to Database (INSERTED)
 **Goal**: Insert user-verified versions from Phase 8.1 into the prompt_versions table
 **Depends on**: Phase 8.1
 **Research**: Unlikely (SQL migration)
-**Plans**: TBD
+**Plans**: 1
 
 **Input:**
 - Verified version data from Phase 8.1
@@ -181,7 +181,7 @@ Plans:
 5. Verify version history displays correctly in UI
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 8.2 after 8.1 complete)
+- [x] 8.2-01: Apply historical versions to database (completed 2026-01-13)
 
 ## Progress
 
@@ -199,5 +199,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 7.1. Version History UI Enhancements (INSERTED) | 5/5 | Complete | 2026-01-12 |
 | 8. Backfill Existing Prompts as Version One | 1/1 | Complete | 2026-01-12 |
-| 8.1. Discover Version History from Copy Events (INSERTED) | 0/TBD | Not Started | - |
-| 8.2. Apply Verified Version History to Database (INSERTED) | 0/TBD | Blocked (8.1) | - |
+| 8.1. Discover Version History from Copy Events (INSERTED) | 1/1 | Complete | 2026-01-13 |
+| 8.2. Apply Verified Version History to Database (INSERTED) | 1/1 | Complete | 2026-01-13 |
+
+**MILESTONE COMPLETE** - All phases finished!

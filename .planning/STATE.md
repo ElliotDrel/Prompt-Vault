@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-09)
 
 **Core value:** Never lose work. Every prompt edit is automatically preserved with complete history, clear diffs showing exactly what changed, and confident one-click revert to any previous state.
-**Current focus:** Phase 8.2 — Apply Verified Version History to Database
+**Current focus:** MILESTONE COMPLETE — Version History Feature
 
 ## Current Position
 
-Phase: 8.1 of 8.2 (Discover Version History from Copy Events) - COMPLETE
+Phase: 8.2 of 8.2 (Apply Verified Version History to Database) - COMPLETE
 Plan: 1 of 1 in current phase - DONE
-Status: Ready for Phase 8.2
-Last activity: 2026-01-13 — Completed Phase 8.1 analysis with merged v1+v2 findings
+Status: MILESTONE COMPLETE
+Last activity: 2026-01-13 — Applied 71 discovered historical versions to database
 
-Progress: ██████████░ 97% (Phase 8.2 remaining)
+Progress: ██████████ 100%
 
 ### 7.1-03-FIX2 UAT Status (Re-test)
 
@@ -66,9 +66,9 @@ Progress: ██████████░ 97% (Phase 8.2 remaining)
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: 4.1 min
-- Total execution time: 1.2 hours
+- Total plans completed: 20
+- Average duration: 4.5 min
+- Total execution time: ~1.5 hours
 
 **By Phase:**
 
@@ -83,14 +83,14 @@ Progress: ██████████░ 97% (Phase 8.2 remaining)
 | 7 (Revert & Integration) | 2 | 7 min | 3.5 min |
 | 7.1 (UI Enhancements) | 3+FIX+FIX2 | 23 min | 4.6 min |
 | 8 (Backfill + Cleanup) | 1 | 8 min | 8 min |
+| 8.1 (Discover Version History) | 1 | 12 min | 12 min |
+| 8.2 (Apply Historical Versions) | 1 | 5 min | 5 min |
 
-**Recent Trend:**
-- Last 5 plans: 4, 5, 6, 12, 8 min
-- Trend: Stable
-
-**Milestone Totals:**
-- Total plans completed: 18
-- Total execution time: ~1.4 hours
+**Milestone Complete:**
+- Total plans completed: 20
+- Total execution time: ~1.5 hours
+- Total versions in database: 124
+- Prompts with complete history: 26
 
 ## Accumulated Context
 
@@ -148,7 +148,7 @@ Recent decisions affecting current work:
 - arePromptsIdentical for diff visualization only, not UI flow control [Phase 7.1-FIX2]
 - Dual analysis (v1+v2) for version history discovery validation [Phase 8.1]
 - v2 as base for merge (more accurate body text), supplement with 2 prompts from v1 [Phase 8.1]
-- Version numbering: discovered versions start at 0, existing backfill becomes highest [Phase 8.1]
+- Version numbering: 1-based (discovered 1..N, existing backfill N+1) due to positive_version_number constraint [Phase 8.2]
 
 ### Roadmap Evolution
 
@@ -186,17 +186,15 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-13
-Stopped at: Phase 8.1 COMPLETE - Ready for Phase 8.2
-Resume file: None (phase complete)
+Stopped at: MILESTONE COMPLETE
+Resume file: None
 
-**Phase 8.1 Completed:**
-- Ran dual v1/v2 analysis for validation
-- Investigated all discrepancies (v2 more accurate for body text)
-- Merged findings: v2 base + 2 prompts from v1
-- Created DISCOVERED-VERSIONS-FINAL.md with ~60 versions across 26 prompts
-- Created 8.1-01-SUMMARY.md
+**Phase 8.2 Completed:**
+- Applied migration inserting 71 discovered historical versions
+- Renumbered existing v1 entries to highest version for 26 prompts
+- Verified all version numbers sequential (no gaps)
+- Total versions in database: 124
 
-**Next step:**
-- Phase 8.2: Apply Verified Version History to Database
-- Use DISCOVERED-VERSIONS-FINAL.md as migration source
-- Requires careful SQL migration planning to avoid data corruption
+**Milestone Complete:**
+Version History feature fully implemented. All 20 plans across 10 phases completed.
+Users can now see complete edit history for their prompts.
