@@ -17,10 +17,11 @@ import { usePromptVersions } from '@/hooks/usePromptVersions';
 import { getComparisonPair, type ComparisonMode } from '@/utils/diffUtils';
 
 /**
- * Wrapper for VariableChanges that shows "No variable changes" when no changes exist.
- * VariableChanges returns null when oldVariables equals newVariables.
+ * Displays variables with optional diff highlighting.
+ * Always shows the variables (consistent with Title and Body sections).
  *
- * When showHighlighting is false, shows variables as plain text without diff styling (UAT-009).
+ * When showHighlighting is true and there are changes, shows add/remove badges.
+ * When showHighlighting is false or no changes, shows plain variable chips.
  */
 function VariableChangesOrEmpty({
   oldVariables,
@@ -36,28 +37,32 @@ function VariableChangesOrEmpty({
   const removed = oldVariables.filter((v) => !newVariables.includes(v));
   const hasChanges = added.length > 0 || removed.length > 0;
 
-  if (!hasChanges) {
-    return <p className="text-sm text-muted-foreground">No variable changes</p>;
+  // Get the current state variables (newVariables in the comparison)
+  const currentVariables = newVariables;
+
+  // No variables at all
+  if (currentVariables.length === 0 && removed.length === 0) {
+    return <p className="text-sm text-muted-foreground">No variables</p>;
   }
 
-  // When highlighting is hidden, show plain text summary (UAT-009)
-  if (!showHighlighting) {
-    const allVariables = [...new Set([...oldVariables, ...newVariables])].sort();
-    return (
-      <div className="flex flex-wrap gap-2">
-        {allVariables.map((variable) => (
-          <span
-            key={variable}
-            className="px-2 py-1 rounded bg-muted text-sm"
-          >
-            {variable}
-          </span>
-        ))}
-      </div>
-    );
+  // Show diff highlighting if enabled and there are changes
+  if (showHighlighting && hasChanges) {
+    return <VariableChanges oldVariables={oldVariables} newVariables={newVariables} />;
   }
 
-  return <VariableChanges oldVariables={oldVariables} newVariables={newVariables} />;
+  // Show plain variable chips (no changes, or highlighting disabled)
+  return (
+    <div className="flex flex-wrap gap-2">
+      {currentVariables.map((variable) => (
+        <span
+          key={variable}
+          className="px-2 py-1 rounded bg-muted text-sm"
+        >
+          {variable}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 interface VersionHistoryModalProps {
