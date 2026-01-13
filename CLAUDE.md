@@ -200,6 +200,34 @@ npx supabase functions delete my-function
 - Fail fast in mutations when `userId` is missing to surface clear client-side errors before adapter/RLS.
 - For search/result caps, centralize the limit in config and surface a lightweight UI hint when the cap is reached.
 
+## Claude Code Agent Notes (2026-01-13) - Version History Feature Retrospective
+
+### RPC Function Design (Critical)
+- **Parameter name mismatch**: SQL functions using `p_` prefix (e.g., `p_prompt_id`) don't match frontend TypeScript parameters (`prompt_id`). PostgREST resolves functions by **parameter names**, not positions. Always verify SQL signatures match frontend exactly.
+- **Return format matters**: `RETURNS SETOF table` is not the same as returning a JSON object `{ versions: [...], total_count: N }`. Choose return format intentionally and document it.
+- **Test RPC end-to-end**: Unit testing SQL functions is not enough - test from the frontend through PostgREST to catch interface mismatches early.
+
+### Versioning Model Design
+- **Define the model first**: Before implementing versioning, explicitly define: Does version N contain content BEFORE or AFTER the Nth save? We initially captured OLD state, but correct model is **Version N = content AFTER Nth save**.
+- **Avoid separate "Current" concepts**: If every edit creates a version immediately, the latest version IS current. A separate "Current" entry creates confusion and UI complexity.
+- **No "unsaved changes" in auto-save systems**: If edits save immediately, there are never unsaved changes. Don't add messaging that contradicts the system's actual behavior.
+
+### UI State Logic Patterns
+- **Position-based over content-based decisions**: For showing/hiding UI elements like "Revert" buttons, use `isLatestVersion` (position) rather than content comparison like `arePromptsIdentical()`. Position is deterministic; content comparison can have edge cases.
+- **useEffect auto-selection conflicts**: If a useEffect auto-selects the first item, it will override manual user selections. Add guards like `&& !manuallySelected` to prevent conflicts.
+- **Diff direction consistency**: Create a single utility function (`getComparisonPair()`) that determines which version is "old" vs "new" for diff computation. Don't scatter this logic across components.
+
+### UAT-Driven Development
+- **Plan for multiple UAT rounds**: First UAT round found 11 issues; fixes introduced 4 new issues requiring a second round. Budget time for iterative testing.
+- **UAT reveals conceptual errors**: Unit tests catch bugs; UAT catches wrong mental models (like OLD vs NEW state capture). Both are necessary.
+- **Document UAT issues systematically**: Create a single issues file per phase (e.g., `07-UAT-ISSUES.md`) tracking discovered → root cause → resolution → commit.
+
+### Data Migration & Historical Reconstruction
+- **Backfill can create duplicates**: When backfilling existing records as "version 1", check if a version 1 already exists (from prior operations).
+- **Timestamps need verification**: When mining historical data (e.g., copy_events → prompt_versions), verify timestamps are logically consistent after insertion.
+- **Dual analysis for validation**: When reconstructing history from indirect sources, run multiple analysis approaches (v1 vs v2) and reconcile differences.
+- **Renumbering requires care**: When inserting discovered historical versions, you may need to renumber existing versions. Use CTEs and explicit ordering to avoid gaps.
+
 ### Database Migration Best Practices:
 - **🚨 NEVER EDIT APPLIED MIGRATIONS**: Once a migration has been pushed to remote (`npx supabase db push`), NEVER edit the file. Supabase tracks migrations by **timestamp only**, not content. Editing creates a mismatch between local files and remote schema.
   - **How it works**: Remote migrations tracked in `supabase_migrations.schema_migrations` table with timestamp as unique ID
@@ -246,6 +274,17 @@ npx supabase functions delete my-function
 - **Component pattern**: Access multiplier via `stats.timeSavedMultiplier`, calculate display values inline
 - **Benefits**: Instant multiplier changes, fewer DB writes, cleaner schema, ready for user customization
 
+### Version History Architecture (2026-01-13):
+- **Immutable snapshots**: Version N = content AFTER Nth save (not before). Each edit creates a new version with the saved content.
+- **Storage model**: `prompt_versions` table stores full snapshots (title, body, variables), not deltas. Easier to query and display.
+- **Content vs metadata**: Only title, body, and variables trigger version creation. isPinned and timesUsed changes are skipped.
+- **Revert tracking**: `reverted_from_version_id` column tracks when a version was created by reverting. Shows "Reverted from Version X" in UI.
+- **Cascade delete**: Versions deleted when parent prompt deleted (ON DELETE CASCADE).
+- **RPC functions**: `create_prompt_version`, `get_prompt_versions` (paginated with total_count), parameter names must match frontend exactly.
+- **Diff computation**: Uses `diff` npm package for word-level diffing (`diffWords`). `getComparisonPair()` utility ensures consistent diff direction.
+- **UI pattern**: Two-column modal (2:1 ratio), time-grouped accordion list, inline diff highlighting with toggle.
+- **Auto-save on revert**: Revert creates new version capturing current state before restoring (nothing ever lost).
+
 ## Project Commands
 ```bash
 npm install        # setup dependencies
@@ -275,13 +314,25 @@ src/
 │   ├── Index.tsx              # Dashboard
 │   └── CopyHistory.tsx        # Usage history
 ├── components/                 # UI components (dashboard, modal, cards, stats)
+│   └── version-history/       # Version history feature components
+│       ├── VersionHistoryModal.tsx   # Main modal with two-column layout
+│       ├── VersionList.tsx           # Time-grouped version list with accordion
+│       ├── VersionListItem.tsx       # Individual version row with diff summary
+│       ├── VersionDiff.tsx           # Inline word-level diff visualization
+│       ├── VariableChanges.tsx       # Added/removed variable badges
+│       └── RevertConfirmDialog.tsx   # Confirmation dialog for revert action
 ├── contexts/                   # PromptsContext, CopyHistoryContext, AuthContext
+├── hooks/
+│   ├── usePromptVersions.ts   # React Query hook for fetching versions
+│   └── useRevertToVersion.ts  # Mutation hook for revert with auto-save
 ├── lib/
-│   ├── storage/               # Supabase storage adapter
+│   ├── storage/               # Supabase storage adapter (includes VersionsAdapter)
 │   ├── supabaseClient.ts      # Supabase client config
 │   └── database.types.ts      # Generated Supabase types
 ├── utils/
-│   └── promptUtils.ts         # Variable detection, payload building
+│   ├── promptUtils.ts         # Variable detection, payload building
+│   ├── diffUtils.ts           # computeDiff, getComparisonPair utilities
+│   └── versionUtils.ts        # groupVersionsByPeriod for time grouping
 └── components/ui/             # shadcn/ui components (auto-generated)
 
 supabase/
@@ -383,10 +434,11 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 
 **Database Schema**:
 - `prompts` table: id (uuid), user_id (uuid), title, body, variables (jsonb), is_pinned, times_used, created_at, updated_at
+- `prompt_versions` table: id (uuid), prompt_id (uuid FK), user_id (uuid), version_number (int), title, body, variables (jsonb), reverted_from_version_id (uuid nullable self-ref), created_at
 - `copy_events` table: id (uuid), user_id (uuid), prompt_id (uuid), prompt_title, variable_values (jsonb), copied_text, created_at
 - `user_settings` table: user_id (uuid), time_saved_multiplier (integer, default: 5), created_at, updated_at
 - `prompt_stats` view: Aggregates total_prompts, total_copies, total_prompt_uses, time_saved_multiplier per user
-- RLS policies: Users can only access their own data
+- RLS policies: Users can only access their own data (SELECT only for prompt_versions - immutable snapshots)
 
 **Time Tracking**: Frontend calculates time saved dynamically using `timesUsed * multiplier` instead of storing accumulated values
 
@@ -457,6 +509,9 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - [ ] RLS policies prevent cross-user access
 - [ ] Real-time subscriptions work for authenticated users
 - [ ] Storage adapter initializes after authentication
+- [ ] RPC function parameter names match frontend TypeScript exactly
+- [ ] Versioning captures NEW state (after save), not OLD state (before save)
+- [ ] Diff direction consistent across all comparison modes (use `getComparisonPair()`)
 
 **Manual Testing**
 1. Auth flow: magic link → dashboard redirect
@@ -465,6 +520,9 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 4. Auth required: unauthenticated sessions redirect to /auth; authenticated data persists after refresh
 5. RLS: cross-user access denied
 6. Real-time: updates across browser sessions
+7. Version history: create prompt → edit → verify version list shows correct content
+8. Diff display: compare to previous shows additions (green) and removals (red) correctly
+9. Revert flow: revert to older version → confirm dialog → verify new version created with old content
 
 ## Development Status & Roadmap
 
@@ -478,6 +536,7 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - Variable highlighting (color-coded, case-insensitive, auto-add dialog, overlay-based)
 - Work-in-progress form persistence (sessionStorage, survives unmounts)
 - Time tracking refactor (frontend calculation, configurable multiplier, reduced DB writes)
+- **Version history tracking** (immutable snapshots, word-level diff, revert with auto-save, revert tracking)
 
 **🔄 Current Focus**:
 - Testing & quality assurance
