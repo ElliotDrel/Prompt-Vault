@@ -175,7 +175,9 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     // Check if content changed (title, body, or variables)
     const contentChanged = hasContentChanges(oldPrompt, promptData);
 
-    // If content changed, create snapshot of NEW state being saved
+    // Prepare next version number BEFORE update (to avoid race conditions)
+    // but only create the version AFTER successful update
+    let nextVersion: number | null = null;
     if (contentChanged) {
       try {
         // Get current max version number
@@ -187,21 +189,9 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
           });
 
         const maxVersion = versionsData?.versions?.[0]?.version_number ?? 0;
-        const nextVersion = maxVersion + 1;
-
-        // Create snapshot of NEW state being saved
-        // Version N = content AFTER the Nth save (not before)
-        // Include revertedFromVersionId if this is a revert operation
-        await this.versionsAdapter.createVersion({
-          promptId: id,
-          versionNumber: nextVersion,
-          title: promptData.title,
-          body: promptData.body,
-          variables: promptData.variables ?? [],
-          revertedFromVersionId: options?.revertedFromVersionId,
-        });
+        nextVersion = maxVersion + 1;
       } catch (versionError) {
-        console.error('Failed to create version snapshot:', versionError);
+        console.error('Failed to get version number:', versionError);
         // Continue with update even if versioning fails
       }
     }
@@ -235,7 +225,27 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       throw new Error(`Prompt not found or you don't have permission to update it`);
     }
 
-    return mapPromptRow(data as PromptRow);
+    const updatedPrompt = mapPromptRow(data as PromptRow);
+
+    // Create version snapshot AFTER successful update
+    // Version N = content AFTER the Nth save (not before)
+    if (contentChanged && nextVersion !== null) {
+      try {
+        await this.versionsAdapter.createVersion({
+          promptId: id,
+          versionNumber: nextVersion,
+          title: promptData.title,
+          body: promptData.body,
+          variables: promptData.variables ?? [],
+          revertedFromVersionId: options?.revertedFromVersionId,
+        });
+      } catch (versionError) {
+        console.error('Failed to create version snapshot:', versionError);
+        // Update succeeded, so return the updated prompt even if versioning fails
+      }
+    }
+
+    return updatedPrompt;
   }
 
   async deletePrompt(id: string): Promise<void> {
