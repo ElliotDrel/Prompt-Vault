@@ -182,12 +182,19 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-12
-Stopped at: Phase 8.1-01 checkpoint - user requested format revision to show exact DB records
+Last session: 2026-01-13
+Stopped at: Phase 8.1-01 - v1 vs v2 discrepancy review (user selected "Review specific discrepancies first")
 Resume file: .planning/phases/8.1-discover-version-history-from-copy-events/.continue-here.md
 
+**Session Progress:**
+- Completed fresh v2 analysis of all 38 prompts (parallel sub-agents)
+- Created DISCOVERED-VERSIONS-v2.md with ~58 discovered versions
+- Compared v1 vs v2 and identified discrepancies
+- User wants to drill into specific discrepancies before merge decision
+
 **Next steps:**
-- Resume Phase 8.1-01: Revise DISCOVERED-VERSIONS.md to show exact DB record format
-- Complete checkpoint verification with user
-- Create SUMMARY.md and commit plan completion
+- Review 3 body text discrepancies (prompts 1, 5, 6)
+- Investigate 2 prompts in v1 but not v2
+- Get user merge strategy decision
+- Complete checkpoint approval and create SUMMARY.md
 - Phase 8.2: Apply verified versions to database

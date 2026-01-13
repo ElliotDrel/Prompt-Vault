@@ -719,6 +719,12 @@ Each discovered version will be inserted into `prompt_versions` with these colum
 ### Prompt 22: v3 - 2 lecture create comprehensive notes
 **prompt_id:** `974159fb-f71b-418b-bfc8-a682bfba4c21`
 
+**Analysis Summary:** 4 copy events analyzed. **2 distinct historical versions discovered.**
+
+**Key Changes Detected:**
+1. **Version 1 → Version 2:** Removed point 9 "Build the notes in the same order as the slide deck..." (10 points → 9 points)
+2. **Version 2 → Current:** Added point 3 "Every definition and example must be derived directly from the transcript's phrasing..." and enhanced point 6 with "(exact equation shown and explained)" and "(verbally explained)"
+
 #### Version 1 (to insert)
 
 | Field | Value |
@@ -726,10 +732,43 @@ Each discovered version will be inserted into `prompt_versions` with these colum
 | prompt_id | `974159fb-f71b-418b-bfc8-a682bfba4c21` |
 | user_id | `a39a8008-3fb2-4f56-b336-c08f082ff670` |
 | version_number | `1` |
-| title | `v3 - 2 lecture create comprehensive notes (use study mode) with 2 lectures - Model: GPT-5.2-Thinking with Study Mode - school` |
-| body | (original with "Build notes in same order as slide deck") |
+| title | `v3 - 2 lecture create comprehensive notes (use study mode) with 2 lectures - Model: GPT-5.2-Thinking with Study Mode  - school` |
 | variables | `["Lecture 1 Slides", "lecture_number_1", "lecture_number_2", "Lecture 1 Transcript", "Lecture 2 Transcript"]` |
 | created_at | `2025-12-14 02:11:26.853119+00` |
+
+**Complete Body (Version 1):**
+```
+goal: create exam-ready comprehensive notes in my note-taking style/format that outline EVERY single topic, concept, and idea that was covered in the Lecture {{lecture_number_1}} (L{{lecture_number_1}}) and Lecture {{lecture_number_2}} (L{{lecture_number_2}}) transcript and slides
+
+Reference Sources (pull from these first):
+- "{{Lecture 1 Transcript}}", "{{Lecture 1 Slides}}" and "{{Lecture 2 Transcript}}"
+
+Notes Formatting & Style for each topic/idea/concept:
+1. Start each with a simple headline (e.g., "How do buyers behave").
+2. Then each include a definition for explanation of what the topic/idea/concept is.
+3. After that include a bulleted list of any other details, additional notes, or insights that I need to know related to that topic/idea/concept.
+4. Use short complete-sentence bullets (one idea each); fragments are allowed only for formulas, variable labels, or axis labels.
+5. Include all formulas, equations, and relevant graphs.
+6. Where relevant add step by step procedures or instructions.
+7. Include any examples that were used in class to better illustrate the topic/idea/concept.
+8. Include exam traps, common mistakes, and professor reminders based on the lecture or slides.
+9. Build the notes in the same order as the slide deck. Use slide titles / slide numbers to define the section breaks. For each slide-section, integrate relevant transcript details (definitions, examples, professor reminders, exam flags) that correspond to that slide's topic.
+10. For every slide-section, pull heavily from the transcript to capture the professor's fine-grain details (phrasing, intuition, examples, 'this will be tested' cues, common mistakes, and step-by-step reasoning). Treat the slides as the structure + overview, but treat the transcript as the primary source for exam-critical nuance.
+
+Additional Criteria:
+* Include all relevant equations and information needed to remember from the examples and class conversation.
+* Place higher priority on the transcript to identify additional ideas, suggestions, tips, tricks, and recommendations made verbally in class that are NOT on the slides!
+*Use both slides and transcripts. Do a slide-by-slide sweep. Do not rely on keyword search only; visually parse every slide (including images).
+* If a term appears in slides but not transcripts, still include it. My goal is zero-miss coverage of slide content.
+* If there is a note in the slides OR lecture that says this will be "on the exam," "will be tested," or anything in that ballpark, ensure the mentioned topic/concept/idea and all related details are included in the notes with the absolute maximum detail to prevent missing content that is explicitly indicated to be assessed.
+* When helpful, add brief Connections bullets that link to related ideas from other provided lecture files/chapters, but keep the overall structure and sequence anchored to the target slide deck.
+* Ensure to include EVERY single topic/idea/concept covered in the Lecture {{lecture_number_1}} (L{{lecture_number_1}}) and Lecture {{lecture_number_2}} (L{{lecture_number_2}}) transcript and slides
+
+MANDATORY Output Criteria:
+* Create a separate section that outlines everything I need to know for each topic/idea/concept. (regardless of the quantity of info in it)
+* Use short, bullet-point lines with one idea per bullet.
+* Output in canvas
+```
 
 #### Version 2 (to insert)
 
@@ -738,10 +777,42 @@ Each discovered version will be inserted into `prompt_versions` with these colum
 | prompt_id | `974159fb-f71b-418b-bfc8-a682bfba4c21` |
 | user_id | `a39a8008-3fb2-4f56-b336-c08f082ff670` |
 | version_number | `2` |
-| title | `v3 - 2 lecture create comprehensive notes (use study mode) with 2 lectures - Model: GPT-5.2-Thinking with Study Mode - school` |
-| body | (added "Every definition and example must be derived directly from the transcript's phrasing") |
+| title | `v3 - 2 lecture create comprehensive notes (use study mode) with 2 lectures - Model: GPT-5.2-Thinking with Study Mode  - school` |
 | variables | `["Lecture 1 Slides", "lecture_number_1", "lecture_number_2", "Lecture 1 Transcript", "Lecture 2 Transcript"]` |
-| created_at | `2025-12-15 17:43:47.161797+00` |
+| created_at | `2025-12-14 17:21:15.776011+00` |
+
+**Complete Body (Version 2):**
+```
+goal: create exam-ready comprehensive notes in my note-taking style/format that outline EVERY single topic, concept, and idea that was covered in the Lecture {{lecture_number_1}} (L{{lecture_number_1}}) and Lecture {{lecture_number_2}} (L{{lecture_number_2}}) transcript and slides
+
+Reference Sources (pull from these first):
+- "{{Lecture 1 Transcript}}", "{{Lecture 1 Slides}}" and "{{Lecture 2 Transcript}}"
+
+Notes Formatting & Style for each topic/idea/concept:
+1. Start each with a simple headline (e.g., "How do buyers behave").
+2. Then each include a definition for explanation of what the topic/idea/concept is.
+3. After that include a bulleted list of any other details, additional notes, or insights that I need to know related to that topic/idea/concept.
+4. Use short complete-sentence bullets (one idea each); fragments are allowed only for formulas, variable labels, or axis labels.
+5. Include all formulas, equations, and relevant graphs.
+6. Where relevant add step by step procedures or instructions.
+7. Include any examples that were used in class to better illustrate the topic/idea/concept.
+8. Include exam traps, common mistakes, and professor reminders based on the lecture or slides.
+9. For every slide-section, pull heavily from the transcript to capture the professor's fine-grain details (phrasing, intuition, examples, 'this will be tested' cues, common mistakes, and step-by-step reasoning). Treat the slides as the structure + overview, but treat the transcript as the primary source for exam-critical nuance.
+
+Additional Criteria:
+* Include all relevant equations and information needed to remember from the examples and class conversation.
+* Place higher priority on the transcript to identify additional ideas, suggestions, tips, tricks, and recommendations made verbally in class that are NOT on the slides!
+*Use both slides and transcripts. Do a slide-by-slide sweep. Do not rely on keyword search only; visually parse every slide (including images).
+* If a term appears in slides but not transcripts, still include it. My goal is zero-miss coverage of slide content.
+* If there is a note in the slides OR lecture that says this will be "on the exam," "will be tested," or anything in that ballpark, ensure the mentioned topic/concept/idea and all related details are included in the notes with the absolute maximum detail to prevent missing content that is explicitly indicated to be assessed.
+* When helpful, add brief Connections bullets that link to related ideas from other provided lecture files/chapters, but keep the overall structure and sequence anchored to the target slide deck.
+* Ensure to include EVERY single topic/idea/concept covered in the Lecture {{lecture_number_1}} (L{{lecture_number_1}}) and Lecture {{lecture_number_2}} (L{{lecture_number_2}}) transcript and slides
+
+MANDATORY Output Criteria:
+* Create a separate section that outlines everything I need to know for each topic/idea/concept. (regardless of the quantity of info in it)
+* Use short, bullet-point lines with one idea per bullet.
+* Output in canvas
+```
 
 **Note:** Existing v1 becomes v3 (current state)
 
@@ -758,11 +829,29 @@ Each discovered version will be inserted into `prompt_versions` with these colum
 | user_id | `a39a8008-3fb2-4f56-b336-c08f082ff670` |
 | version_number | `1` |
 | title | `new project claude planning prompt (NEED TO FINISH IT)` |
-| body | `I have an idea for a new project that I want to build. Help me articulate and develop my ideas completely by asking me questions until you are 100% confident of what I want to add, how I want it to work, what I want it to do, and ALL other relevant details.\n\nFirst, read the idea braindump (<Initial_Idea_Brain_Dump>) below, which includes a quick braindump of all the ideas I have for the project.\n\nThen Interview me in detail using the AskUserQuestionTool about literally anything and everything related to the project: technical implementation, UI/UX, concerns, trade-offs, etc.\n\nQuestion Criteria:\n* Before asking me any questions, ALWAYS try to find the answer yourself. Exhaust all available context and tools (prior messages, provided files, permitted browsing, and accessible tools) to gather...` |
+| body | See complete body below |
 | variables | `["Initial Idea Brain Dump"]` |
 | created_at | `2026-01-08 15:14:20.310974+00` |
 
-**Note:** Changed from `<Initial_Idea_Brain_Dump>` to `<InitialIdeaBrainDump>` format. Existing v1 becomes v2 (current state).
+**Complete Body (Version 1):**
+```
+I have an idea for a new project that I want to build. Help me articulate and develop my ideas completely by asking me questions until you are 100% confident of what I want to add, how I want it to work, what I want it to do, and ALL other relevant details.
+
+First, read the idea braindump (<Initial_Idea_Brain_Dump>) below, which includes a quick braindump of all the ideas I have for the project.
+
+Then Interview me in detail using the AskUserQuestionTool about literally anything and everything related to the project: technical implementation, UI/UX, concerns, trade-offs, etc.
+
+Question Criteria:
+* Before asking me any questions, ALWAYS try to find the answer yourself. Exhaust all available context and tools (prior messages, provided files, permitted browsing, and accessible tools) to gather relevant information.
+* When asking questions, if anything doesn't make sense, explain what you understand and then ask clarifying questions.
+
+After that, create a comprehensive and detailed Features and Functions file that will outline all of the features, functionality, and SAVE the entire conversation that we just had.
+<InitialIdeaBrainDump>{{Initial Idea Brain Dump}}</InitialIdeaBrainDump>
+```
+
+**Change Summary:** The reference text in the instructions changed from `(<Initial_Idea_Brain_Dump>)` (underscores) to `(<InitialIdeaBrainDump>)` (camelCase). The XML tag format remained consistent.
+
+**Note:** Existing v1 becomes v2 (current state).
 
 ---
 
@@ -880,13 +969,44 @@ Each discovered version will be inserted into `prompt_versions` with these colum
 
 ---
 
+---
+
+### Prompt 9: V2 - PR Comment Review
+**prompt_id:** `0484774a-5862-4ebb-ba34-74b1ea637435`
+
+**Analysis Summary:** 16 copy events analyzed. **NO distinct versions discovered.**
+
+**Findings:**
+- All 16 copy events used manual XML-style variable injection (`<AllComments>...</AllComments>`) instead of the formal `{{All Comments}}` variable system
+- The `variable_values` array was empty (`[]`) in all events - user always pasted content directly
+- Template structure (Goal, Research Process, Output Format, Input sections) remained consistent across all events
+- Minor formatting differences detected (blank line before `<AllComments>` tag) but these are trivial whitespace changes, not meaningful version differences
+- The duplicated template structure (sections appear twice) is present in both copy events and current prompt body - this is intentional design, not a version change
+
+**Copy Event Timeline:**
+| Event # | Date | Body Length | Notes |
+|---------|------|-------------|-------|
+| 1 | 2025-12-26 19:49:33 | 23,611 | First use |
+| 2 | 2025-12-26 19:51:01 | 25,697 | Same template |
+| 3 | 2025-12-28 14:33:34 | 39,278 | Same template |
+| ... | ... | ... | ... |
+| 16 | 2026-01-11 18:27:03 | 13,631 | Same template |
+
+**Current Prompt State:**
+- Title: `V2 - PR Comment Review`
+- Variables: `["All Comments"]`
+- Body: Duplicated template structure with `{All Comments}` placeholder
+
+**Conclusion:** No historical versions to insert. The current v1 represents the only version of this prompt template. Body length variations in copy events reflect different PR comment content pasted by the user, not template changes.
+
+---
+
 ## Prompts with NO Discovered Versions (19 prompts)
 
 These prompts had copy events but all events matched the existing v1:
 
 - Self reflection (67 events)
 - code review - in this chat (21 events)
-- V2 - PR Comment Review (16 events)
 - v2.1 - 2 lecture create comprehensive notes (14 events)
 - /PR Comments to XML (7 events)
 - V2 - Custom Instructions for ChatGPT, Claude (4 events)
