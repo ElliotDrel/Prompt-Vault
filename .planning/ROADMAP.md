@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Diff Display & Modal** - Create inline diff highlighting and two-column modal with comparison toggles
 - [x] **Phase 7: Revert & Integration** - Implement revert flow, auto-save, history buttons in view/edit modes
 - [x] **Phase 7.1: Version History UI Enhancements (INSERTED)** - Layout flip, diff toggle, revert tracking, component reuse
-- [ ] **Phase 8: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
+- [x] **Phase 8: Backfill Existing Prompts as Version One** - Create migration to save all current prompts as version one
 
 ## Phase Details
 
@@ -128,7 +128,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 8 to break down)
+- [x] 08-01: Backfill existing prompts as version one and cleanup consolidation (completed 2026-01-12)
 
 ## Progress
 
@@ -145,4 +145,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
 | 7.1. Version History UI Enhancements (INSERTED) | 5/5 | Complete | 2026-01-12 |
-| 8. Backfill Existing Prompts as Version One | 0/TBD | Not Started | - |
+| 8. Backfill Existing Prompts as Version One | 1/1 | Complete | 2026-01-12 |
