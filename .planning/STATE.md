@@ -10,25 +10,24 @@ See: .planning/PROJECT.md (updated 2026-01-09)
 ## Current Position
 
 Phase: 7.1 of 9 (Version History UI Enhancements)
-Plan: 3 of 3 + FIX in current phase (all UAT issues fixed)
-Status: Phase complete, ready for next phase
-Last activity: 2026-01-11 — Completed 7.1-03-FIX (10 UAT issues addressed)
+Plan: 3 of 3 + FIX + FIX2 in current phase
+Status: Phase 7.1 COMPLETE, ready for Phase 8
+Last activity: 2026-01-12 — Completed 7.1-03-FIX2 (4 re-test issues addressed)
 
 Progress: █████████░ 93.8%
 
-### 7.1-03-FIX UAT Status
+### 7.1-03-FIX2 UAT Status (Re-test)
 
-**All 10 issues fixed:**
-- UAT-001: Version count now excludes "Current" entry ✓
-- UAT-002: "Compare to Previous" disabled for Version 1 ✓
-- UAT-003: Revert button hidden when version matches Current ✓
-- UAT-004/005: Current entry only shown when unsaved changes exist ✓
-- UAT-006: Detail view shows revert tracking info ✓
-- UAT-007: Current tab shows revert info when restored from version ✓
-- UAT-008: Comparison buttons right-aligned ✓
-- UAT-009: Data flow verified working; Hide Diff affects variables ✓
+**All 4 re-test issues fixed:**
+- UAT-011 (Blocker): Version now captures NEW state, not OLD ✓
+- UAT-012 (Major): Removed separate "Current" entry - latest version shows "(Current)" badge ✓
+- UAT-013 (Major): Removed "unsaved changes" messaging ✓
+- UAT-014 (Minor): arePromptsIdentical cleaned up - no longer used for UI flow control ✓
 
-**Key fix:** Added `arePromptsIdentical()` utility to compare prompt content and conditionally show Current entry only when there are actual unsaved changes.
+**Key changes:**
+- Version N = content AFTER Nth save (fundamental model fix)
+- Latest version IS current (no separate concept)
+- Revert button hidden based on position (isLatestVersion), not content comparison
 
 ## UAT Status (Phases 1-7)
 
@@ -67,9 +66,9 @@ Progress: █████████░ 93.8%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 3.3 min
-- Total execution time: 0.8 hours
+- Total plans completed: 17
+- Average duration: 4.1 min
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -82,10 +81,11 @@ Progress: █████████░ 93.8%
 | 5 (Version List Components) | 2 | 7 min | 3.5 min |
 | 6 (Diff Display & Modal) | 2 | 6 min | 3 min |
 | 7 (Revert & Integration) | 2 | 7 min | 3.5 min |
+| 7.1 (UI Enhancements) | 3+FIX+FIX2 | 23 min | 4.6 min |
 
 **Recent Trend:**
-- Last 5 plans: 4, 3, 3, 3, 4 min
-- Trend: Stable at 3-4 min
+- Last 5 plans: 3, 4, 5, 6, 12 min
+- Trend: Stable, FIX plans take longer due to multiple issue fixes
 
 ## Accumulated Context
 
@@ -94,7 +94,7 @@ Progress: █████████░ 93.8%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Save OLD state on edit, not new state (current prompt always "live")
+- Save NEW state on edit (version N = content after Nth save) [Phase 7.1-FIX2 - corrected from OLD]
 - Immutable snapshots, not deltas (easier to query/display)
 - Skip versions for metadata changes (focus on content only)
 - Word-level diff using `diff` npm package (readable for prose)
@@ -138,6 +138,9 @@ Recent decisions affecting current work:
 - Layout flip uses 3-column grid (2:1 ratio) for detail:list [Phase 7.1]
 - showHighlighting prop defaults to true for backward compatibility [Phase 7.1]
 - Toggle button uses outline variant to distinguish from comparison mode buttons [Phase 7.1]
+- Latest version IS current - no separate "Current" concept [Phase 7.1-FIX2]
+- Revert button visibility based on position (isLatestVersion), not content comparison [Phase 7.1-FIX2]
+- arePromptsIdentical for diff visualization only, not UI flow control [Phase 7.1-FIX2]
 
 ### Roadmap Evolution
 
@@ -165,11 +168,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-11
-Stopped at: Completed 7.1-03-FIX plan
+Last session: 2026-01-12
+Stopped at: Completed 7.1-03-FIX2 plan (Phase 7.1 COMPLETE)
 Resume file: None
 
 **Next steps:**
-- Run `/gsd:verify-work 7.1` to re-verify Phase 7.1 with fixes
-- Phase 8 (Day-Level Diff View) follows Phase 7.1
+- Phase 8 (Day-Level Diff View) - `/gsd:plan-phase 8`
 - Phase 9 (Backfill Existing Prompts) completes the milestone

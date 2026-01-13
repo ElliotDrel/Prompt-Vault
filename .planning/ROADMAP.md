@@ -118,7 +118,9 @@ Plans:
 Plans:
 - [x] 7.1-01: Add revert tracking database column and update types/adapter (completed 2026-01-12)
 - [x] 7.1-02: Layout flip and diff toggle implementation (completed 2026-01-12)
-- [ ] 7.1-03: Current version diff display and revert tracking UI
+- [x] 7.1-03: Current version diff display and revert tracking UI (completed 2026-01-12)
+- [x] 7.1-03-FIX: Fix 10 UAT issues from initial testing (completed 2026-01-11)
+- [x] 7.1-03-FIX2: Fix 4 UAT issues from re-testing - versioning model correction (completed 2026-01-12)
 
 ### Phase 8: Day-Level Diff View
 **Goal**: Add Google Docs-style day grouping where clicking a day header shows combined diff of all changes that day
@@ -152,6 +154,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 7.1 �
 | 5. Version List Components | 2/2 | Complete | 2026-01-11 |
 | 6. Diff Display & Modal | 2/2 | Complete | 2026-01-11 |
 | 7. Revert & Integration | 2/2 | Complete | 2026-01-11 |
-| 7.1. Version History UI Enhancements (INSERTED) | 2/3 | In Progress | - |
+| 7.1. Version History UI Enhancements (INSERTED) | 5/5 | Complete | 2026-01-12 |
 | 8. Day-Level Diff View | 0/TBD | Not Started | - |
 | 9. Backfill Existing Prompts as Version One | 0/TBD | Not Started | - |
