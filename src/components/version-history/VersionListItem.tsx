@@ -37,6 +37,11 @@ interface VersionListItemProps {
   isLatest?: boolean;
 
   /**
+   * Whether this version is currently selected in the list
+   */
+  isSelected?: boolean;
+
+  /**
    * Callback when this version is selected for detailed view
    */
   onSelect: (version: PromptVersion) => void;
@@ -124,6 +129,7 @@ export const VersionListItem = memo(function VersionListItem({
   comparisonMode,
   versionNumberMap,
   isLatest,
+  isSelected,
   onSelect,
 }: VersionListItemProps) {
   // Determine comparison target based on mode
@@ -153,7 +159,9 @@ export const VersionListItem = memo(function VersionListItem({
   return (
     <button
       type="button"
-      className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      className={`w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+        isSelected ? 'ring-2 ring-ring ring-offset-2 bg-muted/30' : ''
+      }`}
       onClick={() => onSelect(version)}
     >
       {/* Header: Version number, current badge, revert indicator, and timestamp */}
