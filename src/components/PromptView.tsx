@@ -203,6 +203,7 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         promptTitle: event.promptTitle,
         variableValues: { ...event.variableValues },
         copiedText: event.copiedText,
+        sourceCopyEventId: event.id,
       });
 
       toast.success('Copied from history');
