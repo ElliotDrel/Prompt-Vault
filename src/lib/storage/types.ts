@@ -1,17 +1,4 @@
-import { Prompt, CopyEvent, PromptVersion, PaginatedVersions, PublicPrompt } from '@/types/prompt';
-
-// Filter preference types for persisting user filter/sort state
-export type VisibilityFilter = 'all' | 'public' | 'private';
-export type AuthorFilter = 'all' | 'mine' | 'others';
-export type SortBy = 'name' | 'lastUpdated' | 'createdAt' | 'usage';
-export type SortDirection = 'asc' | 'desc';
-
-export interface FilterPreferences {
-  filterVisibility: VisibilityFilter;
-  filterAuthor: AuthorFilter;
-  sortBy: SortBy;
-  sortDirection: SortDirection;
-}
+import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
 
 // Optional metadata for prompt updates (e.g., for revert tracking)
 export interface UpdatePromptOptions {
@@ -22,13 +9,10 @@ export interface UpdatePromptOptions {
 // Storage interface for prompts
 export interface PromptsStorageAdapter {
   getPrompts(): Promise<Prompt[]>;
-  getPublicPrompts(): Promise<PublicPrompt[]>;
-  getPublicPromptById(promptId: string): Promise<PublicPrompt | null>;
   addPrompt(prompt: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt>;
   updatePrompt(id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt>;
   deletePrompt(id: string): Promise<void>;
   togglePinPrompt(id: string): Promise<Prompt>;
-  toggleVisibility(id: string): Promise<Prompt>;
   incrementPromptUsage(id: string): Promise<Prompt>;
 }
 
@@ -49,7 +33,7 @@ export interface CopyEventsStorageAdapter {
   clearHistory(): Promise<void>;
 }
 
-// Storage interface for stats and filter preferences
+// Storage interface for stats
 export interface StatsStorageAdapter {
   getStats(): Promise<{
     totalPrompts: number;
@@ -58,8 +42,6 @@ export interface StatsStorageAdapter {
     timeSavedMultiplier: number;
   }>;
   incrementCopyCount(): Promise<void>;
-  getFilterPreferences(): Promise<FilterPreferences>;
-  updateFilterPreferences(prefs: Partial<FilterPreferences>): Promise<void>;
 }
 
 // Storage interface for versions
@@ -83,7 +65,7 @@ export interface StorageAdapter {
   versions: VersionsStorageAdapter;
 
   // Event subscription for real-time updates
-  subscribe?: (callback: (type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void) => () => void;
+  subscribe?: (callback: (type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void) => () => void;
 
   // Check if adapter is ready
   isReady(): Promise<boolean>;

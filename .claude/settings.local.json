@@ -14,8 +14,7 @@
       "Bash(git log:*)",
       "WebSearch",
       "Skill(gsd:*)",
-      "Bash(git status:*)",
-      "Bash(git fetch:*)"
+      "Bash(git status:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
