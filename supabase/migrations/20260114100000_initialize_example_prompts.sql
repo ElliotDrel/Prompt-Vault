@@ -34,7 +34,7 @@ A tool to save, organize, and reuse your AI prompts. Stop rewriting the same pro
 ## Key Features
 
 **Variables**
-Use {{variable_name}} syntax to create dynamic prompts. When you copy, you''ll be prompted to fill in the values. Add "-optional" to variable names (like {{notes-optional}}) for fields that can be left empty.
+Use {variable_name} syntax to create dynamic prompts. When you copy, you''ll be prompted to fill in the values.
 
 **Pinning**
 Pin your most-used prompts to keep them at the top of your list. Click the pin icon on any prompt card.
@@ -50,7 +50,7 @@ See a history of all the prompts you''ve copied to your clipboard INCLUDING THE 
 
 ## Getting Started
 1. Create new prompts with the + button
-2. Try using {{variables}} in your prompts
+2. Try using {variables} in your prompts
 3. Pin your favorites for quick access
 
 Feel free to delete this welcome prompt once you''re familiar with the app!';
