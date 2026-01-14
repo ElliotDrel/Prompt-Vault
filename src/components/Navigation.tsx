@@ -3,6 +3,7 @@ import { NavLink } from "@/components/ui/NavLink";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -19,8 +20,13 @@ export const Navigation = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to sign out', error);
+      toast.error('Failed to sign out. Please try again.');
+    }
   };
 
   return (
