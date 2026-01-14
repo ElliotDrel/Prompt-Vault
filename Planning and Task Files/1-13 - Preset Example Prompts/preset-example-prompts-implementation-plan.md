@@ -1,16 +1,17 @@
 # Implementation Plan: Preset Example Prompts for New Users
 
 ## Overview
-Create a database trigger that automatically inserts 3 example prompts when a new user signs up. These prompts are **regular prompts** with no special treatment - they can be edited, deleted, pinned/unpinned, and versioned exactly like user-created prompts.
+Create a database trigger that automatically inserts 4 example prompts when a new user signs up. These prompts are **regular prompts** with no special treatment - they can be edited, deleted, pinned/unpinned, and versioned exactly like user-created prompts.
 
 ## Requirements Summary
 - **Trigger**: Supabase Auth trigger on new user creation
-- **Target**: New users only (created after deployment)
-- **Count**: 3 example prompts
+- **Target**: New users (created after deployment) plus a one-time backfill for a curated set of existing users
+- **Count**: 4 example prompts
 - **Types**:
-  1. Developer/coding prompt (with variables, pre-pinned)
-  2. Productivity prompt (no variables)
-  3. Image generation prompt (no variables)
+  1. Welcome/orientation prompt (no variables, pre-pinned, 2 versions)
+  2. Developer/coding prompt (no variables)
+  3. Productivity prompt (with variables)
+  4. Image generation prompt (no variables)
 - **Features showcased**: Variables, pinning, version history, copy stats
 - **Behavior**: Identical to regular prompts (fully editable, deletable)
 - **Content**: Draft during implementation (after plan approval)
@@ -51,11 +52,12 @@ CREATE OR REPLACE FUNCTION create_prompt_version(
     p_variables JSONB
 ) RETURNS TABLE (...)
 ```
+Note: The trigger will use direct `INSERT` statements into `prompt_versions` because the RPC enforces `auth.uid()` and does not have auth context inside the trigger.
 
 ### Key Constraints
 1. **Required fields**: `title`, `body`, `user_id`
 2. **RLS policies**: Users can only access their own prompts (`auth.uid() = user_id`)
-3. **Version tracking**: Every prompt needs a version 1 snapshot via `create_prompt_version()`
+3. **Version tracking**: Every prompt needs a version 1 snapshot via direct `INSERT` into `prompt_versions`
 4. **Idempotency**: Use `ON CONFLICT` or check for existing prompts
 
 ## Implementation Plan
@@ -79,34 +81,34 @@ DECLARE
     v_prompt_1_id UUID;
     v_prompt_2_id UUID;
     v_prompt_3_id UUID;
+    v_prompt_4_id UUID;
 BEGIN
-    -- Insert Prompt 1: Developer (with variables, pre-pinned)
+    -- Insert Prompt 1: Welcome (no variables, pre-pinned)
     INSERT INTO prompts (user_id, title, body, variables, is_pinned, times_used)
     VALUES (
         NEW.id,
-        'Code Review Request',  -- placeholder, to be replaced with final content
-        'Please review...',     -- placeholder
-        '["language", "feature"]'::jsonb,
-        true,  -- pre-pinned
+        'Welcome to Prompt Vault', -- placeholder, to be replaced with final content
+        'Welcome...',              -- placeholder (v2 body)
+        '[]'::jsonb,
+        true,
         0
     )
     RETURNING id INTO v_prompt_1_id;
 
-    -- Create version 1 for prompt 1
-    PERFORM create_prompt_version(
-        v_prompt_1_id,
-        1,
-        'Code Review Request',
-        'Please review...',
-        '["language", "feature"]'::jsonb
-    );
+    -- Create version 1 for prompt 1 (welcome v1)
+    INSERT INTO prompt_versions (prompt_id, user_id, version_number, title, body, variables, created_at)
+    VALUES (v_prompt_1_id, NEW.id, 1, 'Welcome to Prompt Vault', 'Welcome...', '[]'::jsonb, NOW() - INTERVAL '1 minute');
 
-    -- Insert Prompt 2: Productivity (no variables)
+    -- Create version 2 for prompt 1 (welcome v2)
+    INSERT INTO prompt_versions (prompt_id, user_id, version_number, title, body, variables, created_at)
+    VALUES (v_prompt_1_id, NEW.id, 2, 'Welcome to Prompt Vault', 'Welcome...', '[]'::jsonb, NOW());
+
+    -- Insert Prompt 2: Developer (no variables)
     INSERT INTO prompts (user_id, title, body, variables, is_pinned, times_used)
     VALUES (
         NEW.id,
-        'Email Template',       -- placeholder
-        'Dear team...',         -- placeholder
+        'Code Review for Uncommitted Changes', -- placeholder
+        'Review all uncommitted code...',      -- placeholder
         '[]'::jsonb,
         false,
         0
@@ -114,34 +116,40 @@ BEGIN
     RETURNING id INTO v_prompt_2_id;
 
     -- Create version 1 for prompt 2
-    PERFORM create_prompt_version(
-        v_prompt_2_id,
-        1,
-        'Email Template',
-        'Dear team...',
-        '[]'::jsonb
-    );
+    INSERT INTO prompt_versions (prompt_id, user_id, version_number, title, body, variables, created_at)
+    VALUES (v_prompt_2_id, NEW.id, 1, 'Code Review for Uncommitted Changes', 'Review all uncommitted code...', '[]'::jsonb, NOW());
 
-    -- Insert Prompt 3: Image Generation (no variables)
+    -- Insert Prompt 3: Productivity (with variables)
     INSERT INTO prompts (user_id, title, body, variables, is_pinned, times_used)
     VALUES (
         NEW.id,
-        'AI Image Prompt',      -- placeholder
-        'Generate an image...', -- placeholder
-        '[]'::jsonb,
+        'AI Meeting Notes Generator', -- placeholder
+        'Generate comprehensive meeting notes...', -- placeholder
+        '["Transcript (Required)", "People Present (Optional)", "My Notes (Optional)"]'::jsonb,
         false,
         0
     )
     RETURNING id INTO v_prompt_3_id;
 
     -- Create version 1 for prompt 3
-    PERFORM create_prompt_version(
-        v_prompt_3_id,
-        1,
-        'AI Image Prompt',
-        'Generate an image...',
-        '[]'::jsonb
-    );
+    INSERT INTO prompt_versions (prompt_id, user_id, version_number, title, body, variables, created_at)
+    VALUES (v_prompt_3_id, NEW.id, 1, 'AI Meeting Notes Generator', 'Generate comprehensive meeting notes...', '["Transcript (Required)", "People Present (Optional)", "My Notes (Optional)"]'::jsonb, NOW());
+
+    -- Insert Prompt 4: Image Generation (no variables)
+    INSERT INTO prompts (user_id, title, body, variables, is_pinned, times_used)
+    VALUES (
+        NEW.id,
+        'Image Prompt - Cinematic Scene Generator', -- placeholder
+        'A cinematic wide-angle shot...',           -- placeholder
+        '[]'::jsonb,
+        false,
+        0
+    )
+    RETURNING id INTO v_prompt_4_id;
+
+    -- Create version 1 for prompt 4
+    INSERT INTO prompt_versions (prompt_id, user_id, version_number, title, body, variables, created_at)
+    VALUES (v_prompt_4_id, NEW.id, 1, 'Image Prompt - Cinematic Scene Generator', 'A cinematic wide-angle shot...', '[]'::jsonb, NOW());
 
     RETURN NEW;
 END;
@@ -152,7 +160,7 @@ $$;
 - `SECURITY DEFINER`: Bypasses RLS (required for trigger context)
 - `SET search_path = public`: Security best practice
 - `RETURNING id INTO v_prompt_X_id`: Capture generated UUIDs
-- `PERFORM create_prompt_version()`: Create version 1 snapshots
+- `INSERT INTO prompt_versions`: Create version snapshots (including welcome v1/v2)
 - `RETURN NEW`: Required for AFTER INSERT triggers
 
 ### Step 3: Attach Trigger to auth.users
@@ -181,22 +189,28 @@ END IF;
 - Adds unnecessary complexity
 
 ### Step 5: Content Creation
-After plan approval, draft the 3 example prompts with:
+After plan approval, draft the 4 example prompts with:
 
-**Prompt 1 (Developer, pinned, with variables)**:
-- Title: Something like "Code Review Request" or "Debug Analysis"
-- Body: Demonstrates `{{language}}`, `{{feature}}` variables
-- Educational content: Mentions variable substitution, pinning feature
+**Prompt 1 (Welcome/orientation, pinned, no variables, 2 versions)**:
+- Title: "Welcome to Prompt Vault"
+- Body: v1 explains version history; v2 introduces key features (variables, pinning, copy, history)
+- Educational content: Mentions version history and core app features
+- Use case: Onboarding walkthrough
+
+**Prompt 2 (Developer, no variables)**:
+- Title: "Code Review for Uncommitted Changes"
+- Body: Clear review instructions and output format
+- Educational content: Emphasizes correctness, standards, stability, requirements
 - Use case: Practical developer workflow
 
-**Prompt 2 (Productivity, no variables)**:
-- Title: Something like "Meeting Notes Template" or "Email Draft"
-- Body: Simple copy-paste template
-- Educational content: Mentions copy history, time-saved tracking
+**Prompt 3 (Productivity, with variables)**:
+- Title: "AI Meeting Notes Generator"
+- Body: Template with `{Transcript (Required)}`, `{People Present (Optional)}`, `{My Notes (Optional)}`
+- Educational content: Demonstrates variable substitution
 - Use case: General professional productivity
 
-**Prompt 3 (Image Generation, no variables)**:
-- Title: Something like "AI Image Prompt" or "DALL-E Template"
+**Prompt 4 (Image Generation, no variables)**:
+- Title: "Image Prompt - Cinematic Scene Generator"
 - Body: Example prompt for image generation
 - Educational content: Mentions version history, prompt iteration
 - Use case: Creative/AI content generation
@@ -206,15 +220,15 @@ After plan approval, draft the 3 example prompts with:
 **Manual Testing Checklist**:
 1. ✅ Create a new user via Google OAuth
 2. ✅ Create a new user via magic link email
-3. ✅ Verify 3 prompts appear immediately in dashboard
-4. ✅ Verify developer prompt is pre-pinned
-5. ✅ Verify developer prompt has variables detected
+3. ✅ Verify 4 prompts appear immediately in dashboard
+4. ✅ Verify welcome prompt is pre-pinned
+5. ✅ Verify productivity prompt has variables detected
 6. ✅ Verify all prompts have version 1 in version history
 7. ✅ Test editing example prompt → verify version 2 created
 8. ✅ Test deleting example prompt → verify successful deletion
 9. ✅ Test copying example prompt → verify copy history tracked
 10. ✅ Test pinning/unpinning → verify toggle works
-11. ✅ Verify existing users are unaffected (no new prompts)
+11. ✅ Verify non-target existing users are unaffected; targeted users receive prompts once
 
 **Database Verification**:
 ```sql
@@ -240,15 +254,15 @@ ORDER BY pv.prompt_id, pv.version_number;
 ### 1. User ID Handling
 - **Trigger context**: Use `NEW.id` (the newly created user's ID)
 - **RLS bypass**: `SECURITY DEFINER` required since trigger doesn't have `auth.uid()` context
-- **Version creation**: RPC function validates ownership internally (safe to call from trigger)
+- **Version creation**: Use direct inserts into `prompt_versions` because the RPC validates `auth.uid()` and lacks auth context in the trigger
 
 ### 2. Version Snapshot Creation
 - **Timing**: Create version 1 immediately after prompt insertion
-- **Method**: Use `PERFORM create_prompt_version()` (not `SELECT create_prompt_version()`)
+- **Method**: Use direct `INSERT` statements into `prompt_versions`
 - **Data consistency**: Title, body, variables must match between prompt and version
 
 ### 3. Content Duplication
-Since title/body/variables appear twice (prompt INSERT + version RPC), consider:
+Since title/body/variables appear twice (prompt INSERT + prompt_versions INSERT), consider:
 - **Option A**: Inline literals (current plan) - simpler but duplicated
 - **Option B**: Use variables to store content once - cleaner but more complex
 
@@ -256,12 +270,13 @@ Since title/body/variables appear twice (prompt INSERT + version RPC), consider:
 DECLARE
     v_title_1 TEXT := 'Code Review Request';
     v_body_1 TEXT := 'Please review...';
-    v_vars_1 JSONB := '["language", "feature"]'::jsonb;
+    v_vars_1 JSONB := '[]'::jsonb;
 BEGIN
     INSERT INTO prompts (...) VALUES (NEW.id, v_title_1, v_body_1, v_vars_1, true, 0)
     RETURNING id INTO v_prompt_1_id;
 
-    PERFORM create_prompt_version(v_prompt_1_id, 1, v_title_1, v_body_1, v_vars_1);
+    INSERT INTO prompt_versions (prompt_id, user_id, version_number, title, body, variables, created_at)
+    VALUES (v_prompt_1_id, NEW.id, 1, v_title_1, v_body_1, v_vars_1, NOW());
 END;
 ```
 
@@ -305,20 +320,20 @@ If example prompts need updating after deployment:
 
 ## Success Criteria
 
-✅ New users automatically receive 3 example prompts on signup
+✅ New users automatically receive 4 example prompts on signup
 ✅ Example prompts are indistinguishable from regular prompts (no special flags/styling)
-✅ Developer prompt is pre-pinned
-✅ Developer prompt has variables auto-detected
+✅ Welcome prompt is pre-pinned
+✅ Productivity prompt has variables auto-detected
 ✅ All prompts have version 1 in history
 ✅ Users can edit, delete, copy example prompts without restrictions
-✅ Existing users are unaffected
+✅ Non-target existing users are unaffected; targeted users receive prompts once
 ✅ Trigger executes successfully for both OAuth and magic link signups
 ✅ No console errors or failed database operations
 
 ## Open Questions / Decisions Made
 
 - ✅ **Trigger vs Frontend**: Database trigger (matches existing pattern)
-- ✅ **Existing users**: No backfill (new users only)
+- ✅ **Existing users**: Limited backfill for a curated list (idempotent); new users via trigger
 - ✅ **Deletable**: Yes, fully deletable like regular prompts
 - ✅ **Visual indicators**: None (regular prompts)
 - ✅ **Content timing**: Draft after plan approval
@@ -331,14 +346,14 @@ If example prompts need updating after deployment:
 |------|--------|------------|
 | Trigger fails silently | Users get no prompts | Add error handling, log to Supabase logs |
 | Content/version mismatch | Version history shows wrong content | Use variables to store content once |
-| RLS blocks version creation | No version 1 created | Use `SECURITY DEFINER` + `PERFORM` |
+| RLS blocks version creation | No version 1 created | Use `SECURITY DEFINER` + direct `INSERT` into `prompt_versions` |
 | Large prompt bodies | Migration file too large | Keep prompt bodies concise (<500 chars) |
-| Future content updates | Can't update existing users | Document that updates only affect new users |
+| Future content updates | Can't update existing users | Document that updates only affect new users and any future backfill targets |
 
 ## Next Steps
 
 1. Get plan approval
-2. Draft the 3 example prompt contents (title + body for each)
+2. Draft the 4 example prompt contents (title + body for each)
 3. Create migration file with final content
 4. Test with new user signup
 5. Deploy to remote database
