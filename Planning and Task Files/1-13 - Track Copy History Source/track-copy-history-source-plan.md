@@ -90,6 +90,22 @@ await addCopyEvent({
 
 ---
 
+### 6. Pass Source ID from Prompt Usage History
+**File**: `src/components/PromptView.tsx`
+
+Update the prompt-specific history copy handler to pass the source:
+```typescript
+await addPromptEvent({
+  promptId: event.promptId,
+  promptTitle: event.promptTitle,
+  variableValues: { ...event.variableValues },
+  copiedText: event.copiedText,
+  sourceCopyEventId: event.id,  // NEW: Track source
+});
+```
+
+---
+
 ## Files Changed
 
 | File | Change |
@@ -99,6 +115,7 @@ await addCopyEvent({
 | `src/types/prompt.ts` | Add `sourceCopyEventId` to `CopyEvent` |
 | `src/lib/storage/supabaseAdapter.ts` | Update row type, mapper, and insert |
 | `src/pages/CopyHistory.tsx` | Pass `sourceCopyEventId: event.id` |
+| `src/components/PromptView.tsx` | Pass `sourceCopyEventId: event.id` |
 
 ---
 
