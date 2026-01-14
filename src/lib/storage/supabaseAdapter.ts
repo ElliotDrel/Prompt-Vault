@@ -21,6 +21,7 @@ type CopyEventRow = {
   variable_values: Record<string, string> | null;
   copied_text: string;
   created_at: string;
+  source_copy_event_id: string | null;
 };
 
 type VersionRow = {
@@ -52,6 +53,7 @@ const mapCopyEventRow = (row: CopyEventRow): CopyEvent => ({
   variableValues: row.variable_values ?? {},
   copiedText: row.copied_text,
   timestamp: row.created_at,
+  sourceCopyEventId: row.source_copy_event_id,
 });
 
 const mapVersionRow = (row: VersionRow): PromptVersion => ({
@@ -414,6 +416,7 @@ class SupabaseCopyEventsAdapter implements CopyEventsStorageAdapter {
         prompt_title: eventData.promptTitle,
         variable_values: eventData.variableValues ?? {},
         copied_text: eventData.copiedText,
+        source_copy_event_id: eventData.sourceCopyEventId ?? null,
       })
       .select()
       .single();
