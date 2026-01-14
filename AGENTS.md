@@ -327,8 +327,9 @@ src/
 │   └── useRevertToVersion.ts  # Mutation hook for revert with auto-save
 ├── lib/
 │   ├── storage/               # Supabase storage adapter (includes VersionsAdapter)
-│   ├── supabaseClient.ts      # Supabase client config
-│   └── database.types.ts      # Generated Supabase types
+│   └── supabaseClient.ts      # Supabase client config
+├── types/
+│   └── supabase-generated.ts  # Generated Supabase types (from remote schema)
 ├── utils/
 │   ├── promptUtils.ts         # Variable detection, payload building
 │   ├── diffUtils.ts           # computeDiff, getComparisonPair utilities
