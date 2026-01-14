@@ -297,7 +297,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 <div>
                   <h4 className="text-sm font-medium mb-2">Title</h4>
                   <div className="border rounded p-3 bg-muted/30">
-                    {comparisonTarget ? (() => {
+                    {comparisonTarget && showDiffHighlighting ? (() => {
                       const { old: oldTitle, new: newTitle } = getComparisonPair(selectedVersion.title, comparisonTarget.title, comparisonMode);
                       return <VersionDiff oldText={oldTitle} newText={newTitle} showHighlighting={showDiffHighlighting} />;
                     })() : (
@@ -312,7 +312,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 <div>
                   <h4 className="text-sm font-medium mb-2">Body</h4>
                   <div className="border rounded p-3 bg-muted/30">
-                    {comparisonTarget ? (() => {
+                    {comparisonTarget && showDiffHighlighting ? (() => {
                       const { old: oldBody, new: newBody } = getComparisonPair(selectedVersion.body, comparisonTarget.body, comparisonMode);
                       return <VersionDiff oldText={oldBody} newText={newBody} showHighlighting={showDiffHighlighting} />;
                     })() : (
@@ -326,7 +326,7 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
                 {/* Variables */}
                 <div>
                   <h4 className="text-sm font-medium mb-2">Variables</h4>
-                  {comparisonTarget ? (() => {
+                  {comparisonTarget && showDiffHighlighting ? (() => {
                     const { old: oldVars, new: newVars } = getComparisonPair(selectedVersion.variables, comparisonTarget.variables, comparisonMode);
                     return <VariableChangesOrEmpty oldVariables={oldVars} newVariables={newVars} showHighlighting={showDiffHighlighting} />;
                   })() : selectedVersion.variables.length > 0 ? (
