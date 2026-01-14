@@ -11,6 +11,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Analytics } from "@vercel/analytics/react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import ScrollToTopOnRoute from "@/components/ScrollToTopOnRoute";
 import Index from "./pages/Index";
 import CopyHistory from "./pages/CopyHistory";
 import Auth from "./pages/Auth";
@@ -47,6 +48,7 @@ const RootLayout = () => (
     <Outlet />
     <Analytics />
     <ScrollToTop />
+    <ScrollToTopOnRoute />
   </>
 );
 
