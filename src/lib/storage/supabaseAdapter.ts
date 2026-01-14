@@ -503,12 +503,12 @@ class SupabaseVersionsAdapter implements VersionsStorageAdapter {
 
     const { data: result, error } = await supabase
       .rpc('create_prompt_version', {
-        prompt_id: data.promptId,
-        version_number: data.versionNumber,
-        title: data.title,
-        body: data.body,
-        variables: data.variables,
-        reverted_from_version_id: data.revertedFromVersionId ?? null,
+        p_prompt_id: data.promptId,
+        p_version_number: data.versionNumber,
+        p_title: data.title,
+        p_body: data.body,
+        p_variables: data.variables,
+        p_reverted_from_version_id: data.revertedFromVersionId ?? null,
       })
       .maybeSingle();
 
@@ -559,22 +559,6 @@ class SupabaseVersionsAdapter implements VersionsStorageAdapter {
       hasMore,
       totalCount,
     };
-  }
-
-  async consolidateVersions(promptId: string): Promise<number> {
-    await requireUserId();
-
-    const { data, error } = await supabase
-      .rpc('consolidate_prompt_versions', {
-        prompt_id: promptId,
-      })
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to consolidate versions: ${error.message}`);
-    }
-
-    return (data as number) ?? 0;
   }
 }
 
