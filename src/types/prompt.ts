@@ -23,6 +23,7 @@ export interface CopyEvent {
   variableValues: VariableValues;
   copiedText: string;
   timestamp: string;
+  sourceCopyEventId?: string | null;
 }
 
 export interface PromptVersion {

@@ -129,6 +129,7 @@ const CopyHistory = () => {
         promptTitle: event.promptTitle,
         variableValues: { ...event.variableValues },
         copiedText: event.copiedText,
+        sourceCopyEventId: event.id,
       });
 
       toast.success('Copied from history');

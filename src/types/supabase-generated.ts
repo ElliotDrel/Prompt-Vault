@@ -21,6 +21,7 @@ export type Database = {
           id: string
           prompt_id: string | null
           prompt_title: string
+          source_copy_event_id: string | null
           user_id: string | null
           variable_values: Json | null
         }
@@ -30,6 +31,7 @@ export type Database = {
           id?: string
           prompt_id?: string | null
           prompt_title: string
+          source_copy_event_id?: string | null
           user_id?: string | null
           variable_values?: Json | null
         }
@@ -39,6 +41,7 @@ export type Database = {
           id?: string
           prompt_id?: string | null
           prompt_title?: string
+          source_copy_event_id?: string | null
           user_id?: string | null
           variable_values?: Json | null
         }
@@ -48,6 +51,13 @@ export type Database = {
             columns: ["prompt_id"]
             isOneToOne: false
             referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "copy_events_source_copy_event_id_fkey"
+            columns: ["source_copy_event_id"]
+            isOneToOne: false
+            referencedRelation: "copy_events"
             referencedColumns: ["id"]
           },
         ]
@@ -221,6 +231,7 @@ export type Database = {
           id: string
           prompt_id: string | null
           prompt_title: string
+          source_copy_event_id: string | null
           user_id: string | null
           variable_values: Json | null
         }[]
