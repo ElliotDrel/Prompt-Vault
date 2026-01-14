@@ -13,42 +13,42 @@ These 4 prompts will be automatically created for every new user.
 
 ### Version 1 (initial - created 1 second before v2):
 ```
-Welcome to Prompt Vault!
+👋 Welcome to Prompt Vault!
 
 This is Version 1 - it exists just to show you how version history works!
 
-Click the clock icon on this prompt's detail page to open the Version History panel. You'll see both versions listed, and you can compare them to see what changed.
+Click the 🕐 clock icon on this prompt's detail page to open the Version History panel. You'll see both versions listed, and you can compare them to see what changed.
 
 Head to Version 2 (the current version) for the actual platform guide.
 ```
 
 ### Version 2 (current - what users see):
 ```
-Welcome to Prompt Vault - your personal prompt library!
+👋 Welcome to Prompt Vault - your personal prompt library!
 
-## What is Prompt Vault?
+## 🤔 What is Prompt Vault?
 A tool to save, organize, and reuse your AI prompts. Stop rewriting the same prompts - save them once, use them forever.
 
-## Key Features
+## ✨ Key Features
 
-**Variables**
-Use {{variable_name}} syntax to create dynamic prompts. When you copy, you'll be prompted to fill in the values. Add "-optional" to variable names (like {{notes-optional}}) for fields that can be left empty.
+**🔤 Variables**
+Use {variable_name} syntax to create dynamic prompts. When you copy, you'll be prompted to fill in the values before the text is copied to your clipboard.
 
-**Pinning**
+**📌 Pinning**
 Pin your most-used prompts to keep them at the top of your list. Click the pin icon on any prompt card.
 
-**Copy with One Click**
+**📋 Copy with One Click**
 Click the copy button to copy any prompt to your clipboard. Your usage is tracked automatically.
 
-**Version History**
-Every edit is saved. Click the history icon to see past versions, compare changes, and revert if needed.
+**🕐 Version History**
+Every edit is saved. Click the History button on this prompt's detail page to see past versions, compare changes, and revert if needed.
 
-**Copy History**
+**📜 Copy History**
 See a history of all the prompts you've copied to your clipboard INCLUDING THE VARIABLE VALUES. Click the history icon to see the list.
 
-## Getting Started
+## 🚀 Getting Started
 1. Create new prompts with the + button
-2. Try using {{variables}} in your prompts
+2. Try using {variables} in your prompts
 3. Pin your favorites for quick access
 
 Feel free to delete this welcome prompt once you're familiar with the app!
@@ -148,12 +148,12 @@ If people or notes weren't provided, infer what you can from the transcript. Foc
 
 ## SELECTED: Image Generation Prompt (NO variables)
 
-**Title:** Product Photography Prompt
+**Title:** Image Prompt - Cinematic Scene Generator
 **Variables:** None
 **Pinned:** No
 
 ```
-Professional product photography, clean white background, soft studio lighting with subtle shadows. Subject centered in frame with slight elevation. Shot with 85mm lens, shallow depth of field. High-end commercial aesthetic, minimal styling, emphasizing product details and craftsmanship. 4K resolution, photorealistic rendering.
+A cinematic wide-angle shot with dramatic lighting and rich atmosphere. The scene features bold composition with strong foreground, midground, and background elements creating visual depth. Golden hour sunlight casts long shadows and warm highlights across the environment. Shot on ARRI Alexa with anamorphic lens, slight lens flare, film grain texture. Color graded with teal and orange tones. Volumetric fog adds atmosphere and depth. Ultra-detailed, 8K resolution, photorealistic, award-winning cinematography.
 ```
 
 ---
@@ -165,15 +165,14 @@ Professional product photography, clean white background, soft studio lighting w
 | Welcome | Welcome to Prompt Vault | None | Yes | 2 |
 | Developer | Code Review for Uncommitted Changes | None | No | 1 |
 | Productivity | AI Meeting Notes Generator | transcript, people_present-optional, meeting_notes-optional | No | 1 |
-| Image Gen | Product Photography Prompt | None | No | 1 |
+| Image Gen | Image Prompt - Cinematic Scene Generator | None | No | 1 |
 
 ## Notes
 - **Welcome prompt** is **pinned** and has **2 versions** to:
   - Keep it at top for easy discovery
   - Demonstrate version history (users can click history icon to see v1 → v2 evolution)
-- **Productivity prompt** has **variables with "-optional" suffix** to demonstrate:
-  - Variable substitution feature
-  - Optional variable pattern (prompt works with or without them)
+- **Productivity prompt** has **3 variables** to demonstrate the variable substitution feature
+- **Image prompt** renamed to "Cinematic Scene Generator" - more versatile than product photography
 - All prompts are practical templates users can immediately use
 - Total: **4 prompts, 5 version snapshots** (Welcome has 2, others have 1 each)
 
