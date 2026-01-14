@@ -1,6 +1,7 @@
--- Backfill example prompts for existing inactive users (11) and moderate user (1)
--- Total: 12 users receiving 4 example prompts each with version history
--- Welcome prompt gets 2 versions (v1 is 1 minute before v2) to demonstrate version history
+-- Backfill example prompts for a curated list of existing users.
+-- Total: 12 users receiving 4 example prompts each with version history.
+-- Welcome prompt gets 2 versions (v1 is 1 minute before v2) to demonstrate version history.
+-- Rationale: limited backfill to seed examples for an existing-user cohort.
 
 DO $$
 DECLARE
@@ -98,26 +99,37 @@ If people or notes weren''t provided, infer what you can from the transcript. Fo
 
 BEGIN
     -- Loop through the 12 target users (11 inactive + 1 moderate)
-    -- These are users who would benefit from example prompts
+    -- This list is intentionally curated; do not add PII here.
     FOR v_user IN
         SELECT id FROM auth.users
         WHERE id IN (
             -- 11 completely inactive users (0 prompts, 0 copies)
-            '5572b954-33ea-46f5-a669-f6f59708d997',  -- bobyeterman@gmail.com
-            'af350220-7e19-4802-8b0a-60223ce4b2e1',  -- mannamohit542@gmail.com
-            'c3aba244-e743-4aba-b5df-68ba28c7d57e',  -- rohanmuppa123@gmail.com
-            '6622f9b5-9318-4bb6-b098-b37140eb8c05',  -- aecitron@icloud.com
-            '12ff0ffe-464a-410b-83c7-7b0f05c643ef',  -- cmunshan@purdue.edu
-            'cda7740f-d868-4b27-ab85-f9fd5900dff8',  -- andresem071@gmail.com
-            '8ba27ed9-569d-41cd-a364-f9e9783079c3',  -- jeanette@growthx.com
-            'a09bad60-7aa0-4bdb-bbdc-93e7daea02d8',  -- mahit.py@gmail.com
-            'c5d67a17-5a3f-4e34-901a-0362ee921673',  -- dreamcometruephoto@gmail.com
-            '674e3ca6-fa95-4b38-a60f-57ef37bc26c6',  -- jaykatariya009@gmail.com
-            '92038b1d-d9b7-4548-a5c3-0b73d72e60ca',  -- 2firemaster27@gmail.com
+            '5572b954-33ea-46f5-a669-f6f59708d997',
+            'af350220-7e19-4802-8b0a-60223ce4b2e1',
+            'c3aba244-e743-4aba-b5df-68ba28c7d57e',
+            '6622f9b5-9318-4bb6-b098-b37140eb8c05',
+            '12ff0ffe-464a-410b-83c7-7b0f05c643ef',
+            'cda7740f-d868-4b27-ab85-f9fd5900dff8',
+            '8ba27ed9-569d-41cd-a364-f9e9783079c3',
+            'a09bad60-7aa0-4bdb-bbdc-93e7daea02d8',
+            'c5d67a17-5a3f-4e34-901a-0362ee921673',
+            '674e3ca6-fa95-4b38-a60f-57ef37bc26c6',
+            '92038b1d-d9b7-4548-a5c3-0b73d72e60ca',
             -- 1 moderate user (2 prompts, 3 copies - dormant since Nov 2025)
-            '44f2ca5f-40e4-4310-9f46-c8c3100ae9bf'   -- acitron101@gmail.com
+            '44f2ca5f-40e4-4310-9f46-c8c3100ae9bf'
         )
     LOOP
+        -- Idempotency: skip users who already have any of these example prompts.
+        IF EXISTS (
+            SELECT 1
+            FROM public.prompts
+            WHERE user_id = v_user.id
+              AND title IN (v_welcome_title, v_developer_title, v_productivity_title, v_image_title)
+        ) THEN
+            RAISE NOTICE 'Skipping user % (example prompts already exist)', v_user.id;
+            CONTINUE;
+        END IF;
+
         -- Insert Welcome prompt (pinned, with v2 content)
         INSERT INTO public.prompts (user_id, title, body, variables, is_pinned, times_used, created_at, updated_at)
         VALUES (v_user.id, v_welcome_title, v_welcome_body_v2, '[]'::jsonb, true, 0, v_now, v_now)
