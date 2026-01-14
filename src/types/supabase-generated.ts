@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -174,29 +174,25 @@ export type Database = {
       }
     }
     Functions: {
-      consolidate_prompt_versions: {
-        Args: { prompt_id: string }
-        Returns: number
-      }
       create_prompt_version: {
         Args: {
-          body: string
-          prompt_id: string
-          reverted_from_version_id?: string
-          title: string
-          variables: Json
-          version_number: number
+          p_body: string
+          p_prompt_id: string
+          p_reverted_from_version_id?: string
+          p_title: string
+          p_variables: Json
+          p_version_number: number
         }
         Returns: {
+          body: string
           created_at: string
           id: string
-          out_body: string
-          out_prompt_id: string
-          out_reverted_from_version_id: string
-          out_title: string
-          out_variables: Json
-          out_version_number: number
+          prompt_id: string
+          reverted_from_version_id: string
+          title: string
           user_id: string
+          variables: Json
+          version_number: number
         }[]
       }
       get_prompt_versions: {

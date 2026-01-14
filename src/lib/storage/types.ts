@@ -55,7 +55,6 @@ export interface VersionsStorageAdapter {
     revertedFromVersionId?: string;
   }): Promise<PromptVersion>;
   getVersions(promptId: string, offset?: number, limit?: number): Promise<PaginatedVersions>;
-  consolidateVersions(promptId: string): Promise<number>;
 }
 
 // Combined storage interface
