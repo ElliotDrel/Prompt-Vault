@@ -100,20 +100,20 @@ If no issues are found, state that the changes look ready to commit.
 ## SELECTED: Productivity Prompt (WITH variables)
 
 **Title:** AI Meeting Notes Generator
-**Variables:** `{{Transcript (Required)}}`, `{{People Present (Optional)}}`, `{{My Notes (Optional)}}`
+**Variables:** `{Transcript (Required)}`, `{People Present (Optional)}`, `{My Notes (Optional)}`
 **Pinned:** No
 
 ```
 Generate comprehensive meeting notes from the following information.
 
 ## Meeting Transcript
-{{Transcript (Required)}}
+{Transcript (Required)}
 
 ## People Present (Optional)
-{{People Present (Optional)}}
+{People Present (Optional)}
 
 ## My Notes (Optional)
-{{My Notes (Optional)}}
+{My Notes (Optional)}
 
 ---
 
@@ -164,7 +164,7 @@ A cinematic wide-angle shot with dramatic lighting and rich atmosphere. The scen
 |--------|-------|-----------|--------|----------|
 | Welcome | Welcome to Prompt Vault | None | Yes | 2 |
 | Developer | Code Review for Uncommitted Changes | None | No | 1 |
-| Productivity | AI Meeting Notes Generator | transcript, people_present-optional, meeting_notes-optional | No | 1 |
+| Productivity | AI Meeting Notes Generator | {Transcript (Required)}, {People Present (Optional)}, {My Notes (Optional)} | No | 1 |
 | Image Gen | Image Prompt - Cinematic Scene Generator | None | No | 1 |
 
 ## Notes
