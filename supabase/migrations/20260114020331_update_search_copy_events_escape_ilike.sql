@@ -1,5 +1,5 @@
--- Fix search_copy_events function to include explicit search_path
--- The migration file had SET search_path = public but it wasn't applied to the database
+-- Update search_copy_events function to escape ILIKE metacharacters
+-- This prevents % and _ characters in search input from being interpreted as SQL wildcards
 
 CREATE OR REPLACE FUNCTION public.search_copy_events(
   search_query text,
