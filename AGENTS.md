@@ -258,6 +258,13 @@ npx supabase functions delete my-function
 
 **Real Example (2026-01-07)**: The `increment_prompt_usage` function was created as a two-parameter function and pushed to remote. Later, the migration files were edited to use a one-parameter signature (with `auth.uid()` internally). However, the remote DB still had the old two-parameter version, causing runtime errors. Fixed by creating migration `20260107150343_fix_increment_prompt_usage_signature_mismatch.sql` that explicitly dropped the old function and created the new one.
 
+### SECURITY DEFINER Functions:
+- **Always** add `SET search_path = public` to the function definition
+- **Always** schema-qualify tables (`public.my_table`, not `my_table`)
+- Auth triggers run in a different schema context; without explicit search_path they fail with "relation does not exist"
+
+**Real Example (2026-01-13)**: `initialize_user_settings` trigger lacked `SET search_path = public`, breaking new user signups for 8 days until discovered. Fixed in `20260113201104_fix_initialize_user_settings_schema.sql`.
+
 ### Supabase Realtime Setup:
 - **Enable first**: Dashboard → Database → Publications → `supabase_realtime` → Toggle tables ON
 - **Verify RLS**: SELECT policy must exist for `auth.uid() = user_id`
