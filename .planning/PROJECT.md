@@ -26,26 +26,27 @@ Never lose work. Every prompt edit is automatically preserved with complete hist
 - ✓ Remote-only Supabase development workflow (no local Docker) — existing
 - ✓ Context-based state management (AuthContext, PromptsContext, CopyHistoryContext) — existing
 - ✓ TanStack Query for server state caching with background refresh — existing
+- ✓ Version tracking for prompt edits (title, body, variables changes) — v1.0
+- ✓ Immutable version snapshots stored in `prompt_versions` table — v1.0
+- ✓ Initial prompt creation captured as v1 in history — v1.0
+- ✓ Modal UI with time-based version list (Today, Yesterday, Last 7 days, monthly groups) — v1.0
+- ✓ Inline diff highlighting (green for additions, red for deletions) — v1.0
+- ✓ Variable change visualization (chips with +/- badges) — v1.0
+- ✓ Comparison modes: diff from previous version OR diff from current version — v1.0
+- ✓ One-click revert to any previous version — v1.0
+- ✓ Auto-save current state before revert (ensures no data loss) — v1.0
+- ✓ History button accessible from both view mode and edit mode — v1.0
+- ✓ Paginated version fetching for prompts with extensive history — v1.0
+- ✓ Skip version creation for metadata-only changes (pin state, usage counters) — v1.0
+- ✓ Database functions for version CRUD (`create_prompt_version`, `get_prompt_versions`) — v1.0
+- ✓ Storage adapter integration (modify `addPrompt` and `updatePrompt` methods) — v1.0
+- ✓ TypeScript interfaces for version data structures — v1.0
 
 ### Active
 
-<!-- Current scope - building toward these with version history feature -->
+<!-- Current scope - building toward next milestone -->
 
-- [ ] Version tracking for prompt edits (title, body, variables changes)
-- [ ] Immutable version snapshots stored in `prompt_versions` table
-- [ ] Initial prompt creation captured as v1 in history
-- [ ] Modal UI with time-based version list (Today, Yesterday, Last 7 days, monthly groups)
-- [ ] Inline diff highlighting (green for additions, red for deletions)
-- [ ] Variable change visualization (chips with +/- badges)
-- [ ] Comparison modes: diff from previous version OR diff from current version
-- [ ] One-click revert to any previous version
-- [ ] Auto-save current state before revert (ensures no data loss)
-- [ ] History button accessible from both view mode and edit mode
-- [ ] Paginated version fetching for prompts with extensive history
-- [ ] Skip version creation for metadata-only changes (pin state, usage counters)
-- [ ] Database functions for version CRUD (`create_prompt_version`, `get_prompt_versions`)
-- [ ] Storage adapter integration (modify `addPrompt` and `updatePrompt` methods)
-- [ ] TypeScript interfaces for version data structures
+(None currently - awaiting next milestone planning)
 
 ### Out of Scope
 
@@ -99,20 +100,46 @@ Never lose work. Every prompt edit is automatically preserved with complete hist
 
 ## Key Decisions
 
-<!-- Decisions made during planning that constrain implementation -->
+<!-- Decisions made during planning and implementation -->
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Save OLD state on edit, not new state | Current prompt always reflects "live" version. History stores what it looked like BEFORE each change. Simpler mental model. | — Pending |
-| Immutable snapshots, not deltas | Easier to query and display. No reconstruction logic needed. Storage cost acceptable for text content. | — Pending |
-| Skip versions for metadata changes | Pin state and usage counters don't need version tracking. Reduces noise in history, keeps focus on content changes. | — Pending |
-| Word-level diff using `diff` npm package | Lightweight, well-maintained library. Word-level more readable than character-level for prose content. | — Pending |
-| Modal dialog UI pattern | Matches existing app patterns (variable input modal, confirmation dialogs). No new routing needed. Familiar UX. | — Pending |
-| Auto-save before revert | Builds user trust. Nothing ever lost. Current state becomes newest version automatically. | — Pending |
-| Paginated version fetching | Future-proofs for high-frequency editors. React Query caching minimizes redundant fetches. | — Pending |
-| Defer consolidation to Phase 6 | Ship core feature first. Optimize storage later based on real usage data. Avoid premature optimization. | — Pending |
-| Time-based grouping with expandable sections | Scannable at a glance. Mirrors Google Docs pattern users already understand. Reduces initial visual complexity. | — Pending |
-| Create v1 on first edit, not prompt creation | Avoids backfilling existing prompts. Graceful rollout. Empty state handles new vs existing prompts uniformly. | — Pending |
+| Save NEW state on edit (corrected from OLD) | Version N = content after Nth save. Clearer mental model: "version 3" means "third saved state." | ✓ Good |
+| Immutable snapshots, not deltas | Easier to query and display. No reconstruction logic needed. Storage cost acceptable for text content. | ✓ Good |
+| Skip versions for metadata changes | Pin state and usage counters don't need version tracking. Reduces noise in history, keeps focus on content changes. | ✓ Good |
+| Word-level diff using `diff` npm package | Lightweight, well-maintained library. Word-level more readable than character-level for prose content. | ✓ Good |
+| Modal dialog UI pattern | Matches existing app patterns (variable input modal, confirmation dialogs). No new routing needed. Familiar UX. | ✓ Good |
+| Auto-save before revert | Builds user trust. Nothing ever lost. Current state becomes newest version automatically. | ✓ Good |
+| Paginated version fetching | Future-proofs for high-frequency editors. React Query caching minimizes redundant fetches. | ✓ Good |
+| Remove consolidation (was Phase 6) | Complexity not worth the benefit. Ship core feature first, optimize later if needed. | ✓ Good |
+| Time-based grouping with expandable sections | Scannable at a glance. Mirrors Google Docs pattern users already understand. Reduces initial visual complexity. | ✓ Good |
+| Create v1 on prompt creation | Changed from "first edit" to "creation" - every prompt starts with history immediately. | ✓ Good |
+| Backfill from copy_events | Reconstructed 71 historical versions from 707 copy events, giving users complete edit history from Sept 2025. | ✓ Good |
+| Revert tracking column | Added `reverted_from_version_id` to show when versions were created via revert action. | ✓ Good |
+| Layout flip (detail left, history right) | Better visual flow: read content first, then browse history. | ✓ Good |
+| Diff toggle | Allow hiding diff highlighting to see exact original version text. | ✓ Good |
+
+## Context
+
+**Technical Environment:**
+- React 18.3 SPA with TypeScript 5.5
+- Supabase backend (auth, database, realtime) with remote-only development
+- TanStack Query for server state caching
+- shadcn/ui component library (Radix UI + Tailwind CSS)
+- Vite build tool with HMR
+
+**Current State (v1.0 shipped):**
+- 13,176 lines of TypeScript across 96 files
+- 122 prompt versions in database across 53 prompts
+- 26 prompts have complete historical edit tracking (from copy_events reconstruction)
+- Version history UI fully functional with diff highlighting and one-click revert
+
+**Existing Patterns:**
+- Context API for global state, never direct storage imports from components
+- Storage adapter abstraction layer (`src/lib/storage/supabaseAdapter.ts`)
+- Async operations with loading/error states in all contexts
+- Modal dialogs for complex flows (variable input, confirmations)
+- Immutable history pattern established with both `copy_events` and `prompt_versions` tables
 
 ---
-*Last updated: 2026-01-09 after initialization*
+*Last updated: 2026-01-13 after v1.0 milestone*
