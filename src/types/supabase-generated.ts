@@ -21,7 +21,6 @@ export type Database = {
           id: string
           prompt_id: string | null
           prompt_title: string
-          source_copy_event_id: string | null
           user_id: string | null
           variable_values: Json | null
         }
@@ -31,7 +30,6 @@ export type Database = {
           id?: string
           prompt_id?: string | null
           prompt_title: string
-          source_copy_event_id?: string | null
           user_id?: string | null
           variable_values?: Json | null
         }
@@ -41,7 +39,6 @@ export type Database = {
           id?: string
           prompt_id?: string | null
           prompt_title?: string
-          source_copy_event_id?: string | null
           user_id?: string | null
           variable_values?: Json | null
         }
@@ -51,13 +48,6 @@ export type Database = {
             columns: ["prompt_id"]
             isOneToOne: false
             referencedRelation: "prompts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "copy_events_source_copy_event_id_fkey"
-            columns: ["source_copy_event_id"]
-            isOneToOne: false
-            referencedRelation: "copy_events"
             referencedColumns: ["id"]
           },
         ]
@@ -117,7 +107,6 @@ export type Database = {
         Row: {
           body: string
           created_at: string | null
-          forked_from_prompt_id: string | null
           id: string
           is_pinned: boolean | null
           times_used: number | null
@@ -125,12 +114,10 @@ export type Database = {
           updated_at: string | null
           user_id: string | null
           variables: Json | null
-          visibility: Database["public"]["Enums"]["prompt_visibility"]
         }
         Insert: {
           body: string
           created_at?: string | null
-          forked_from_prompt_id?: string | null
           id?: string
           is_pinned?: boolean | null
           times_used?: number | null
@@ -138,12 +125,10 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           variables?: Json | null
-          visibility?: Database["public"]["Enums"]["prompt_visibility"]
         }
         Update: {
           body?: string
           created_at?: string | null
-          forked_from_prompt_id?: string | null
           id?: string
           is_pinned?: boolean | null
           times_used?: number | null
@@ -151,77 +136,24 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           variables?: Json | null
-          visibility?: Database["public"]["Enums"]["prompt_visibility"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "prompts_forked_from_prompt_id_fkey"
-            columns: ["forked_from_prompt_id"]
-            isOneToOne: false
-            referencedRelation: "prompts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      saved_prompts: {
-        Row: {
-          created_at: string | null
-          id: string
-          source_prompt_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          source_prompt_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          source_prompt_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "saved_prompts_source_prompt_id_fkey"
-            columns: ["source_prompt_id"]
-            isOneToOne: false
-            referencedRelation: "prompts"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_settings: {
         Row: {
           created_at: string | null
-          default_visibility: Database["public"]["Enums"]["prompt_visibility"]
-          filter_author: string
-          filter_visibility: string
-          sort_by: string
-          sort_direction: string
           time_saved_multiplier: number
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          default_visibility?: Database["public"]["Enums"]["prompt_visibility"]
-          filter_author?: string
-          filter_visibility?: string
-          sort_by?: string
-          sort_direction?: string
           time_saved_multiplier?: number
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
-          default_visibility?: Database["public"]["Enums"]["prompt_visibility"]
-          filter_author?: string
-          filter_visibility?: string
-          sort_by?: string
-          sort_direction?: string
           time_saved_multiplier?: number
           updated_at?: string | null
           user_id?: string
@@ -279,7 +211,6 @@ export type Database = {
           updated_at: string
           user_id: string
           variables: Json
-          visibility: Database["public"]["Enums"]["prompt_visibility"]
         }[]
       }
       search_copy_events: {
@@ -290,7 +221,6 @@ export type Database = {
           id: string
           prompt_id: string | null
           prompt_title: string
-          source_copy_event_id: string | null
           user_id: string | null
           variable_values: Json | null
         }[]
@@ -303,7 +233,7 @@ export type Database = {
       }
     }
     Enums: {
-      prompt_visibility: "private" | "public"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -430,8 +360,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      prompt_visibility: ["private", "public"],
-    },
+    Enums: {},
   },
 } as const

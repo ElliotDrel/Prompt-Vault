@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQueryClient, InfiniteData } from '@tanstack/react-query';
-import { AppLayout } from '@/components/AppLayout';
+import { Navigation } from '@/components/Navigation';
 import { PaginatedCopyEvents } from '@/lib/storage/types';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useURLFilterSync } from '@/hooks/useURLFilterSync';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,14 +18,6 @@ import { Trash2, Search, Loader2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const CopyHistory = () => {
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = 'Copy History - Prompt Vault';
-    return () => {
-      document.title = previousTitle;
-    };
-  }, []);
-
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const cacheUserId = user?.id ?? 'anonymous';
@@ -47,21 +38,9 @@ const CopyHistory = () => {
     isSearching,
     clearSearch,
   } = useCopyHistory();
-  const { prompts, loading: promptsLoading, incrementCopyCount, incrementPromptUsage } = usePrompts();
-
-  // Determine owned prompt IDs for public prompt detection
-  // Return null during loading to prevent race condition showing incorrect badges
-  const ownedPromptIds = useMemo(
-    () => promptsLoading ? null : new Set(prompts.map(p => p.id)),
-    [prompts, promptsLoading]
-  );
-
-  // URL-synced search state (only using search, not sort)
-  const { searchTerm, setSearchTerm } = useURLFilterSync({
-    searchParam: 'q',
-    debounceMs: 300,
-  });
-
+  const { incrementCopyCount, incrementPromptUsage } = usePrompts();
+  const [searchTerm, setSearchTerm] = useState('');
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isSearchLimitReached = searchResults !== null && searchResults.length === COPY_HISTORY_SEARCH_LIMIT;
   const handleRetry = copyHistory.length > 0 && hasNextPage ? fetchNextPage : refetch;
 
@@ -84,33 +63,49 @@ const CopyHistory = () => {
     };
   }, [queryClient, cacheUserId]);
 
-  // Trigger search when URL-synced searchTerm changes
-  // useURLFilterSync handles debouncing, so we can call searchCopyEvents directly
+  // Debounced search effect
   useEffect(() => {
-    if (searchTerm) {
-      void searchCopyEvents(searchTerm).catch(() => {
-        toast.error('Failed to search copy history');
-      });
-    } else {
-      clearSearch();
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+
+    // If search is cleared, reset to normal view
+    if (!searchTerm) {
+      clearSearch();
+      return;
+    }
+
+    // Debounce search for 300ms
+    searchTimeoutRef.current = setTimeout(() => {
+      searchCopyEvents(searchTerm);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchTerm, searchCopyEvents, clearSearch]);
 
   const handleClearHistory = useCallback(async () => {
     try {
       await clearHistory();
-      setSearchTerm(''); // Clear URL search param - will trigger clearSearch via effect
+      setSearchTerm('');
+      clearSearch();
       toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
-    } catch {
+    } catch (err) {
+      console.error('Failed to clear copy history:', err);
       toast.error('Failed to clear copy history');
     }
-  }, [clearHistory, setSearchTerm]);
+  }, [clearHistory, clearSearch]);
 
   const handleDeleteEvent = useCallback(async (id: string) => {
     try {
       await deleteCopyEvent(id);
       toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
-    } catch {
+    } catch (err) {
+      console.error('Failed to delete copy event:', err);
       toast.error('Failed to delete copy event');
     }
   }, [deleteCopyEvent]);
@@ -134,17 +129,19 @@ const CopyHistory = () => {
         promptTitle: event.promptTitle,
         variableValues: { ...event.variableValues },
         copiedText: event.copiedText,
-        sourceCopyEventId: event.id,
       });
 
       toast.success('Copied from history');
-    } catch {
+    } catch (err) {
+      console.error('Failed to copy history event:', err);
       toast.error('Failed to copy from history');
     }
   }, [incrementCopyCount, incrementPromptUsage, addCopyEvent]);
 
   return (
-    <AppLayout>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <Navigation />
+      
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Copy History</h1>
@@ -236,7 +233,6 @@ const CopyHistory = () => {
                   event={event}
                   onDelete={handleDeleteEvent}
                   onCopy={handleCopyHistoryEvent}
-                  isPublicPrompt={ownedPromptIds === null ? undefined : !ownedPromptIds.has(event.promptId)}
                 />
               ))}
             </div>
@@ -256,7 +252,6 @@ const CopyHistory = () => {
                 event={event}
                 onDelete={handleDeleteEvent}
                 onCopy={handleCopyHistoryEvent}
-                isPublicPrompt={ownedPromptIds === null ? undefined : !ownedPromptIds.has(event.promptId)}
               />
             )}
             getItemKey={(event) => event.id}
@@ -265,7 +260,7 @@ const CopyHistory = () => {
           />
         )}
       </div>
-    </AppLayout>
+    </div>
   );
 };
 
