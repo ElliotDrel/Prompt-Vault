@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 14 of 20 (Visibility Toggle)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-01-16 - Completed 14-01-PLAN.md
+Phase: 15 of 20 (Public Library Page)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-16 - Completed 15-01-PLAN.md
 
-Progress: ███░░░░░░░ 30%
+Progress: ███░░░░░░░ 35%
 
 ## Shipped Milestones
 
@@ -60,6 +60,10 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Optimistic updates with server sync and rollback on error
 - New prompts default to 'private' (matching Phase 11 schema)
 
+**Phase 15 decisions:**
+- RLS handles visibility filtering - no explicit auth.uid() check needed in query
+- Author info initialized with userId only, displayName undefined for future profile lookup
+
 ### Deferred Issues
 
 None.
@@ -75,8 +79,8 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-16
-Stopped at: Completed 14-01-PLAN.md (Phase 14: Visibility Toggle complete)
+Stopped at: Completed 15-01-PLAN.md (Phase 15: Plan 1 of 2 complete)
 Resume file: None
 
 **Next Steps:**
-- Plan Phase 15 (Public Library Page)
+- Execute 15-02-PLAN.md (Public Library Page UI)
