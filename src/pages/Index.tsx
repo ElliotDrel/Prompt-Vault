@@ -1,12 +1,11 @@
 import { Dashboard } from '@/components/Dashboard';
-import { Navigation } from '@/components/Navigation';
+import { AppLayout } from '@/components/AppLayout';
 
 const Index = () => {
   return (
-    <>
-      <Navigation />
+    <AppLayout>
       <Dashboard />
-    </>
+    </AppLayout>
   );
 };
 

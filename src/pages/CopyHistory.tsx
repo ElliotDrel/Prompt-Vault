@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useQueryClient, InfiniteData } from '@tanstack/react-query';
-import { Navigation } from '@/components/Navigation';
+import { AppLayout } from '@/components/AppLayout';
 import { PaginatedCopyEvents } from '@/lib/storage/types';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { usePrompts } from '@/contexts/PromptsContext';
@@ -130,9 +130,7 @@ const CopyHistory = () => {
   }, [incrementCopyCount, incrementPromptUsage, addCopyEvent]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <Navigation />
-      
+    <AppLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Copy History</h1>
@@ -251,7 +249,7 @@ const CopyHistory = () => {
           />
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
