@@ -34,15 +34,15 @@ See [full archive](milestones/v1.0-ROADMAP.md) for details.
 
 **Milestone Goal:** Enable users to share prompts publicly and discover prompts from others, with live-linking and forking capabilities.
 
-#### Phase 11: Database Schema
+#### Phase 11: Database Schema - COMPLETE
 
 **Goal**: Create visibility enum, saved_prompts table, forked_from tracking, and app settings for default visibility
 **Depends on**: v1.0 complete
 **Research**: Unlikely (Supabase patterns established)
-**Plans**: TBD
+**Plans**: 1/1 complete
 
 Plans:
-- [ ] 11-01: TBD (run /gsd:plan-phase 11 to break down)
+- [x] 11-01: Database schema for public prompt library (2026-01-16)
 
 #### Phase 12: Shared Component Architecture
 
@@ -140,13 +140,13 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 10 | 0/? | In Progress | - |
+| v2.0 Public Prompt Library | 10 | 1/? | In Progress | - |
 
 ---
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 11. Database Schema | v2.0 | 0/? | Not started | - |
+| 11. Database Schema | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 12. Shared Component Architecture | v2.0 | 0/? | Not started | - |
 | 13. URL-Based Search/Filter | v2.0 | 0/? | Not started | - |
 | 14. Visibility Toggle | v2.0 | 0/? | Not started | - |
