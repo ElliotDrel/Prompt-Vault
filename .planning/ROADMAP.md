@@ -49,10 +49,11 @@ Plans:
 **Goal**: Refactor prompt list and card components for reuse across dashboard, library, and history pages
 **Depends on**: Phase 11
 **Research**: Unlikely (internal refactoring)
-**Plans**: 1/? complete
+**Plans**: 2/3 complete
 
 Plans:
 - [x] 12-01: Shared type definitions (PromptSource, PromptVariant, AuthorInfo) (2026-01-16)
+- [x] 12-02: Extract usePromptFilters hook and PromptListView component (2026-01-16)
 
 #### Phase 13: URL-Based Search/Filter
 
@@ -140,14 +141,14 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 10 | 1/? | In Progress | - |
+| v2.0 Public Prompt Library | 10 | 3/? | In Progress | - |
 
 ---
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
 | 11. Database Schema | v2.0 | 1/1 | Complete | 2026-01-16 |
-| 12. Shared Component Architecture | v2.0 | 1/? | In Progress | - |
+| 12. Shared Component Architecture | v2.0 | 2/3 | In Progress | - |
 | 13. URL-Based Search/Filter | v2.0 | 0/? | Not started | - |
 | 14. Visibility Toggle | v2.0 | 0/? | Not started | - |
 | 15. Public Library Page | v2.0 | 0/? | Not started | - |
