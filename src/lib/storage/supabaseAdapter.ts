@@ -1,4 +1,4 @@
-import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
+import { Prompt, CopyEvent, PromptVersion, PaginatedVersions, PublicPrompt } from '@/types/prompt';
 import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -14,6 +14,10 @@ type PromptRow = {
   is_pinned: boolean | null;
   times_used: number | null;
   visibility: Database["public"]["Enums"]["prompt_visibility"];
+};
+
+type PublicPromptRow = PromptRow & {
+  user_id: string;
 };
 
 type CopyEventRow = {
@@ -47,6 +51,22 @@ const mapPromptRow = (row: PromptRow): Prompt => ({
   isPinned: row.is_pinned ?? false,
   timesUsed: row.times_used ?? 0,
   visibility: row.visibility ?? 'private',
+});
+
+const mapPublicPromptRow = (row: PublicPromptRow): PublicPrompt => ({
+  id: row.id,
+  title: row.title,
+  body: row.body,
+  variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
+  updatedAt: row.updated_at,
+  isPinned: row.is_pinned ?? false,
+  timesUsed: row.times_used ?? 0,
+  visibility: 'public',
+  authorId: row.user_id,
+  author: {
+    userId: row.user_id,
+    displayName: undefined, // Future: profile lookup
+  },
 });
 
 const mapCopyEventRow = (row: CopyEventRow): CopyEvent => ({
@@ -127,6 +147,23 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     }
 
     return (data as PromptRow[]).map(mapPromptRow);
+  }
+
+  async getPublicPrompts(): Promise<PublicPrompt[]> {
+    // Requires authentication - RLS policy allows reading public prompts for any authenticated user
+    await requireUserId();
+
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('id, user_id, title, body, variables, updated_at, is_pinned, times_used, visibility')
+      .eq('visibility', 'public')
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch public prompts: ${error.message}`);
+    }
+
+    return (data as PublicPromptRow[]).map(mapPublicPromptRow);
   }
 
   async addPrompt(promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
