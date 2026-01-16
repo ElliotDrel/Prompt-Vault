@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { usePromptFilters } from '@/hooks/usePromptFilters';
+import { useURLFilterSync } from '@/hooks/useURLFilterSync';
 import { PromptCard } from './PromptCard';
 import { PromptListView } from './PromptListView';
 import { StatsCounter } from './StatsCounter';
@@ -10,6 +11,9 @@ import { Button } from '@/components/ui/button';
 export function Dashboard() {
   const { prompts, loading, isBackgroundRefresh } = usePrompts();
   const navigate = useNavigate();
+
+  // URL-synced filter state
+  const urlFilters = useURLFilterSync({ debounceMs: 300 });
 
   const {
     searchTerm,
@@ -20,7 +24,11 @@ export function Dashboard() {
     toggleSortDirection,
     filteredPrompts,
     isEmpty,
-  } = usePromptFilters({ prompts, pinFirst: true });
+  } = usePromptFilters({
+    prompts,
+    pinFirst: true,
+    controlledState: urlFilters,
+  });
 
   const handleCreatePrompt = () => {
     navigate('/dashboard/prompt/new');
