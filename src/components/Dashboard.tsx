@@ -1,11 +1,10 @@
-import { Plus, Library } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { usePromptFilters } from '@/hooks/usePromptFilters';
 import { useURLFilterSync } from '@/hooks/useURLFilterSync';
 import { PromptCard } from './PromptCard';
 import { PromptListView } from './PromptListView';
-import { StatsCounter } from './StatsCounter';
 import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
@@ -35,26 +34,16 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-8">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Prompt Vault</h1>
-              <p className="text-muted-foreground mt-1">
-                Store, manage, and copy your text prompts with ease
-              </p>
-            </div>
-            {/* Stats moved to the right of title */}
-            <StatsCounter />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Prompt Vault</h1>
+            <p className="text-muted-foreground mt-1">
+              Store, manage, and copy your text prompts with ease
+            </p>
           </div>
-          <Link to="/library">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Library className="h-4 w-4" />
-              Browse Library
-            </Button>
-          </Link>
         </div>
 
         {/* Prompt List with search/sort/grid */}
