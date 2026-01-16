@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Copy, Pin, Check, Link2 } from 'lucide-react';
+import { Copy, Pin, Check, Link2, Globe, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Prompt, VariableValues, PromptSource, AuthorInfo } from '@/types/prompt';
 import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils/promptUtils';
@@ -207,20 +207,36 @@ export function PromptCard({
         prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
       }`}
     >
-      {/* Pin button - only shown for owned prompts */}
+      {/* Action buttons - only shown for owned prompts */}
       {shouldShowPinAction && (
-        <Button
-          onClick={handlePinClick}
-          onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
-          onKeyDown={(event) => event.stopPropagation()}
-          variant="ghost"
-          size="sm"
-          className={`absolute top-2 right-2 h-8 w-8 p-0 ${
-            prompt.isPinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Pin className={`h-4 w-4 ${prompt.isPinned ? 'fill-current' : ''}`} />
-        </Button>
+        <div className="absolute top-2 right-2 flex gap-1">
+          {/* Visibility indicator */}
+          <div
+            className={`h-8 w-8 flex items-center justify-center ${
+              prompt.visibility === 'public' ? 'text-green-600' : 'text-muted-foreground'
+            }`}
+            title={prompt.visibility === 'public' ? 'Public' : 'Private'}
+          >
+            {prompt.visibility === 'public' ? (
+              <Globe className="h-4 w-4" />
+            ) : (
+              <Lock className="h-4 w-4" />
+            )}
+          </div>
+          {/* Pin button */}
+          <Button
+            onClick={handlePinClick}
+            onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
+            onKeyDown={(event) => event.stopPropagation()}
+            variant="ghost"
+            size="sm"
+            className={`h-8 w-8 p-0 ${
+              prompt.isPinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Pin className={`h-4 w-4 ${prompt.isPinned ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
       )}
 
       {/* Linked indicator for saved prompts */}
@@ -231,7 +247,7 @@ export function PromptCard({
       )}
 
       {/* Header with timestamp and title */}
-      <div className={`flex flex-col gap-1 ${shouldShowPinAction || effectiveSource === 'saved' ? 'pr-10' : ''}`}>
+      <div className={`flex flex-col gap-1 ${shouldShowPinAction ? 'pr-20' : effectiveSource === 'saved' ? 'pr-10' : ''}`}>
         <span className="text-xs text-muted-foreground">
           Last updated: {formatRelativeTime(prompt.updatedAt)}
         </span>
