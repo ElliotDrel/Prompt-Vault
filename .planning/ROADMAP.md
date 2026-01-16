@@ -66,15 +66,15 @@ Plans:
 Plans:
 - [x] 13-01: URL filter sync hook and integration (2026-01-16)
 
-#### Phase 14: Visibility Toggle
+#### Phase 14: Visibility Toggle - COMPLETE
 
 **Goal**: UI to mark prompts public/private with RLS policies for cross-user access
 **Depends on**: Phase 13
 **Research**: Unlikely (UI + RLS patterns established)
-**Plans**: TBD
+**Plans**: 1/1 complete
 
 Plans:
-- [ ] 14-01: TBD
+- [x] 14-01: Visibility toggle functionality (2026-01-16)
 
 #### Phase 15: Public Library Page
 
@@ -174,7 +174,7 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 10 | 5/? | In Progress | - |
+| v2.0 Public Prompt Library | 10 | 6/? | In Progress | - |
 
 ---
 
@@ -183,7 +183,7 @@ Plans:
 | 11. Database Schema | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 12. Shared Component Architecture | v2.0 | 3/3 | Complete | 2026-01-16 |
 | 13. URL-Based Search/Filter | v2.0 | 1/1 | Complete | 2026-01-16 |
-| 14. Visibility Toggle | v2.0 | 0/? | Not started | - |
+| 14. Visibility Toggle | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 15. Public Library Page | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |

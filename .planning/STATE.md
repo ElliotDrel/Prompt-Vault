@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 13 of 20 (URL-Based Search/Filter)
+Phase: 14 of 20 (Visibility Toggle)
 Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-01-16 - Completed 13-01-PLAN.md
+Last activity: 2026-01-16 - Completed 14-01-PLAN.md
 
-Progress: ██░░░░░░░░ 25%
+Progress: ███░░░░░░░ 30%
 
 ## Shipped Milestones
 
@@ -55,6 +55,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Only show non-default values in URL for cleaner URLs
 - Controlled mode support in usePromptFilters for external state management
 
+**Phase 14 decisions:**
+- Visibility indicator on card (passive) vs toggle button in PromptView (interactive)
+- Optimistic updates with server sync and rollback on error
+- New prompts default to 'private' (matching Phase 11 schema)
+
 ### Deferred Issues
 
 None.
@@ -70,8 +75,8 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-16
-Stopped at: Completed 13-01-PLAN.md (Phase 13: URL-Based Search/Filter complete)
+Stopped at: Completed 14-01-PLAN.md (Phase 14: Visibility Toggle complete)
 Resume file: None
 
 **Next Steps:**
-- Plan Phase 14 (Visibility Toggle)
+- Plan Phase 15 (Public Library Page)
