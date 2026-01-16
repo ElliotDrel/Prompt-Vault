@@ -106,7 +106,7 @@ None.
 The following verification steps should be performed via `/gsd:verify-work 15`:
 
 1. Run: `npm run dev`
-2. Visit: http://localhost:5173/dashboard
+2. Visit: http://localhost:2902/dashboard
 3. Verify: "Browse Library" button visible in header
 4. Click "Browse Library" - navigates to /library
 5. Verify: Library page shows with header, search, sort controls

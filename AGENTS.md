@@ -85,7 +85,7 @@ OAuth providers (Google, GitHub, etc.) must be configured in the Supabase dashbo
    - Client ID (from provider's developer console)
    - Client Secret (from provider's developer console)
 4. Set authorized redirect URLs:
-   - Development: `http://localhost:5173/auth`
+   - Development: `http://localhost:2902/auth`
    - Production: `https://yourdomain.com/auth`
 5. Save configuration
 
@@ -295,7 +295,7 @@ npx supabase functions delete my-function
 ## Project Commands
 ```bash
 npm install        # setup dependencies
-npm run dev        # start Vite dev server (port 5173)
+npm run dev        # start Vite dev server (port 2902)
 npm run build      # production build
 npm run build:dev  # development build
 npm run lint       # run ESLint
