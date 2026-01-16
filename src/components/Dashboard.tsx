@@ -1,5 +1,5 @@
-import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Plus, Library } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { usePromptFilters } from '@/hooks/usePromptFilters';
 import { useURLFilterSync } from '@/hooks/useURLFilterSync';
@@ -49,6 +49,12 @@ export function Dashboard() {
             {/* Stats moved to the right of title */}
             <StatsCounter />
           </div>
+          <Link to="/library">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Library className="h-4 w-4" />
+              Browse Library
+            </Button>
+          </Link>
         </div>
 
         {/* Prompt List with search/sort/grid */}
