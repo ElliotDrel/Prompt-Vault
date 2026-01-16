@@ -67,6 +67,9 @@ interface PromptCardProps {
 
   /** Override time saved multiplier (for viewing other users' prompts) */
   timeSavedMultiplier?: number;
+
+  /** Callback when author name is clicked (for filtering) */
+  onAuthorClick?: () => void;
 }
 
 export function PromptCard({
@@ -79,6 +82,7 @@ export function PromptCard({
   showPinAction,
   showStats,
   timeSavedMultiplier,
+  onAuthorClick,
 }: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
@@ -256,9 +260,23 @@ export function PromptCard({
         </h3>
         {/* Author attribution for public prompts */}
         {author && (
-          <span className="text-xs text-muted-foreground">
-            by {author.displayName || 'Anonymous'}
-          </span>
+          onAuthorClick ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onAuthorClick();
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground hover:underline text-left"
+            >
+              by {author.displayName || 'Anonymous'}
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              by {author.displayName || 'Anonymous'}
+            </span>
+          )
         )}
       </div>
 
