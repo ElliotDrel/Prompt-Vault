@@ -1,5 +1,8 @@
 name: CLAUDE.md and AGENTS.md Sync
 
+permissions:
+  contents: read
+
 on:
   pull_request:
   workflow_dispatch:
