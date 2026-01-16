@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { Navigation } from '@/components/Navigation';
 import { PaginatedCopyEvents } from '@/lib/storage/types';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useURLFilterSync } from '@/hooks/useURLFilterSync';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,8 +40,13 @@ const CopyHistory = () => {
     clearSearch,
   } = useCopyHistory();
   const { incrementCopyCount, incrementPromptUsage } = usePrompts();
-  const [searchTerm, setSearchTerm] = useState('');
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // URL-synced search state (only using search, not sort)
+  const { searchTerm, setSearchTerm } = useURLFilterSync({
+    searchParam: 'q',
+    debounceMs: 300,
+  });
+
   const isSearchLimitReached = searchResults !== null && searchResults.length === COPY_HISTORY_SEARCH_LIMIT;
   const handleRetry = copyHistory.length > 0 && hasNextPage ? fetchNextPage : refetch;
 
@@ -63,42 +69,26 @@ const CopyHistory = () => {
     };
   }, [queryClient, cacheUserId]);
 
-  // Debounced search effect
+  // Trigger search when URL-synced searchTerm changes
+  // useURLFilterSync handles debouncing, so we can call searchCopyEvents directly
   useEffect(() => {
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    // If search is cleared, reset to normal view
-    if (!searchTerm) {
-      clearSearch();
-      return;
-    }
-
-    // Debounce search for 300ms
-    searchTimeoutRef.current = setTimeout(() => {
+    if (searchTerm) {
       searchCopyEvents(searchTerm);
-    }, 300);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
+    } else {
+      clearSearch();
+    }
   }, [searchTerm, searchCopyEvents, clearSearch]);
 
   const handleClearHistory = useCallback(async () => {
     try {
       await clearHistory();
-      setSearchTerm('');
-      clearSearch();
+      setSearchTerm(''); // Clear URL search param - will trigger clearSearch via effect
       toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
     } catch (err) {
       console.error('Failed to clear copy history:', err);
       toast.error('Failed to clear copy history');
     }
-  }, [clearHistory, clearSearch]);
+  }, [clearHistory, setSearchTerm]);
 
   const handleDeleteEvent = useCallback(async (id: string) => {
     try {
