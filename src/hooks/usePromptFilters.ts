@@ -1,14 +1,29 @@
 import { useMemo, useState, useCallback } from 'react';
 import type { Prompt } from '@/types/prompt';
 
-export type SortBy = 'name' | 'lastUpdated' | 'usage';
-export type SortDirection = 'asc' | 'desc';
+// Re-export types from useURLFilterSync for convenience
+export type { SortBy, SortDirection } from './useURLFilterSync';
+import type { SortBy, SortDirection } from './useURLFilterSync';
+
+// Controlled state interface for external state management (e.g., URL sync)
+interface ControlledFilterState {
+  searchTerm: string;
+  sortBy: SortBy;
+  sortDirection: SortDirection;
+  setSearchTerm: (term: string) => void;
+  setSortBy: (by: SortBy) => void;
+  setSortDirection: (dir: SortDirection) => void;
+  toggleSortDirection: () => void;
+}
 
 interface UsePromptFiltersOptions {
   prompts: Prompt[];
+  // Uncontrolled mode options (used when controlledState is not provided)
   initialSortBy?: SortBy;
   initialSortDirection?: SortDirection;
   pinFirst?: boolean; // Whether to sort pinned items to top (default: true)
+  // Controlled mode: pass external state (e.g., from useURLFilterSync)
+  controlledState?: ControlledFilterState;
 }
 
 interface UsePromptFiltersReturn {
@@ -36,15 +51,26 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
     initialSortBy = 'lastUpdated',
     initialSortDirection = 'desc',
     pinFirst = true,
+    controlledState,
   } = options;
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortBy>(initialSortBy);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(initialSortDirection);
+  // Internal state for uncontrolled mode
+  const [internalSearchTerm, setInternalSearchTerm] = useState('');
+  const [internalSortBy, setInternalSortBy] = useState<SortBy>(initialSortBy);
+  const [internalSortDirection, setInternalSortDirection] = useState<SortDirection>(initialSortDirection);
 
-  const toggleSortDirection = useCallback(() => {
-    setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  const internalToggleSortDirection = useCallback(() => {
+    setInternalSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
   }, []);
+
+  // Use controlled state if provided, otherwise use internal state
+  const searchTerm = controlledState?.searchTerm ?? internalSearchTerm;
+  const sortBy = controlledState?.sortBy ?? internalSortBy;
+  const sortDirection = controlledState?.sortDirection ?? internalSortDirection;
+  const setSearchTerm = controlledState?.setSearchTerm ?? setInternalSearchTerm;
+  const setSortBy = controlledState?.setSortBy ?? setInternalSortBy;
+  const setSortDirection = controlledState?.setSortDirection ?? setInternalSortDirection;
+  const toggleSortDirection = controlledState?.toggleSortDirection ?? internalToggleSortDirection;
 
   const filteredPrompts = useMemo(() => {
     // Filter by search term (case-insensitive title match)
