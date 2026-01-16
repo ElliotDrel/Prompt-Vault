@@ -2,6 +2,7 @@ import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/pro
 import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase-generated';
 import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
 
 type PromptRow = {
@@ -12,6 +13,7 @@ type PromptRow = {
   updated_at: string;
   is_pinned: boolean | null;
   times_used: number | null;
+  visibility: Database["public"]["Enums"]["prompt_visibility"];
 };
 
 type CopyEventRow = {
@@ -44,6 +46,7 @@ const mapPromptRow = (row: PromptRow): Prompt => ({
   updatedAt: row.updated_at,
   isPinned: row.is_pinned ?? false,
   timesUsed: row.times_used ?? 0,
+  visibility: row.visibility ?? 'private',
 });
 
 const mapCopyEventRow = (row: CopyEventRow): CopyEvent => ({
@@ -136,6 +139,7 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       variables: promptData.variables ?? [],
       is_pinned: promptData.isPinned ?? false,
       times_used: promptData.timesUsed ?? 0,
+      visibility: promptData.visibility ?? 'private',
     };
 
     const { data, error } = await supabase
@@ -282,6 +286,30 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 
     if (!data) {
       throw new Error(`Prompt not found or you don't have permission to toggle pin`);
+    }
+
+    return mapPromptRow(data as PromptRow);
+  }
+
+  async toggleVisibility(id: string): Promise<Prompt> {
+    const userId = await requireUserId();
+    const currentPrompt = await fetchPromptRowById(userId, id);
+    const newVisibility = currentPrompt.visibility === 'public' ? 'private' : 'public';
+
+    const { data, error } = await supabase
+      .from('prompts')
+      .update({ visibility: newVisibility })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to toggle visibility: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error(`Prompt not found or you don't have permission to toggle visibility`);
     }
 
     return mapPromptRow(data as PromptRow);
