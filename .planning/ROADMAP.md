@@ -44,15 +44,15 @@ See [full archive](milestones/v1.0-ROADMAP.md) for details.
 Plans:
 - [x] 11-01: Database schema for public prompt library (2026-01-16)
 
-#### Phase 12: Shared Component Architecture
+#### Phase 12: Shared Component Architecture - IN PROGRESS
 
 **Goal**: Refactor prompt list and card components for reuse across dashboard, library, and history pages
 **Depends on**: Phase 11
 **Research**: Unlikely (internal refactoring)
-**Plans**: TBD
+**Plans**: 1/? complete
 
 Plans:
-- [ ] 12-01: TBD
+- [x] 12-01: Shared type definitions (PromptSource, PromptVariant, AuthorInfo) (2026-01-16)
 
 #### Phase 13: URL-Based Search/Filter
 
@@ -147,7 +147,7 @@ Plans:
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
 | 11. Database Schema | v2.0 | 1/1 | Complete | 2026-01-16 |
-| 12. Shared Component Architecture | v2.0 | 0/? | Not started | - |
+| 12. Shared Component Architecture | v2.0 | 1/? | In Progress | - |
 | 13. URL-Based Search/Filter | v2.0 | 0/? | Not started | - |
 | 14. Visibility Toggle | v2.0 | 0/? | Not started | - |
 | 15. Public Library Page | v2.0 | 0/? | Not started | - |
