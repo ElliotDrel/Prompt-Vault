@@ -13,6 +13,7 @@ interface PromptsContextType {
   updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions) => Promise<Prompt>;
   deletePrompt: (id: string) => Promise<void>;
   togglePinPrompt: (id: string) => Promise<void>;
+  toggleVisibility: (id: string) => Promise<void>;
   stats: {
     totalPrompts: number;
     totalCopies: number;
@@ -217,6 +218,48 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [getAdapter]);
 
+  const toggleVisibility = useCallback(async (id: string) => {
+    const adapter = getAdapter();
+
+    // Store previous state for rollback on error
+    let previousPrompts: Prompt[] | null = null;
+
+    try {
+      setError(null);
+
+      // Optimistic update for instant feedback
+      setPrompts((prev) => {
+        previousPrompts = prev;
+        return prev.map((p) =>
+          p.id === id
+            ? { ...p, visibility: p.visibility === 'public' ? 'private' : 'public' }
+            : p
+        );
+      });
+
+      const updatedPrompt = await adapter.prompts.toggleVisibility(id);
+      const sanitizedPrompt = {
+        ...updatedPrompt,
+        variables: sanitizeVariables(updatedPrompt.variables ?? []),
+      };
+
+      // Sync with server response
+      setPrompts((prev) => prev.map((p) =>
+        p.id === id ? sanitizedPrompt : p
+      ));
+    } catch (err) {
+      console.error('Failed to toggle visibility:', err);
+      setError('Failed to toggle visibility');
+
+      // Rollback optimistic update on error
+      if (previousPrompts !== null) {
+        setPrompts(previousPrompts);
+      }
+
+      throw err;
+    }
+  }, [getAdapter]);
+
   const incrementPromptUsage = useCallback(async (promptId: string) => {
     const adapter = getAdapter();
 
@@ -304,6 +347,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       updatePrompt,
       deletePrompt,
       togglePinPrompt,
+      toggleVisibility,
       stats,
       statsLoading,
       incrementCopyCount,
