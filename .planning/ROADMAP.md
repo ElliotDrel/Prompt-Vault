@@ -76,16 +76,16 @@ Plans:
 Plans:
 - [x] 14-01: Visibility toggle functionality (2026-01-16)
 
-#### Phase 15: Public Library Page - IN PROGRESS
+#### Phase 15: Public Library Page - COMPLETE (pending UAT)
 
 **Goal**: New /library route showing all public prompts with author attribution and clickable author filter
 **Depends on**: Phase 14
 **Research**: Unlikely (building on existing patterns)
-**Plans**: 1/2 complete
+**Plans**: 2/2 complete
 
 Plans:
 - [x] 15-01: Public prompts data layer (2026-01-16)
-- [ ] 15-02: Public Library page UI
+- [x] 15-02: Public Library page UI (2026-01-16)
 
 #### 🧪 UAT Checkpoint A: Public Visibility Flow
 
@@ -175,7 +175,7 @@ Plans:
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 10 | 7/? | In Progress | - |
+| v2.0 Public Prompt Library | 10 | 8/? | In Progress | - |
 
 ---
 
@@ -185,7 +185,7 @@ Plans:
 | 12. Shared Component Architecture | v2.0 | 3/3 | Complete | 2026-01-16 |
 | 13. URL-Based Search/Filter | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 14. Visibility Toggle | v2.0 | 1/1 | Complete | 2026-01-16 |
-| 15. Public Library Page | v2.0 | 1/2 | In progress | - |
+| 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
 | 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
