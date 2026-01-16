@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CopyEventCard } from '@/components/CopyEventCard';
 import { InfiniteScrollContainer } from '@/components/InfiniteScrollContainer';
 import { VersionHistoryModal, RevertConfirmDialog } from '@/components/version-history';
+import { VisibilityToggle } from '@/components/VisibilityToggle';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useRevertToVersion } from '@/hooks/useRevertToVersion';
 import { usePromptCopyHistory } from '@/hooks/usePromptCopyHistory';
@@ -58,7 +59,7 @@ interface PromptViewProps {
 }
 
 export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
-  const { stats, togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
+  const { stats, togglePinPrompt, toggleVisibility, incrementCopyCount, incrementPromptUsage } = usePrompts();
   const {
     promptHistory,
     totalCount,
@@ -119,6 +120,16 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
       toast.success(wasPinned ? 'Prompt unpinned' : 'Prompt pinned');
     } catch (err) {
       toast.error('Failed to update pin state');
+    }
+  };
+
+  const handleVisibilityToggle = async () => {
+    try {
+      const wasPublic = prompt.visibility === 'public';
+      await toggleVisibility(prompt.id);
+      toast.success(wasPublic ? 'Prompt is now private' : 'Prompt is now public');
+    } catch (err) {
+      toast.error('Failed to update visibility');
     }
   };
 
@@ -377,18 +388,24 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               </AlertDialogContent>
             </AlertDialog>
 
-            <Button
-              onClick={handlePin}
-              variant="outline"
-              className={`${
-                prompt.isPinned
-                  ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
-                  : 'hover:bg-yellow-50'
-              }`}
-            >
-              <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
-              {prompt.isPinned ? 'Unpin' : 'Pin'}
-            </Button>
+            <div className="flex gap-2">
+              <VisibilityToggle
+                visibility={prompt.visibility ?? 'private'}
+                onToggle={handleVisibilityToggle}
+              />
+              <Button
+                onClick={handlePin}
+                variant="outline"
+                className={`${
+                  prompt.isPinned
+                    ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
+                    : 'hover:bg-yellow-50'
+                }`}
+              >
+                <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
+                {prompt.isPinned ? 'Unpin' : 'Pin'}
+              </Button>
+            </div>
           </div>
         </div>
 
