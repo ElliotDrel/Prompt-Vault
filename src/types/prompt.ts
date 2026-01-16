@@ -38,6 +38,33 @@ export interface Prompt {
   updatedAt: string;
   isPinned?: boolean;
   timesUsed?: number;
+
+  // Public library metadata (optional - only present for public/saved prompts)
+  visibility?: 'private' | 'public'; // Maps to prompt_visibility enum
+  authorId?: string; // Original author's user_id
+  author?: AuthorInfo; // Author display info (populated on fetch)
+
+  // Saved prompt tracking (for live-linked prompts)
+  sourcePromptId?: string; // Original prompt ID if saved from library
+
+  // Fork tracking
+  forkedFromPromptId?: string; // Source prompt if this is a fork
+}
+
+/**
+ * A prompt that is definitely public with all required metadata
+ */
+export interface PublicPrompt extends Prompt {
+  visibility: 'public';
+  authorId: string;
+  author: AuthorInfo;
+}
+
+/**
+ * Type guard to check if a prompt is a public prompt with full metadata
+ */
+export function isPublicPrompt(prompt: Prompt): prompt is PublicPrompt {
+  return prompt.visibility === 'public' && !!prompt.authorId;
 }
 
 export interface VariableValues {
