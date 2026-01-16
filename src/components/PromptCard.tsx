@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Copy, Pin, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Prompt, VariableValues } from '@/types/prompt';
+import type { Prompt, VariableValues, PromptSource, AuthorInfo } from '@/types/prompt';
 import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils/promptUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,9 +48,38 @@ interface PromptCardProps {
   prompt: Prompt;
   /** URL to navigate to when the card is clicked */
   to: string;
+
+  // Variant support for different rendering contexts
+  /** Source of the prompt - determines ownership and available actions */
+  source?: PromptSource; // Default: 'owned'
+  /** Author info for public prompts - displays author attribution */
+  author?: AuthorInfo;
+
+  // Action customization (optional - use defaults if not provided)
+  /** Custom copy handler - receives the prompt being copied */
+  onCopy?: (prompt: Prompt) => Promise<void>;
+  /** Custom pin handler - receives the prompt ID */
+  onPin?: (promptId: string) => Promise<void>;
+  /** Whether to show the pin action button. Default: true for 'owned', false otherwise */
+  showPinAction?: boolean;
+  /** Whether to show usage stats (times used, time saved). Default: true */
+  showStats?: boolean;
+
+  /** Override time saved multiplier (for viewing other users' prompts) */
+  timeSavedMultiplier?: number;
 }
 
-export function PromptCard({ prompt, to }: PromptCardProps) {
+export function PromptCard({
+  prompt,
+  to,
+  source,
+  author,
+  onCopy,
+  onPin,
+  showPinAction,
+  showStats,
+  timeSavedMultiplier,
+}: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
@@ -61,6 +90,12 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
     () => ({ ...prompt, variables: sanitizedVariables }),
     [prompt, sanitizedVariables]
   );
+
+  // Derive defaults from source
+  const effectiveSource = source ?? 'owned';
+  const shouldShowPinAction = showPinAction ?? (effectiveSource === 'owned');
+  const shouldShowStats = showStats ?? true;
+  const effectiveMultiplier = timeSavedMultiplier ?? stats.timeSavedMultiplier;
 
   // Auto-save variable values to sessionStorage whenever they change
   useEffect(() => {
