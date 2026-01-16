@@ -1,61 +1,29 @@
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Search, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePrompts } from '@/contexts/PromptsContext';
+import { usePromptFilters } from '@/hooks/usePromptFilters';
 import { PromptCard } from './PromptCard';
+import { PromptListView } from './PromptListView';
 import { StatsCounter } from './StatsCounter';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 export function Dashboard() {
   const { prompts, loading, isBackgroundRefresh } = usePrompts();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'lastUpdated' | 'usage'>('lastUpdated');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  // Filter and sort prompts
-  const filteredAndSortedPrompts = useMemo(() => {
-    const filtered = prompts.filter(prompt =>
-      prompt.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // Sort by pin status first, then by selected criteria
-    filtered.sort((a, b) => {
-      // Pinned prompts come first
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      
-      // Then sort by selected criteria
-      let comparison = 0;
-      if (sortBy === 'name') {
-        comparison = a.title.localeCompare(b.title);
-      } else if (sortBy === 'usage') {
-        comparison = (a.timesUsed || 0) - (b.timesUsed || 0);
-      } else {
-        comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-      }
-      
-      return sortDirection === 'desc' ? -comparison : comparison;
-    });
-
-    return filtered;
-  }, [prompts, searchTerm, sortBy, sortDirection]);
+  const {
+    searchTerm,
+    sortBy,
+    sortDirection,
+    setSearchTerm,
+    setSortBy,
+    toggleSortDirection,
+    filteredPrompts,
+    isEmpty,
+  } = usePromptFilters({ prompts, pinFirst: true });
 
   const handleCreatePrompt = () => {
     navigate('/dashboard/prompt/new');
-  };
-
-  const handleSort = (newSortBy: 'name' | 'lastUpdated' | 'usage') => {
-    if (sortBy === newSortBy) {
-      // Toggle direction if same sort option is clicked
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      // Set new sort option with default direction
-      setSortBy(newSortBy);
-      setSortDirection(newSortBy === 'name' ? 'asc' : 'desc');
-    }
   };
 
   return (
@@ -75,107 +43,42 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Search and Sort Controls */}
-        <div className="flex gap-4 mb-6">
-          {/* Search bar */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search prompts by title..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+        {/* Prompt List with search/sort/grid */}
+        <PromptListView
+          prompts={filteredPrompts}
+          loading={loading && !isBackgroundRefresh}
+          searchTerm={searchTerm}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSearchChange={setSearchTerm}
+          onSortByChange={setSortBy}
+          onSortDirectionChange={toggleSortDirection}
+          renderPromptCard={(prompt) => (
+            <PromptCard
+              key={prompt.id}
+              prompt={prompt}
+              to={`/dashboard/prompt/${prompt.id}`}
             />
-          </div>
-
-          {/* Sort buttons */}
-          <div className="flex gap-2">
+          )}
+          emptyTitle="No prompts yet"
+          emptyDescription="Create your first prompt to get started with the vault"
+          emptyAction={
             <Button
-              variant={sortBy === 'lastUpdated' ? 'default' : 'outline'}
-              onClick={() => handleSort('lastUpdated')}
-              className="flex items-center gap-1"
+              onClick={handleCreatePrompt}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              Last Updated
-              {sortBy === 'lastUpdated' && (
-                sortDirection === 'desc' ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
-              )}
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Prompt
             </Button>
-            <Button
-              variant={sortBy === 'name' ? 'default' : 'outline'}
-              onClick={() => handleSort('name')}
-              className="flex items-center gap-1"
-            >
-              Name
-              {sortBy === 'name' && (
-                sortDirection === 'desc' ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              variant={sortBy === 'usage' ? 'default' : 'outline'}
-              onClick={() => handleSort('usage')}
-              className="flex items-center gap-1"
-            >
-              Usage
-              {sortBy === 'usage' && (
-                sortDirection === 'desc' ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Prompts grid */}
-        {loading && !isBackgroundRefresh ? (
-          <div className="text-center py-20">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-lg text-muted-foreground">Loading your prompts...</p>
-          </div>
-        ) : filteredAndSortedPrompts.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20"
-          >
-            <div className="max-w-md mx-auto">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                {prompts.length === 0 ? 'No prompts yet' : 'No prompts found'}
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                {prompts.length === 0 
-                  ? 'Create your first prompt to get started with the vault'
-                  : 'Try adjusting your search or create a new prompt'
-                }
-              </p>
-              <Button
-                onClick={handleCreatePrompt}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Prompt
-              </Button>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-20"
-          >
-            {filteredAndSortedPrompts.map((prompt, index) => (
-              <motion.div
-                key={prompt.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <PromptCard
-                  prompt={prompt}
-                  to={`/dashboard/prompt/${prompt.id}`}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+          }
+          noResultsTitle="No prompts found"
+          noResultsDescription={
+            isEmpty
+              ? 'Create your first prompt to get started'
+              : 'Try adjusting your search or create a new prompt'
+          }
+          gridClassName="mb-20"
+        />
 
         {/* Floating Create Button - moved to bottom right */}
         <Button
