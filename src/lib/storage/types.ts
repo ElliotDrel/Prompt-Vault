@@ -1,4 +1,4 @@
-import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
+import { Prompt, CopyEvent, PromptVersion, PaginatedVersions, PublicPrompt } from '@/types/prompt';
 
 // Optional metadata for prompt updates (e.g., for revert tracking)
 export interface UpdatePromptOptions {
@@ -9,6 +9,7 @@ export interface UpdatePromptOptions {
 // Storage interface for prompts
 export interface PromptsStorageAdapter {
   getPrompts(): Promise<Prompt[]>;
+  getPublicPrompts(): Promise<PublicPrompt[]>;
   addPrompt(prompt: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt>;
   updatePrompt(id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt>;
   deletePrompt(id: string): Promise<void>;
