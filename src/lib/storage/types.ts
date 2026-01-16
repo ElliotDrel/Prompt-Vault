@@ -13,6 +13,7 @@ export interface PromptsStorageAdapter {
   updatePrompt(id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt>;
   deletePrompt(id: string): Promise<void>;
   togglePinPrompt(id: string): Promise<Prompt>;
+  toggleVisibility(id: string): Promise<Prompt>;
   incrementPromptUsage(id: string): Promise<Prompt>;
 }
 
