@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import PromptDetail from "./pages/PromptDetail";
+import PublicLibrary from "./pages/PublicLibrary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,6 +89,14 @@ const router = createBrowserRouter(
         element={
           <RequireAuth>
             <CopyHistory />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/library"
+        element={
+          <RequireAuth>
+            <PublicLibrary />
           </RequireAuth>
         }
       />
