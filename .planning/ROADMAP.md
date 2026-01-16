@@ -56,15 +56,15 @@ Plans:
 - [x] 12-02: Extract usePromptFilters hook and PromptListView component (2026-01-16)
 - [x] 12-03: PromptCard variant props (2026-01-16)
 
-#### Phase 13: URL-Based Search/Filter
+#### Phase 13: URL-Based Search/Filter - COMPLETE
 
 **Goal**: Sync search queries and author filters to URL params on dashboard, library, and history pages
 **Depends on**: Phase 12
 **Research**: Unlikely (React Router already in codebase)
-**Plans**: TBD
+**Plans**: 1/1 complete
 
 Plans:
-- [ ] 13-01: TBD
+- [x] 13-01: URL filter sync hook and integration (2026-01-16)
 
 #### Phase 14: Visibility Toggle
 
@@ -86,6 +86,16 @@ Plans:
 Plans:
 - [ ] 15-01: TBD
 
+#### 🧪 UAT Checkpoint A: Public Visibility Flow
+
+**Purpose**: Validate end-to-end "make public → appears in library" flow before adding cross-user relationships
+**Test scope**:
+- Visibility toggle works (private ↔ public)
+- RLS allows public read access across users
+- Public library shows all public prompts with correct attribution
+- Author filter works correctly
+**Risk if skipped**: Broken RLS policies would cascade into Phase 16-20 work
+
 #### Phase 16: Add to Vault
 
 **Goal**: Live-link functionality to add public prompts as read-only synced references with version history access
@@ -105,6 +115,17 @@ Plans:
 
 Plans:
 - [ ] 17-01: TBD
+
+#### 🧪 UAT Checkpoint B: Cross-User Relationships
+
+**Purpose**: Validate live-linking and forking mechanics before building metrics on top
+**Test scope**:
+- Add to Vault creates live-linked saved prompts
+- Saved prompts show Link2 indicator and stay synced with source
+- Fork creates editable copy with correct source tracking
+- Version history accessible on both saved and forked prompts
+- Forked prompt versions start fresh (not inherited from source)
+**Risk if skipped**: Broken relationships would produce incorrect metrics in Phase 18
 
 #### Phase 18: Cross-Platform Metrics
 
@@ -137,12 +158,23 @@ Plans:
 Plans:
 - [ ] 20-01: TBD
 
+#### 🧪 UAT Checkpoint C: Milestone Integration
+
+**Purpose**: Final integration test before shipping v2.0
+**Test scope**:
+- Full user journey: create prompt → make public → another user saves → fork → edit fork
+- Metrics aggregate correctly across saves and forks
+- Copy history shows correct attribution for external prompts
+- Auto-fork triggers when source prompt becomes unavailable
+- No regressions in v1.0 functionality (version history, revert, diff)
+**Risk if skipped**: Shipping broken milestone to production
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 10 | 4/? | In Progress | - |
+| v2.0 Public Prompt Library | 10 | 5/? | In Progress | - |
 
 ---
 
@@ -150,11 +182,14 @@ Plans:
 |-------|-----------|-------|--------|-----------|
 | 11. Database Schema | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 12. Shared Component Architecture | v2.0 | 3/3 | Complete | 2026-01-16 |
-| 13. URL-Based Search/Filter | v2.0 | 0/? | Not started | - |
+| 13. URL-Based Search/Filter | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 14. Visibility Toggle | v2.0 | 0/? | Not started | - |
 | 15. Public Library Page | v2.0 | 0/? | Not started | - |
+| 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
+| 🧪 **UAT Checkpoint B** | v2.0 | — | Pending | - |
 | 18. Cross-Platform Metrics | v2.0 | 0/? | Not started | - |
 | 19. Copy History Attribution | v2.0 | 0/? | Not started | - |
 | 20. Auto-Fork on Unavailable | v2.0 | 0/? | Not started | - |
+| 🧪 **UAT Checkpoint C** | v2.0 | — | Pending | - |

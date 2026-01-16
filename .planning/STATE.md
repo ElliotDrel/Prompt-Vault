@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 12 of 20 (Shared Component Architecture)
-Plan: 3 of 3 in current phase
+Phase: 13 of 20 (URL-Based Search/Filter)
+Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-01-16 - Completed 12-03-PLAN.md
+Last activity: 2026-01-16 - Completed 13-01-PLAN.md
 
-Progress: ██░░░░░░░░ 20%
+Progress: ██░░░░░░░░ 25%
 
 ## Shipped Milestones
 
@@ -50,6 +50,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Derive defaults from source prop (owned shows pin, others hide)
 - Link2 icon for saved prompts to indicate live-linked status
 
+**Phase 13 decisions:**
+- Initialize URL state in useState initializers (not useEffect) to avoid flash
+- Only show non-default values in URL for cleaner URLs
+- Controlled mode support in usePromptFilters for external state management
+
 ### Deferred Issues
 
 None.
@@ -65,8 +70,8 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-16
-Stopped at: Completed 12-03-PLAN.md (Phase 12: Shared Component Architecture complete)
+Stopped at: Completed 13-01-PLAN.md (Phase 13: URL-Based Search/Filter complete)
 Resume file: None
 
 **Next Steps:**
-- Plan Phase 13 (URL-Based Search/Filter)
+- Plan Phase 14 (Visibility Toggle)
