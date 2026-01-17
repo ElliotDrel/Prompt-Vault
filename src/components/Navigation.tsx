@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/ui/NavLink";
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut } from 'lucide-react';
+import { LogOut, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Navigation = () => {
@@ -37,8 +37,14 @@ export const Navigation = () => {
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-4">
         <nav className="flex items-center justify-between relative">
+          {/* Logo and name - left side */}
+          <div className="flex-1">
+            <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <FileText className="h-6 w-6 text-primary" />
+              <span className="font-semibold text-lg">Prompt Vault</span>
+            </Link>
+          </div>
           {/* Centered navigation buttons */}
-          <div className="flex-1" /> {/* Spacer */}
           <div className="flex space-x-4">
             <Button
               variant={isActive('/dashboard') ? 'default' : 'ghost'}

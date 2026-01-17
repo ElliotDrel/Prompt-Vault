@@ -39,7 +39,7 @@ export function Dashboard() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Prompt Vault</h1>
+            <h1 className="text-3xl font-bold text-foreground">My Prompts</h1>
             <p className="text-muted-foreground mt-1">
               Store, manage, and copy your text prompts with ease
             </p>
