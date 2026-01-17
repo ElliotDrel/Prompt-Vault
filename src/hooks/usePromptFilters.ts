@@ -73,14 +73,16 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
   const toggleSortDirection = controlledState?.toggleSortDirection ?? internalToggleSortDirection;
 
   const filteredPrompts = useMemo(() => {
-    // Filter by search term (case-insensitive match across title, body, and author name)
+    // Filter by search term (case-insensitive match across title, body, author name, and author ID)
     const searchLower = searchTerm.toLowerCase();
     const filtered = prompts.filter((prompt) => {
       const titleMatch = prompt.title.toLowerCase().includes(searchLower);
       const bodyMatch = prompt.body.toLowerCase().includes(searchLower);
-      // Check author name for public prompts
+      // Check author name and ID for public prompts
       const authorName = (prompt as any).author?.displayName;
-      const authorMatch = authorName ? authorName.toLowerCase().includes(searchLower) : false;
+      const authorId = (prompt as any).authorId;
+      const authorMatch = (authorName && authorName.toLowerCase().includes(searchLower)) ||
+                          (authorId && authorId.toLowerCase().includes(searchLower));
       return titleMatch || bodyMatch || authorMatch;
     });
 
