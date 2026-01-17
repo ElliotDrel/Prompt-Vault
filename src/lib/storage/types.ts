@@ -67,7 +67,7 @@ export interface StorageAdapter {
   versions: VersionsStorageAdapter;
 
   // Event subscription for real-time updates
-  subscribe?: (callback: (type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void) => () => void;
+  subscribe?: (callback: (type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void) => () => void;
 
   // Check if adapter is ready
   isReady(): Promise<boolean>;

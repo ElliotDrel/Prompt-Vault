@@ -220,7 +220,7 @@ export function PromptCard({
       {/* Action buttons - only shown for owned prompts */}
       {shouldShowPinAction && (
         <div className="absolute top-2 right-2 flex gap-1">
-          {/* Visibility indicator with tooltip - only for owned prompts */}
+          {/* Visibility indicator with tooltip - shown for owned prompts (public/private) */}
           {effectiveSource === 'owned' && (
             <TooltipProvider>
               <Tooltip>
@@ -270,8 +270,24 @@ export function PromptCard({
         </div>
       )}
 
+      {/* Public indicator for Library cards (source='public') */}
+      {effectiveSource === 'public' && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center text-green-600">
+                <Globe className="h-4 w-4" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Public - visible in the Prompt Library</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
       {/* Header with timestamp and title */}
-      <div className={`flex flex-col gap-1 ${shouldShowPinAction ? 'pr-20' : effectiveSource === 'saved' ? 'pr-10' : ''}`}>
+      <div className={`flex flex-col gap-1 ${shouldShowPinAction ? 'pr-20' : (effectiveSource === 'saved' || effectiveSource === 'public') ? 'pr-10' : ''}`}>
         <span className="text-xs text-muted-foreground">
           Last updated: {formatRelativeTime(prompt.updatedAt)}
         </span>
@@ -290,11 +306,11 @@ export function PromptCard({
               }}
               className="text-xs text-muted-foreground hover:text-foreground hover:underline text-left"
             >
-              by {author.displayName || 'Anonymous'}
+              by {author.displayName || `${author.userId.slice(0, 8)}...`}
             </button>
           ) : (
             <span className="text-xs text-muted-foreground">
-              by {author.displayName || 'Anonymous'}
+              by {author.displayName || `${author.userId.slice(0, 8)}...`}
             </span>
           )
         )}

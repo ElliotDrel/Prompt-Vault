@@ -65,7 +65,7 @@ const mapPublicPromptRow = (row: PublicPromptRow): PublicPrompt => ({
   authorId: row.user_id,
   author: {
     userId: row.user_id,
-    displayName: undefined, // Future: profile lookup
+    displayName: undefined, // No user profile system yet; UI will use truncated userId as fallback
   },
 });
 
@@ -636,8 +636,9 @@ export class SupabaseAdapter implements StorageAdapter {
   public stats: StatsStorageAdapter;
   public versions: VersionsStorageAdapter;
   private channel: RealtimeChannel | null = null;
+  private publicChannel: RealtimeChannel | null = null;
   private channelUserId: string | null = null;
-  private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void>();
+  private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void>();
   private subscriptionGeneration = 0;
   private subscribeTask: Promise<void> | null = null;
 
@@ -661,7 +662,7 @@ export class SupabaseAdapter implements StorageAdapter {
     return 'supabase';
   }
 
-  subscribe(callback: (type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void): () => void {
+  subscribe(callback: (type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void): () => void {
     this.subscribers.add(callback);
     if (this.subscribers.size === 1) {
       const generation = ++this.subscriptionGeneration;
@@ -677,7 +678,7 @@ export class SupabaseAdapter implements StorageAdapter {
     };
   }
 
-  private notifySubscribers(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) {
+  private notifySubscribers(type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) {
     this.subscribers.forEach((subscriber) => {
       try {
         subscriber(type, data);
@@ -767,9 +768,22 @@ export class SupabaseAdapter implements StorageAdapter {
         this.notifySubscribers('prompts', payload);
       });
 
+    // Create a separate channel for public prompts (from any user)
+    const publicChannel = supabase
+      .channel('public_prompts_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'prompts',
+        filter: 'visibility=eq.public'
+      }, (payload) => {
+        this.notifySubscribers('publicPrompts', payload);
+      });
+
     if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
       try {
         await supabase.removeChannel(channel);
+        await supabase.removeChannel(publicChannel);
       } catch (err) {
         console.error('Failed to remove Supabase channel:', err);
       }
@@ -777,6 +791,7 @@ export class SupabaseAdapter implements StorageAdapter {
     }
 
     this.channel = channel;
+    this.publicChannel = publicChannel;
     this.channelUserId = userId;
 
     channel.subscribe((status, err) => {
@@ -790,6 +805,20 @@ export class SupabaseAdapter implements StorageAdapter {
       }
       if (status === 'CLOSED') {
         console.warn('Realtime subscription closed');
+        void this.resubscribe();
+      }
+    });
+
+    publicChannel.subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.error('Public prompts realtime subscription error:', err);
+        void this.resubscribe();
+      }
+      if (status === 'TIMED_OUT') {
+        console.error('Public prompts realtime subscription timed out');
+      }
+      if (status === 'CLOSED') {
+        console.warn('Public prompts realtime subscription closed');
         void this.resubscribe();
       }
     });
@@ -815,17 +844,24 @@ export class SupabaseAdapter implements StorageAdapter {
       return;
     }
 
-    if (!this.channel) {
+    if (!this.channel && !this.publicChannel) {
       this.channelUserId = null;
       return;
     }
 
     const channel = this.channel;
+    const publicChannel = this.publicChannel;
     this.channel = null;
+    this.publicChannel = null;
     this.channelUserId = null;
 
     try {
-      await supabase.removeChannel(channel);
+      if (channel) {
+        await supabase.removeChannel(channel);
+      }
+      if (publicChannel) {
+        await supabase.removeChannel(publicChannel);
+      }
     } catch (err) {
       console.error('Failed to remove Supabase channel:', err);
     }

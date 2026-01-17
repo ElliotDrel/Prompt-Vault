@@ -79,6 +79,7 @@ export default function PublicLibrary() {
                 }}
               />
             )}
+            searchPlaceholder="Search title, content, author..."
             emptyIcon={<Library className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />}
             emptyTitle="No public prompts yet"
             emptyDescription="Be the first to share a prompt with the community!"
