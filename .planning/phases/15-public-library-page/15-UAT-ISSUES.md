@@ -32,81 +32,36 @@ The current realtime subscription in `supabaseAdapter.ts:741-768` only listens f
 **Recommended Fix:**
 Add a separate subscription channel filtered by `visibility=eq.public` instead of `user_id`. This will notify when any prompt becomes public, is edited while public, or becomes private.
 
-### UAT-007: Visibility toggle position and labeling UX improvements
-
-**Discovered:** 2026-01-16 (Round 2)
-**Phase/Plan:** 15
-**Severity:** Minor (Enhancement)
-**Feature:** Visibility toggle UX
-**Description:** User requested UX improvements to visibility toggle placement and labeling.
-**Expected:**
-- Toggle should be in the same row as "Back to Dashboard" button, aligned right
-- Current state label ("Private" or "Public") should be ABOVE the toggle, centered
-**Actual:**
-- Toggle is positioned in top right corner of content area
-- Label is adjacent to toggle, not above
-
-### UAT-008: Author name shows "Anonymous" for all users instead of actual name
-
-**Discovered:** 2026-01-16 (Round 2)
-**Phase/Plan:** 15
-**Severity:** Major
-**Feature:** Author attribution
-**Description:** All public prompts show "by Anonymous" instead of the actual author's name.
-**Expected:**
-- Display user's `full_name` from auth.users metadata
-- If no full_name, display truncated user ID (e.g., "44f2ca5f...")
-**Actual:**
-- `displayName` is hardcoded to `undefined` in `supabaseAdapter.ts:68`
-- PromptCard falls back to "Anonymous" when displayName is falsy
-**Root Cause:**
-In `mapRowToPublicPrompt()`, the author object is created with `displayName: undefined` and a comment "Future: profile lookup". No actual lookup is performed.
-**Repro:**
-1. Go to /library
-2. Look at any prompt card
-3. Author shows "by Anonymous"
-
-**Recommended Fix:**
-1. Join prompts query with `auth.users` to get `raw_user_meta_data->>'full_name'`
-2. Or create a `profiles` table that stores display names
-3. Update fallback in PromptCard to show truncated userId instead of "Anonymous"
-
-### UAT-009: Library cards should show public icon for consistency
-
-**Discovered:** 2026-01-16 (Round 2)
-**Phase/Plan:** 15
-**Severity:** Minor
-**Feature:** Library card consistency
-**Description:** Library cards currently hide visibility icons (all are public). User wants icons shown for visual consistency across platform.
-**Expected:**
-- Library cards show globe icon with "Public - visible in the Prompt Library" tooltip
-- Consistent with Dashboard card appearance
-**Actual:**
-- Visibility icons are hidden on Library cards (`effectiveSource === 'owned'` check in PromptCard)
-**Repro:**
-1. Go to /library
-2. Look at any prompt card - no visibility icon
-
-### UAT-010: Search scope unclear - needs documentation/UI hint
-
-**Discovered:** 2026-01-16 (Round 2)
-**Phase/Plan:** 15
-**Severity:** Minor (Enhancement)
-**Feature:** Search UX
-**Description:** User asked "what is search searching?" - search scope not obvious from UI.
-**Current Behavior:**
-- **Dashboard**: Searches title, body (author fields ignored since owned prompts)
-- **Library**: Searches title, body, author.displayName, authorId
-- **Copy History**: Uses same hook, searches available fields
-**Expected:**
-- Placeholder text could hint at search scope (e.g., "Search title, content, author...")
-- Or a small info icon explaining what's searchable
-**Actual:**
-- Generic "Search prompts..." placeholder doesn't clarify scope
+**Implementation Attempted:** 2026-01-17 in 15-FIX2
+- Added `publicChannel` subscription with `visibility=eq.public` filter
+- Added `'publicPrompts'` event type to storage types
+- Added subscription listener in `usePublicPrompts.ts`
+- **Status: NOT WORKING** - Subscription not triggering. Needs senior dev review.
+- See commit `91d9b44` for implementation details.
 
 ---
 
 ## Resolved Issues
+
+### UAT-007: Visibility toggle position and labeling UX improvements
+**Resolved:** 2026-01-17 - Fixed in 15-FIX2
+**Commit:** 91d9b44
+**Fix:** Moved toggle to header row (same row as Back button), right-aligned. Label now centered above the switch.
+
+### UAT-008: Author name shows "Anonymous" for all users instead of actual name
+**Resolved:** 2026-01-17 - Fixed in 15-FIX2
+**Commit:** 91d9b44
+**Fix:** Changed fallback from "Anonymous" to truncated userId with ellipsis (e.g., "44f2ca5f..."). No profile system exists yet, so using userId as identifier.
+
+### UAT-009: Library cards should show public icon for consistency
+**Resolved:** 2026-01-17 - Fixed in 15-FIX2
+**Commit:** 91d9b44
+**Fix:** Added globe icon with tooltip for `source='public'` cards in PromptCard.tsx.
+
+### UAT-010: Search scope unclear - needs documentation/UI hint
+**Resolved:** 2026-01-17 - Fixed in 15-FIX2
+**Commit:** 91d9b44
+**Fix:** Added `searchPlaceholder` prop to PromptListView. Library shows "Search title, content, author...", Dashboard shows "Search prompts...".
 
 ### UAT-001: Public Library doesn't refresh after visibility toggle
 **Resolved:** 2026-01-16 - Fixed in 15-FIX
@@ -138,3 +93,4 @@ In `mapRowToPublicPrompt()`, the author object is created with `displayName: und
 *Phase: 15-public-library-page*
 *Round 1 Tested: 2026-01-16 - 5 issues found, all resolved*
 *Round 2 Tested: 2026-01-16 - 5 new issues found (UAT-006 to UAT-010)*
+*Round 2 Fixes: 2026-01-17 - 4 issues resolved (UAT-007 to UAT-010), 1 pending (UAT-006 realtime)*
