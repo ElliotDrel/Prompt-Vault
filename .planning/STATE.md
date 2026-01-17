@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15 of 20 (Public Library Page)
-Plan: 2 of 2 in current phase
-Status: Phase complete (pending UAT verification)
-Last activity: 2026-01-16 - Completed 15-02-PLAN.md
+Plan: 15-FIX complete (UAT fixes verified)
+Status: Phase 15 complete
+Last activity: 2026-01-16 - Completed 15-FIX (UAT fixes)
 
-Progress: ████░░░░░░ 40%
+Progress: █████░░░░░ 50%
 
 ## Shipped Milestones
 
@@ -63,9 +63,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 **Phase 15 decisions:**
 - RLS handles visibility filtering - no explicit auth.uid() check needed in query
 - Author info initialized with userId only, displayName undefined for future profile lookup
-- Author filter as URL param (?author=userId) for shareability and bookmarking
-- Pre-filter by author before usePromptFilters (keeps hook focused on search/sort)
-- Clickable author name in PromptCard for quick filtering
+- Unified search over URL filters - simpler UX, more intuitive discovery
+- AppLayout component for persistent nav/stats across all pages
+- Switch component for visibility toggle with clear semantics
+- Visibility icons only on owned cards (reduces clutter on Library)
+- Favicon for nav logo (consistent branding, reuses existing asset)
 
 ### Deferred Issues
 
@@ -82,10 +84,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-16
-Stopped at: Completed 15-02-PLAN.md (Phase 15: Public Library Page complete)
+Stopped at: Completed 15-FIX (all UAT issues fixed and verified)
 Resume file: None
 
 **Next Steps:**
-- Run `/gsd:verify-work 15` to verify Public Library Page implementation
-- After verification: UAT Checkpoint A (Public Visibility Flow)
-- Then: Plan Phase 16 (Add to Vault)
+- Plan Phase 16: Add to Vault (/gsd:plan-phase 16)
+- Or discuss phase first (/gsd:discuss-phase 16)
