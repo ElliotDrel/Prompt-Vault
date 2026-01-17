@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/ui/NavLink";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, FileText } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Navigation = () => {
@@ -40,7 +40,7 @@ export const Navigation = () => {
           {/* Logo and name - left side */}
           <div className="flex-1">
             <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <FileText className="h-6 w-6 text-primary" />
+              <img src="/icon0.svg" alt="Prompt Vault" className="h-6 w-6" />
               <span className="font-semibold text-lg">Prompt Vault</span>
             </Link>
           </div>
