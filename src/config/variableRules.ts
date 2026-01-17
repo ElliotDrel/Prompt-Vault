@@ -13,16 +13,10 @@
 export const CHARACTER_LIMIT = 50000;
 
 /**
- * Proximity distance for determining XML vs direct replacement
- * Variables with non-space characters within this distance use direct replacement
- * Variables isolated by this distance use XML format
+ * Maximum characters to scan when looking for nearby content
+ * Whitespace is skipped during the scan
  */
-export const PROXIMITY_DISTANCE = 3;
-
-/**
- * Effective distance newlines count as when checking proximity
- */
-export const NEWLINE_DISTANCE = 3;
+const PROXIMITY_SCAN_RANGE = 50;
 
 // ============================================================================
 // REGEX PATTERNS
@@ -178,81 +172,45 @@ export function formatAsXML(variableName: string, value: string): string {
 }
 
 /**
- * Check if there are non-space characters within proximity distance
+ * Check if there are non-whitespace characters near the variable
+ * Scans up to PROXIMITY_SCAN_RANGE chars, skipping whitespace
  * Used to determine whether to use XML format or direct replacement
  * @param text - The full text to search in
  * @param variableRegex - Regex matching the specific variable
- * @returns true if non-space characters are within proximity distance
+ * @returns true if non-whitespace characters are found nearby
  */
 export function hasNearbyNonSpaceCharacters(text: string, variableRegex: RegExp): boolean {
   const matches = Array.from(text.matchAll(new RegExp(variableRegex.source, 'g')));
-  
+
   for (const match of matches) {
     if (match.index === undefined) continue;
-    
+
     const startIndex = match.index;
     const endIndex = startIndex + match[0].length;
-    
-    // Check before the variable
-    if (checkProximity(text, startIndex, 'before')) {
-      return true;
-    }
-    
-    // Check after the variable
-    if (checkProximity(text, endIndex, 'after')) {
+
+    if (hasNearbyContent(text, startIndex, 'before') ||
+        hasNearbyContent(text, endIndex, 'after')) {
       return true;
     }
   }
-  
+
   return false;
 }
 
 /**
- * Helper function to check proximity in a specific direction
- * @param text - The full text
- * @param index - The starting index
- * @param direction - 'before' or 'after'
- * @returns true if non-space character found within proximity
+ * Check for non-whitespace content in a direction, skipping whitespace
  */
-function checkProximity(text: string, index: number, direction: 'before' | 'after'): boolean {
+function hasNearbyContent(text: string, index: number, direction: 'before' | 'after'): boolean {
   if (direction === 'before') {
-    const beforeText = text.substring(Math.max(0, index - PROXIMITY_DISTANCE), index);
-    let distance = 0;
-    
-    for (let i = beforeText.length - 1; i >= 0; i--) {
-      const char = beforeText[i];
-      if (char === '\n') {
-        distance += NEWLINE_DISTANCE;
-      } else if (char !== ' ' && char !== '\t' && char !== '\r') {
-        // Found non-space character
-        if (distance + (beforeText.length - 1 - i) <= PROXIMITY_DISTANCE) {
-          return true;
-        }
-        break;
-      } else {
-        distance += 1;
-      }
+    for (let i = index - 1; i >= Math.max(0, index - PROXIMITY_SCAN_RANGE); i--) {
+      if (!/\s/.test(text[i])) return true;
     }
   } else {
-    const afterText = text.substring(index, Math.min(text.length, index + PROXIMITY_DISTANCE));
-    let distance = 0;
-    
-    for (let i = 0; i < afterText.length; i++) {
-      const char = afterText[i];
-      if (char === '\n') {
-        distance += NEWLINE_DISTANCE;
-      } else if (char !== ' ' && char !== '\t' && char !== '\r') {
-        // Found non-space character
-        if (distance + i <= PROXIMITY_DISTANCE) {
-          return true;
-        }
-        break;
-      } else {
-        distance += 1;
-      }
+    for (let i = index; i < Math.min(text.length, index + PROXIMITY_SCAN_RANGE); i++) {
+      if (!/\s/.test(text[i])) return true;
     }
   }
-  
   return false;
 }
+
 
