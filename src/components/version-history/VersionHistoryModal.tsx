@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useMemo } from 'react';
+import { memo, useState, useEffect, useMemo, useRef } from 'react';
 import { Prompt, PromptVersion } from '@/types/prompt';
 import {
   Dialog,
@@ -100,12 +100,22 @@ export const VersionHistoryModal = memo(function VersionHistoryModal({
   // Fetch versions to find previous version for comparison
   const { versions } = usePromptVersions({ promptId: prompt.id, enabled: open });
 
-  // Select latest version by default when modal opens (only if nothing is selected)
+  // Track whether we need to auto-select the latest version for this open session
+  const needsSelectionRef = useRef(true);
+
+  // Auto-select latest version when modal opens; reset flag when modal closes
   useEffect(() => {
-    if (open && versions.length > 0 && !selectedVersion) {
+    // Select latest when modal is open, flag is set, and versions are available
+    if (open && needsSelectionRef.current && versions.length > 0) {
       setSelectedVersion(versions[0]);
+      needsSelectionRef.current = false;
     }
-  }, [open, versions, selectedVersion]);
+
+    // Reset flag when modal closes (for next open)
+    if (!open) {
+      needsSelectionRef.current = true;
+    }
+  }, [open, versions]);
 
   const handleVersionSelect = (version: PromptVersion) => {
     setSelectedVersion(version);
