@@ -42,6 +42,36 @@ type VersionRow = {
   created_at: string;
 };
 
+// Module-level broadcast channel for sending public prompt change notifications.
+// Lazily initialized and subscribed on first use, kept alive - NEVER call removeChannel.
+// Must use the same channel name as receivers ('public_prompts_broadcast') for messages to arrive.
+// We subscribe the channel (without handlers) so send() uses WebSocket instead of REST fallback.
+let broadcastSendChannel: RealtimeChannel | null = null;
+let broadcastSendChannelReady: Promise<void> | null = null;
+
+/**
+ * Get the broadcast send channel, subscribing it if not already subscribed.
+ * Returns a promise that resolves when the channel is ready to send.
+ */
+async function ensureBroadcastSendChannel(): Promise<RealtimeChannel> {
+  if (!broadcastSendChannel) {
+    broadcastSendChannel = supabase.channel('public_prompts_broadcast');
+    // Subscribe without any .on() handlers - we only need SUBSCRIBED state to send via WebSocket
+    broadcastSendChannelReady = new Promise<void>((resolve, reject) => {
+      broadcastSendChannel!.subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          resolve();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          reject(err ?? new Error(`Broadcast channel ${status}`));
+        }
+        // CLOSED status is handled by keeping the channel alive (never removing it)
+      });
+    });
+  }
+  await broadcastSendChannelReady;
+  return broadcastSendChannel;
+}
+
 const mapPromptRow = (row: PromptRow): Prompt => ({
   id: row.id,
   title: row.title,
@@ -130,17 +160,19 @@ function hasContentChanges(oldPrompt: Prompt, newData: Omit<Prompt, 'id' | 'upda
  * Broadcast a notification that a public prompt has changed.
  * This notifies all users viewing the Library page to refresh their data.
  * Uses Supabase Broadcast for client-to-client messaging (bypasses RLS).
+ *
+ * Uses a persistent subscribed channel to:
+ * 1. Avoid removeChannel() killing receive subscriptions
+ * 2. Send via WebSocket instead of REST fallback (avoids deprecation warnings)
  */
 async function broadcastPublicPromptChange(): Promise<void> {
   try {
-    const channel = supabase.channel('public_prompts_broadcast');
+    const channel = await ensureBroadcastSendChannel();
     await channel.send({
       type: 'broadcast',
       event: 'public_prompt_changed',
       payload: {},
     });
-    // Clean up the channel after sending
-    await supabase.removeChannel(channel);
   } catch (err) {
     // Non-critical: broadcast failure shouldn't break the main operation
     console.error('Failed to broadcast public prompt change:', err);
@@ -224,6 +256,11 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     } catch (versionError) {
       // Log but don't fail prompt creation
       console.error('Failed to create initial version:', versionError);
+    }
+
+    // Broadcast if prompt is created as public so Library viewers see it
+    if (createdPrompt.visibility === 'public') {
+      void broadcastPublicPromptChange();
     }
 
     return createdPrompt;
