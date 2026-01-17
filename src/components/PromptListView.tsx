@@ -32,6 +32,9 @@ interface PromptListViewProps {
   noResultsTitle?: string;
   noResultsDescription?: string;
 
+  // Search input customization
+  searchPlaceholder?: string;
+
   // Grid bottom margin (to make room for floating buttons)
   gridClassName?: string;
 }
@@ -52,6 +55,7 @@ export function PromptListView({
   emptyAction,
   noResultsTitle = 'No prompts found',
   noResultsDescription = 'Try adjusting your search',
+  searchPlaceholder = 'Search prompts...',
   gridClassName = '',
 }: PromptListViewProps) {
   const isEmpty = prompts.length === 0 && !searchTerm;
@@ -86,7 +90,7 @@ export function PromptListView({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search prompts by title..."
+            placeholder={searchPlaceholder}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-10 pr-10"

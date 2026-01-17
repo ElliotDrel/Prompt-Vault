@@ -226,13 +226,19 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Back button */}
-        <Button variant="ghost" className="mb-6 -ml-2" asChild>
-          <NavLink to={DASHBOARD_ROUTE} onNavigate={onNavigateBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </NavLink>
-        </Button>
+        {/* Header row: Back button on left, Visibility toggle on right */}
+        <div className="flex justify-between items-start mb-6">
+          <Button variant="ghost" className="-ml-2" asChild>
+            <NavLink to={DASHBOARD_ROUTE} onNavigate={onNavigateBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </NavLink>
+          </Button>
+          <VisibilityToggle
+            visibility={prompt.visibility ?? 'private'}
+            onToggle={handleVisibilityToggle}
+          />
+        </div>
 
         {/* Main view card */}
         <div className="bg-card border rounded-lg p-6 shadow-sm">
@@ -247,22 +253,15 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4">
-              {/* Visibility toggle - top right like Google Docs */}
-              <VisibilityToggle
-                visibility={prompt.visibility ?? 'private'}
-                onToggle={handleVisibilityToggle}
-              />
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
-                  <History className="h-4 w-4 mr-2" />
-                  History
-                </Button>
-                <Button onClick={onEdit} className="bg-primary hover:bg-primary/90">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
+                <History className="h-4 w-4 mr-2" />
+                History
+              </Button>
+              <Button onClick={onEdit} className="bg-primary hover:bg-primary/90">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
             </div>
           </div>
 

@@ -42,22 +42,26 @@ export function VisibilityToggle({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-2">
-            <Lock className={`h-4 w-4 ${!isPublic ? 'text-foreground' : 'text-muted-foreground'}`} />
-            <Switch
-              checked={isPublic}
-              onCheckedChange={handleToggle}
-              disabled={disabled || isToggling}
-              aria-label={tooltipText}
-            />
-            {isToggling ? (
-              <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
-            ) : (
-              <Globe className={`h-4 w-4 ${isPublic ? 'text-green-600' : 'text-muted-foreground'}`} />
-            )}
+          <div className="flex flex-col items-center gap-1">
+            {/* Label above the toggle, centered */}
             <Label className="text-sm font-medium">
               {isPublic ? 'Public' : 'Private'}
             </Label>
+            {/* Toggle row: [Lock] [Switch] [Globe] */}
+            <div className="flex items-center gap-2">
+              <Lock className={`h-4 w-4 ${!isPublic ? 'text-foreground' : 'text-muted-foreground'}`} />
+              <Switch
+                checked={isPublic}
+                onCheckedChange={handleToggle}
+                disabled={disabled || isToggling}
+                aria-label={tooltipText}
+              />
+              {isToggling ? (
+                <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+              ) : (
+                <Globe className={`h-4 w-4 ${isPublic ? 'text-green-600' : 'text-muted-foreground'}`} />
+              )}
+            </div>
           </div>
         </TooltipTrigger>
         <TooltipContent>
