@@ -40,7 +40,7 @@ export const Navigation = () => {
           {/* Logo and name - left side */}
           <div className="flex-1">
             <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img src="/icon0.svg" alt="Prompt Vault" className="h-6 w-6" />
+              <img src="/icon1.png" alt="Prompt Vault" className="h-6 w-6" />
               <span className="font-semibold text-lg">Prompt Vault</span>
             </Link>
           </div>
