@@ -97,6 +97,16 @@ Plans:
 - Author filter works correctly
 **Risk if skipped**: Broken RLS policies would cascade into Phase 16-20 work
 
+#### Phase 15.1: Visibility Filter Persistence (INSERTED)
+
+**Goal**: Add public/private visibility filter to Dashboard and Library pages, rework filtering system for better UX, and persist filter state to database via user_settings table
+**Depends on**: UAT Checkpoint A
+**Research**: Unlikely (extending existing filter patterns + user_settings table)
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 15.1 to break down)
+
 #### Phase 16: Add to Vault
 
 **Goal**: Live-link functionality to add public prompts as read-only synced references with version history access
@@ -187,6 +197,7 @@ Plans:
 | 14. Visibility Toggle | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
 | 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
+| 15.1 Visibility Filter Persistence | v2.0 | 0/? | Not started | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint B** | v2.0 | — | Pending | - |

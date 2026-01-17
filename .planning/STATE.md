@@ -80,6 +80,7 @@ None.
 ### Roadmap Evolution
 
 - Milestone v2.0 created: Public Prompt Library, 10 phases (Phase 11-20)
+- Phase 15.1 inserted after Phase 15: Visibility Filter Persistence (URGENT) - Rework filtering system with public/private toggle on Dashboard/Library, persist filter state to user_settings table
 
 ## Session Continuity
 
@@ -88,5 +89,5 @@ Stopped at: Completed 15-FIX (all UAT issues fixed and verified)
 Resume file: None
 
 **Next Steps:**
-- Plan Phase 16: Add to Vault (/gsd:plan-phase 16)
-- Or discuss phase first (/gsd:discuss-phase 16)
+- Plan Phase 15.1: Visibility Filter Persistence (/gsd:plan-phase 15.1)
+- Or discuss phase first (/gsd:discuss-phase 15.1)
