@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Globe, Lock, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Tooltip,
   TooltipContent,
@@ -12,22 +13,19 @@ interface VisibilityToggleProps {
   visibility: 'private' | 'public';
   onToggle: () => Promise<void>;
   disabled?: boolean;
-  size?: 'sm' | 'default';
 }
 
 export function VisibilityToggle({
   visibility,
   onToggle,
   disabled = false,
-  size = 'default',
 }: VisibilityToggleProps) {
   const [isToggling, setIsToggling] = useState(false);
 
   const isPublic = visibility === 'public';
-  const Icon = isToggling ? Loader2 : isPublic ? Globe : Lock;
   const tooltipText = isPublic
-    ? 'Public - Click to make private'
-    : 'Private - Click to make public';
+    ? 'Public - visible in the Prompt Library'
+    : 'Private - only visible to you';
 
   const handleToggle = async () => {
     if (disabled || isToggling) return;
@@ -40,27 +38,27 @@ export function VisibilityToggle({
     }
   };
 
-  const buttonSize = size === 'sm' ? 'h-8 w-8' : 'h-9 w-9';
-  const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
-
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            onClick={handleToggle}
-            disabled={disabled || isToggling}
-            variant="outline"
-            size="icon"
-            className={`${buttonSize} ${
-              isPublic
-                ? 'bg-green-50 border-green-300 text-green-600 hover:bg-green-100 hover:text-green-700'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Icon className={`${iconSize} ${isToggling ? 'animate-spin' : ''}`} />
-            <span className="sr-only">{tooltipText}</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Lock className={`h-4 w-4 ${!isPublic ? 'text-foreground' : 'text-muted-foreground'}`} />
+            <Switch
+              checked={isPublic}
+              onCheckedChange={handleToggle}
+              disabled={disabled || isToggling}
+              aria-label={tooltipText}
+            />
+            {isToggling ? (
+              <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+            ) : (
+              <Globe className={`h-4 w-4 ${isPublic ? 'text-green-600' : 'text-muted-foreground'}`} />
+            )}
+            <Label className="text-sm font-medium">
+              {isPublic ? 'Public' : 'Private'}
+            </Label>
+          </div>
         </TooltipTrigger>
         <TooltipContent>
           <p>{tooltipText}</p>
