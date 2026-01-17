@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Prompt } from '@/types/prompt';
 import { StorageAdapter, UpdatePromptOptions } from '@/lib/storage';
 import { sanitizeVariables } from '@/utils/variableUtils';
@@ -36,6 +37,7 @@ const defaultStats = {
 };
 
 export function PromptsProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -247,6 +249,9 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       setPrompts((prev) => prev.map((p) =>
         p.id === id ? sanitizedPrompt : p
       ));
+
+      // Invalidate public prompts query so Library page reflects the change
+      await queryClient.invalidateQueries({ queryKey: ['publicPrompts'] });
     } catch (err) {
       console.error('Failed to toggle visibility:', err);
       setError('Failed to toggle visibility');
@@ -258,7 +263,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
 
       throw err;
     }
-  }, [getAdapter]);
+  }, [getAdapter, queryClient]);
 
   const incrementPromptUsage = useCallback(async (promptId: string) => {
     const adapter = getAdapter();
