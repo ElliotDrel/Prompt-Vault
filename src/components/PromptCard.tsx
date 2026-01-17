@@ -8,6 +8,12 @@ import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { sanitizeVariables } from '@/utils/variableUtils';
@@ -214,19 +220,33 @@ export function PromptCard({
       {/* Action buttons - only shown for owned prompts */}
       {shouldShowPinAction && (
         <div className="absolute top-2 right-2 flex gap-1">
-          {/* Visibility indicator */}
-          <div
-            className={`h-8 w-8 flex items-center justify-center ${
-              prompt.visibility === 'public' ? 'text-green-600' : 'text-muted-foreground'
-            }`}
-            title={prompt.visibility === 'public' ? 'Public' : 'Private'}
-          >
-            {prompt.visibility === 'public' ? (
-              <Globe className="h-4 w-4" />
-            ) : (
-              <Lock className="h-4 w-4" />
-            )}
-          </div>
+          {/* Visibility indicator with tooltip - only for owned prompts */}
+          {effectiveSource === 'owned' && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`h-8 w-8 flex items-center justify-center ${
+                      prompt.visibility === 'public' ? 'text-green-600' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {prompt.visibility === 'public' ? (
+                      <Globe className="h-4 w-4" />
+                    ) : (
+                      <Lock className="h-4 w-4" />
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {prompt.visibility === 'public'
+                      ? 'Public - visible in the Prompt Library'
+                      : 'Private - only visible to you'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           {/* Pin button */}
           <Button
             onClick={handlePinClick}
