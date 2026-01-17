@@ -126,6 +126,27 @@ function hasContentChanges(oldPrompt: Prompt, newData: Omit<Prompt, 'id' | 'upda
   );
 }
 
+/**
+ * Broadcast a notification that a public prompt has changed.
+ * This notifies all users viewing the Library page to refresh their data.
+ * Uses Supabase Broadcast for client-to-client messaging (bypasses RLS).
+ */
+async function broadcastPublicPromptChange(): Promise<void> {
+  try {
+    const channel = supabase.channel('public_prompts_broadcast');
+    await channel.send({
+      type: 'broadcast',
+      event: 'public_prompt_changed',
+      payload: {},
+    });
+    // Clean up the channel after sending
+    await supabase.removeChannel(channel);
+  } catch (err) {
+    // Non-critical: broadcast failure shouldn't break the main operation
+    console.error('Failed to broadcast public prompt change:', err);
+  }
+}
+
 class SupabasePromptsAdapter implements PromptsStorageAdapter {
   private versionsAdapter: SupabaseVersionsAdapter;
 
@@ -288,11 +309,20 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       }
     }
 
+    // Broadcast if prompt is public so Library viewers see the update
+    if (updatedPrompt.visibility === 'public') {
+      void broadcastPublicPromptChange();
+    }
+
     return updatedPrompt;
   }
 
   async deletePrompt(id: string): Promise<void> {
     const userId = await requireUserId();
+
+    // Fetch prompt before deletion to check if it's public
+    const promptRow = await fetchPromptRowById(userId, id);
+    const wasPublic = promptRow.visibility === 'public';
 
     const { error } = await supabase
       .from('prompts')
@@ -302,6 +332,11 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 
     if (error) {
       throw new Error(`Failed to delete prompt: ${error.message}`);
+    }
+
+    // Broadcast if deleted prompt was public so Library viewers see it removed
+    if (wasPublic) {
+      void broadcastPublicPromptChange();
     }
   }
 
@@ -349,6 +384,10 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       throw new Error(`Prompt not found or you don't have permission to toggle visibility`);
     }
 
+    // Broadcast to notify all Library page viewers
+    // Handles both private→public (new prompt appears) and public→private (prompt disappears)
+    void broadcastPublicPromptChange();
+
     return mapPromptRow(data as PromptRow);
   }
 
@@ -371,7 +410,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       throw new Error(`Prompt not found or you don't have permission to increment usage`);
     }
 
-    return mapPromptRow(data as PromptRow);
+    const updatedPrompt = mapPromptRow(data as PromptRow);
+
+    // Broadcast if prompt is public so Library viewers see updated usage count
+    if (updatedPrompt.visibility === 'public') {
+      void broadcastPublicPromptChange();
+    }
+
+    return updatedPrompt;
   }
 }
 
@@ -636,7 +682,7 @@ export class SupabaseAdapter implements StorageAdapter {
   public stats: StatsStorageAdapter;
   public versions: VersionsStorageAdapter;
   private channel: RealtimeChannel | null = null;
-  private publicChannel: RealtimeChannel | null = null;
+  private broadcastChannel: RealtimeChannel | null = null;
   private channelUserId: string | null = null;
   private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void>();
   private subscriptionGeneration = 0;
@@ -768,22 +814,21 @@ export class SupabaseAdapter implements StorageAdapter {
         this.notifySubscribers('prompts', payload);
       });
 
-    // Create a separate channel for public prompts (from any user)
-    const publicChannel = supabase
-      .channel('public_prompts_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'prompts',
-        filter: 'visibility=eq.public'
-      }, (payload) => {
-        this.notifySubscribers('publicPrompts', payload);
+    // Create a broadcast channel for public prompt notifications
+    // Uses Supabase Broadcast instead of postgres_changes because RLS evaluates
+    // against the OLD row state - when private→public, other users can't see the
+    // old (private) row, so they never receive postgres_changes events.
+    // Broadcast bypasses RLS for notifications; actual data fetch still uses RLS.
+    const broadcastChannel = supabase
+      .channel('public_prompts_broadcast')
+      .on('broadcast', { event: 'public_prompt_changed' }, () => {
+        this.notifySubscribers('publicPrompts');
       });
 
     if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
       try {
         await supabase.removeChannel(channel);
-        await supabase.removeChannel(publicChannel);
+        await supabase.removeChannel(broadcastChannel);
       } catch (err) {
         console.error('Failed to remove Supabase channel:', err);
       }
@@ -791,7 +836,7 @@ export class SupabaseAdapter implements StorageAdapter {
     }
 
     this.channel = channel;
-    this.publicChannel = publicChannel;
+    this.broadcastChannel = broadcastChannel;
     this.channelUserId = userId;
 
     channel.subscribe((status, err) => {
@@ -809,16 +854,16 @@ export class SupabaseAdapter implements StorageAdapter {
       }
     });
 
-    publicChannel.subscribe((status, err) => {
+    broadcastChannel.subscribe((status, err) => {
       if (status === 'CHANNEL_ERROR') {
-        console.error('Public prompts realtime subscription error:', err);
+        console.error('Public prompts broadcast subscription error:', err);
         void this.resubscribe();
       }
       if (status === 'TIMED_OUT') {
-        console.error('Public prompts realtime subscription timed out');
+        console.error('Public prompts broadcast subscription timed out');
       }
       if (status === 'CLOSED') {
-        console.warn('Public prompts realtime subscription closed');
+        console.warn('Public prompts broadcast subscription closed');
         void this.resubscribe();
       }
     });
@@ -844,23 +889,23 @@ export class SupabaseAdapter implements StorageAdapter {
       return;
     }
 
-    if (!this.channel && !this.publicChannel) {
+    if (!this.channel && !this.broadcastChannel) {
       this.channelUserId = null;
       return;
     }
 
     const channel = this.channel;
-    const publicChannel = this.publicChannel;
+    const broadcastChannel = this.broadcastChannel;
     this.channel = null;
-    this.publicChannel = null;
+    this.broadcastChannel = null;
     this.channelUserId = null;
 
     try {
       if (channel) {
         await supabase.removeChannel(channel);
       }
-      if (publicChannel) {
-        await supabase.removeChannel(publicChannel);
+      if (broadcastChannel) {
+        await supabase.removeChannel(broadcastChannel);
       }
     } catch (err) {
       console.error('Failed to remove Supabase channel:', err);
