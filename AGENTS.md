@@ -273,6 +273,55 @@ npx supabase functions delete my-function
 - **Debug checklist**: Publication enabled? RLS policy exists? User authenticated? Callback handles status?
 - **Test**: Two tabs logged in, edit in Tab A, Tab B updates instantly
 
+### 🚨 CRITICAL: Supabase Broadcast Channel Gotcha (2026-01-18)
+
+**THE PROBLEM**: `supabase.channel(name)` REUSES existing channel instances by name. If you have a persistent subscription to `'my_channel'` and later call `supabase.channel('my_channel')` to send a one-off broadcast, you get the SAME channel instance. Calling `removeChannel()` on it will CLOSE your persistent subscription!
+
+**SYMPTOM**: Console spam with "subscription closed" messages, channels constantly reconnecting, functionality appears to work but with excessive churn.
+
+**WRONG APPROACH** (causes subscription churn):
+```typescript
+// ❌ DON'T DO THIS - creates/removes same channel instance as receiver
+async function broadcastChange() {
+  const channel = supabase.channel('public_prompts_broadcast');
+  await channel.send({ type: 'broadcast', event: 'changed', payload: {} });
+  await supabase.removeChannel(channel); // BREAKS receiver's subscription!
+}
+```
+
+**CORRECT APPROACH** (check if channel is already subscribed):
+```typescript
+// ✅ DO THIS - reuse existing subscription, only remove newly created channels
+async function broadcastChange() {
+  const channel = supabase.channel('public_prompts_broadcast');
+
+  // Check if this is the persistent subscription (state === 'joined')
+  const isExistingSubscription = channel.state === 'joined';
+
+  await channel.send({ type: 'broadcast', event: 'changed', payload: {} });
+
+  // Only remove if this was a newly created channel (not the persistent one)
+  if (!isExistingSubscription) {
+    await supabase.removeChannel(channel);
+  }
+}
+```
+
+**WHY THIS MATTERS**:
+- Persistent subscriptions (for receiving broadcasts) stay connected
+- One-off sends (for broadcasting changes) get cleaned up
+- No subscription churn, no console spam, no reconnection loops
+
+**ALTERNATIVE APPROACH** (use unique channel names for sending):
+```typescript
+// Also works - sender uses unique name, receiver uses fixed name
+// BUT: messages won't reach receiver unless they're on same channel name!
+// Only use this if sender doesn't need to receive, and receivers are on different channel
+const sendChannel = supabase.channel(`broadcast_send_${Date.now()}`);
+```
+
+**Real Example (2026-01-18)**: Spent hours debugging "subscription closed" console spam. Root cause: `broadcastPublicPromptChange()` was calling `removeChannel()` on the same channel instance used by the persistent subscription in `SupabaseAdapter.setupSubscription()`. Fixed by checking `channel.state === 'joined'` before removing.
+
 ### Time Tracking Architecture (2026-01-04):
 - **Frontend calculation pattern**: Compute derived values (time saved = timesUsed * multiplier) in components, not database
 - **Configurable multiplier**: Store multiplier in `user_settings` table, expose via `prompt_stats` view
