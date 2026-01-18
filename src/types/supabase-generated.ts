@@ -267,6 +267,7 @@ export type Database = {
           updated_at: string
           user_id: string
           variables: Json
+          visibility: Database["public"]["Enums"]["prompt_visibility"]
         }[]
       }
       search_copy_events: {

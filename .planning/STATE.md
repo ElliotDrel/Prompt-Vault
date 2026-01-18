@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15 of 20 (Public Library Page)
-Plan: 15-FIX complete (UAT fixes verified)
+Plan: 15-FIX2 complete (broadcast fixes)
 Status: Phase 15 complete
-Last activity: 2026-01-16 - Completed 15-FIX (UAT fixes)
+Last activity: 2026-01-18 - Completed 15-FIX2 (broadcast fixes, console cleanup)
 
 Progress: █████░░░░░ 50%
 
@@ -71,7 +71,24 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 ### Deferred Issues
 
-None.
+**Public Prompt Usage Tracking (Partial - Phase 16+)**
+
+⚠️ **REMINDER**: Ask the user about this when resuming work on public prompts features.
+
+**What was done (15-FIX2):**
+- Migration `20260118104008_allow_public_increment_prompt_usage.sql` allows any authenticated user to increment `times_used` on public prompts (not just the owner)
+- RPC `increment_prompt_usage` now checks `user_id = auth.uid() OR visibility = 'public'`
+- PromptsContext updated to skip optimistic updates for prompts not in local state (prevents incorrect state when incrementing usage on public prompts you don't own)
+- Broadcast implemented to notify Library viewers when public prompt usage changes
+
+**What still needs to be done:**
+- Track total public usage separately (aggregate across all users, not just owner's count)
+- Distinguish between owner usage vs community usage
+- Display community usage metrics on public prompts
+- Potentially separate stats: "Used X times by you, Y times by community"
+- Consider privacy implications of usage tracking
+
+**Context:** Originally deferred to Phase 16, but basic increment functionality was needed for Phase 15 Library page to work (copying public prompts needs to increment usage). Full usage analytics is still pending.
 
 ### Blockers/Concerns
 
@@ -84,8 +101,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-16
-Stopped at: Completed 15-FIX (all UAT issues fixed and verified)
+Last session: 2026-01-18
+Stopped at: Completed 15-FIX2 (broadcast fixes, console cleanup)
 Resume file: None
 
 **Next Steps:**

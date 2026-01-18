@@ -271,12 +271,19 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     // Store previous state for rollback on error
     let previousPrompts: Prompt[] | null = null;
     let previousStats: typeof stats | null = null;
+    let shouldUpdateStats = false;
 
     try {
       setError(null);
 
       // Optimistic update: Immediately update UI state before database call
       setPrompts((prev) => {
+        const hasPrompt = prev.some((prompt) => prompt.id === promptId);
+        if (!hasPrompt) {
+          return prev;
+        }
+
+        shouldUpdateStats = true;
         previousPrompts = prev; // Store for rollback
         return prev.map((prompt) =>
           prompt.id === promptId
@@ -285,13 +292,15 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
         );
       });
 
-      setStats((prev) => {
-        previousStats = prev; // Store for rollback
-        return {
-          ...prev,
-          totalPromptUses: (prev.totalPromptUses ?? 0) + 1,
-        };
-      });
+      if (shouldUpdateStats) {
+        setStats((prev) => {
+          previousStats = prev; // Store for rollback
+          return {
+            ...prev,
+            totalPromptUses: (prev.totalPromptUses ?? 0) + 1,
+          };
+        });
+      }
 
       // Background: Confirm with database
       const updatedPrompt = await adapter.prompts.incrementPromptUsage(promptId);
