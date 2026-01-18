@@ -199,6 +199,11 @@ export function hasNearbyNonSpaceCharacters(text: string, variableRegex: RegExp)
 
 /**
  * Check for non-whitespace content in a direction, skipping whitespace
+ * Scans up to PROXIMITY_SCAN_RANGE characters from the given index
+ * @param text - The full text to scan
+ * @param index - The boundary index to start scanning from
+ * @param direction - The direction to scan ('before' scans backwards, 'after' scans forwards)
+ * @returns true if any non-whitespace character is found within the scan range
  */
 function hasNearbyContent(text: string, index: number, direction: 'before' | 'after'): boolean {
   if (direction === 'before') {
