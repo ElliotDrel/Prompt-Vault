@@ -40,6 +40,10 @@ See: `.planning/MILESTONES.md` for full details.
 4. **Dual analysis for validation** - Running two independent analyses caught errors
 5. **Never edit applied migrations** - Always create new migrations to fix issues
 
+### Key Learnings from v2.0 (Phase 15)
+
+6. **🚨 Supabase channel reuse gotcha** - `supabase.channel(name)` REUSES existing instances by name. If you have a persistent subscription and call `channel()` with same name to send, then `removeChannel()`, you CLOSE the persistent subscription! Fix: Check `channel.state === 'joined'` before removing. See CLAUDE.md "Supabase Broadcast Channel Gotcha" for full details and code examples.
+
 ### Decisions Log
 
 All v1.0 decisions documented in PROJECT.md Key Decisions table.

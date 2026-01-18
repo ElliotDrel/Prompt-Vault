@@ -42,9 +42,10 @@ type VersionRow = {
   created_at: string;
 };
 
-// No module-level channel state needed - we use the simple documented pattern:
-// create channel -> send (uses HTTP) -> removeChannel
-// This is explicitly documented in Supabase docs as the correct approach for one-off broadcasts.
+// 🚨 IMPORTANT: See CLAUDE.md "Supabase Broadcast Channel Gotcha" for critical details!
+// supabase.channel(name) REUSES existing instances - calling removeChannel() on a channel
+// that's also used for persistent subscriptions will CLOSE those subscriptions!
+// Solution: Check channel.state === 'joined' before removing (see broadcastPublicPromptChange).
 
 const mapPromptRow = (row: PromptRow): Prompt => ({
   id: row.id,
@@ -135,10 +136,13 @@ function hasContentChanges(oldPrompt: Prompt, newData: Omit<Prompt, 'id' | 'upda
  * This notifies all users viewing the Library page to refresh their data.
  * Uses Supabase Broadcast for client-to-client messaging (bypasses RLS).
  *
+ * 🚨 CRITICAL: See CLAUDE.md "Supabase Broadcast Channel Gotcha" for why this is implemented this way!
+ *
  * Implementation: Reuses existing subscription channel if available.
- * - Supabase reuses channel instances by name, so we check if an existing subscription exists
- * - If channel is already subscribed (persistent), just send without removing
+ * - supabase.channel(name) REUSES existing instances by name
+ * - If channel.state === 'joined' (persistent subscription), just send without removing
  * - If channel is newly created (not subscribed), remove after sending to prevent accumulation
+ * - Calling removeChannel() on a 'joined' channel would CLOSE the persistent subscription!
  * - Non-blocking: failures are logged but don't break the main operation
  */
 async function broadcastPublicPromptChange(): Promise<void> {
