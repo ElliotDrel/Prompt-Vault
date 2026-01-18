@@ -42,35 +42,9 @@ type VersionRow = {
   created_at: string;
 };
 
-// Module-level broadcast channel for sending public prompt change notifications.
-// Lazily initialized and subscribed on first use, kept alive - NEVER call removeChannel.
-// Must use the same channel name as receivers ('public_prompts_broadcast') for messages to arrive.
-// We subscribe the channel (without handlers) so send() uses WebSocket instead of REST fallback.
-let broadcastSendChannel: RealtimeChannel | null = null;
-let broadcastSendChannelReady: Promise<void> | null = null;
-
-/**
- * Get the broadcast send channel, subscribing it if not already subscribed.
- * Returns a promise that resolves when the channel is ready to send.
- */
-async function ensureBroadcastSendChannel(): Promise<RealtimeChannel> {
-  if (!broadcastSendChannel) {
-    broadcastSendChannel = supabase.channel('public_prompts_broadcast');
-    // Subscribe without any .on() handlers - we only need SUBSCRIBED state to send via WebSocket
-    broadcastSendChannelReady = new Promise<void>((resolve, reject) => {
-      broadcastSendChannel!.subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
-          resolve();
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          reject(err ?? new Error(`Broadcast channel ${status}`));
-        }
-        // CLOSED status is handled by keeping the channel alive (never removing it)
-      });
-    });
-  }
-  await broadcastSendChannelReady;
-  return broadcastSendChannel;
-}
+// No module-level channel state needed - we use the simple documented pattern:
+// create channel -> send (uses HTTP) -> removeChannel
+// This is explicitly documented in Supabase docs as the correct approach for one-off broadcasts.
 
 const mapPromptRow = (row: PromptRow): Prompt => ({
   id: row.id,
@@ -161,18 +135,31 @@ function hasContentChanges(oldPrompt: Prompt, newData: Omit<Prompt, 'id' | 'upda
  * This notifies all users viewing the Library page to refresh their data.
  * Uses Supabase Broadcast for client-to-client messaging (bypasses RLS).
  *
- * Uses a persistent subscribed channel to:
- * 1. Avoid removeChannel() killing receive subscriptions
- * 2. Send via WebSocket instead of REST fallback (avoids deprecation warnings)
+ * Implementation: Reuses existing subscription channel if available.
+ * - Supabase reuses channel instances by name, so we check if an existing subscription exists
+ * - If channel is already subscribed (persistent), just send without removing
+ * - If channel is newly created (not subscribed), remove after sending to prevent accumulation
+ * - Non-blocking: failures are logged but don't break the main operation
  */
 async function broadcastPublicPromptChange(): Promise<void> {
   try {
-    const channel = await ensureBroadcastSendChannel();
+    const channel = supabase.channel('public_prompts_broadcast');
+
+    // Check if this channel is already being used for persistent subscription
+    // A subscribed channel will have 'joined' state; a new channel won't
+    const isExistingSubscription = channel.state === 'joined';
+
     await channel.send({
       type: 'broadcast',
       event: 'public_prompt_changed',
       payload: {},
     });
+
+    // Only remove if this was a newly created channel (not the persistent subscription)
+    // Removing a persistent subscription would cause reconnection churn
+    if (!isExistingSubscription) {
+      await supabase.removeChannel(channel);
+    }
   } catch (err) {
     // Non-critical: broadcast failure shouldn't break the main operation
     console.error('Failed to broadcast public prompt change:', err);
@@ -879,14 +866,13 @@ export class SupabaseAdapter implements StorageAdapter {
     channel.subscribe((status, err) => {
       if (status === 'CHANNEL_ERROR') {
         console.error('Realtime subscription error:', err);
-        console.error('Channel state:', channel);
         void this.resubscribe();
       }
       if (status === 'TIMED_OUT') {
         console.error('Realtime subscription timed out');
       }
       if (status === 'CLOSED') {
-        console.warn('Realtime subscription closed');
+        // Silently resubscribe on close - no logging needed for expected disconnections
         void this.resubscribe();
       }
     });
@@ -900,7 +886,7 @@ export class SupabaseAdapter implements StorageAdapter {
         console.error('Public prompts broadcast subscription timed out');
       }
       if (status === 'CLOSED') {
-        console.warn('Public prompts broadcast subscription closed');
+        // Silently resubscribe on close - no logging needed for expected disconnections
         void this.resubscribe();
       }
     });
