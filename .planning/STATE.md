@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 Phase: 15 of 20 (Public Library Page)
 Plan: 15-FIX2 complete (broadcast fixes)
-Status: Phase 15 complete
-Last activity: 2026-01-18 - Completed 15-FIX2 (broadcast fixes, console cleanup)
+Status: Phase 15 has critical open issue (UAT-011 - missing route)
+Last activity: 2026-01-18 - Documented UAT-011 (missing /library/prompt/:promptId route)
 
 Progress: █████░░░░░ 50%
 
@@ -108,9 +108,29 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Decide whether author filtering should support a specific author ID or only Mine/Others.
 - Update author click to use the chosen author filter state without clobbering the current search term.
 
+**Missing /library/prompt/:promptId Route (UAT-011 - Critical)**
+
+**Current behavior:**
+- PublicLibrary.tsx links prompt cards to `/library/prompt/${prompt.id}` (line 70)
+- This route does not exist in App.tsx - only `/library` is defined
+- Clicking any prompt card in the Public Library results in a 404 page
+
+**Why this matters:**
+- Core functionality is broken - users cannot view details of public prompts
+- This blocks the public library from being usable for prompt discovery
+
+**Options to discuss:**
+1. **Option A:** Create new `/library/prompt/:promptId` route with dedicated `PublicPromptDetail.tsx` component (read-only view, different from owned prompt detail)
+2. **Option B:** Reuse `/dashboard/prompt/:promptId` with read-only mode when viewing others' public prompts (more code reuse but adds complexity)
+3. **Option C:** Make library cards non-navigable temporarily (add copy/save actions directly on card, defer detail view)
+
+**Recommendation:** Option A for clean separation. Option C acceptable as interim if time-constrained.
+
+**See:** `.planning/phases/15-public-library-page/15-UAT-ISSUES.md` for full details.
+
 ### Blockers/Concerns
 
-None.
+**UAT-011 (Critical):** Missing `/library/prompt/:promptId` route causes 404 when clicking any prompt in Public Library. Must be resolved before Phase 15 can be considered fully functional. See Deferred Issues above for options.
 
 ### Roadmap Evolution
 
@@ -121,9 +141,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-18
-Stopped at: Completed 15-FIX2 (broadcast fixes, console cleanup)
+Stopped at: Documented UAT-011 (missing /library/prompt/:promptId route)
 Resume file: None
 
 **Next Steps:**
-- Plan Phase 15.1: Visibility Filter Persistence (/gsd:plan-phase 15.1)
+- **Resolve UAT-011 first:** Decide on approach for `/library/prompt/:promptId` route (Option A, B, or C - see Deferred Issues)
+- Then: Plan Phase 15.1: Visibility Filter Persistence (/gsd:plan-phase 15.1)
 - Or discuss phase first (/gsd:discuss-phase 15.1)
