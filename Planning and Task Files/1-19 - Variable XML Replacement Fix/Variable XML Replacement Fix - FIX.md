@@ -344,17 +344,17 @@ Test all three variable replacement scenarios:
 3. Copy prompt
 4. Expected: `Hello Alice! Welcome.` (no XML)
 
-**Test D: Edge case - math operators (should use XML wrapping)**
+**Test D: Edge case - math operators (should use direct replacement)**
 1. Create prompt with body: `x > {value} < 5`
 2. Fill in variable value: "3"
 3. Copy prompt
-4. Expected: `x > <value>3</value> < 5` (math operators NOT confused for XML)
+4. Expected: `x > 3 < 5` (direct replacement - math operators are valid nearby content)
   </action>
   <verify>
 - Test A: No double XML wrapping
 - Test B: Variable wrapped with XML tags
 - Test C: Direct replacement, no XML
-- Test D: Math operators don't trigger XML detection
+- Test D: Direct replacement (math operators count as adjacent content)
   </verify>
   <done>All four test scenarios pass</done>
 </task>
@@ -375,7 +375,6 @@ Before declaring plan complete:
 - VAR-001 resolved: Labeled standalone variables receive XML wrapping again
 - No regression: XML-wrapped variables still work correctly
 - No regression: Inline embedded variables still work correctly
-- Edge cases handled: Math operators not confused for XML tags
 - Code is well-documented with explicit precedence rules
 </success_criteria>
 
@@ -394,7 +393,7 @@ These test cases should be verified after implementation:
 | **C. Inline embedded** | `Hello {name}!` | Direct | Adjacent punctuation detected |
 | | `({name})` | Direct | Brackets detected |
 | | `the {name} is` | Direct | Words on both sides |
-| **D. Edge cases** | `x > {var} < 5` | XML wrap | Math operators NOT confused for tags |
+| **D. Edge cases** | `x > {var} < 5` | Direct | Math operators are adjacent content |
 | | `{var}` (alone) | XML wrap | Completely isolated |
 | | `\n\n\n{var}\n\n\n` | XML wrap | Only whitespace = isolated |
 </regression_tests>
