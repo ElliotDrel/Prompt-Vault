@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Library } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
 import { usePublicPrompts } from '@/hooks/usePublicPrompts';
 import { usePromptFilters } from '@/hooks/usePromptFilters';
 import { useURLFilterSync } from '@/hooks/useURLFilterSync';
@@ -17,23 +19,34 @@ export default function PublicLibrary() {
     };
   }, []);
 
+  const { user } = useAuth();
+  const { adapter } = useStorageAdapterContext();
   const { prompts, loading, error } = usePublicPrompts();
 
-  // URL-synced search/sort state
-  const urlFilters = useURLFilterSync({ debounceMs: 300 });
+  // URL-synced search/sort state with DB persistence
+  const urlFilters = useURLFilterSync({
+    debounceMs: 300,
+    persistToDb: true,
+    adapter: adapter?.stats,
+  });
 
   const {
     searchTerm,
     sortBy,
     sortDirection,
+    visibilityFilter,
+    authorFilter,
     setSearchTerm,
     setSortBy,
     toggleSortDirection,
+    setVisibilityFilter,
+    setAuthorFilter,
     filteredPrompts,
   } = usePromptFilters({
     prompts,
     pinFirst: false, // No pinning in public library
     controlledState: urlFilters,
+    userId: user?.id, // For author filtering
   });
 
   if (error) {
@@ -72,6 +85,11 @@ export default function PublicLibrary() {
             onSearchChange={setSearchTerm}
             onSortByChange={setSortBy}
             onSortDirectionChange={toggleSortDirection}
+            visibilityFilter={visibilityFilter}
+            onVisibilityChange={setVisibilityFilter}
+            authorFilter={authorFilter}
+            onAuthorChange={setAuthorFilter}
+            showAuthorFilter={true}
             renderPromptCard={(prompt: PublicPrompt) => (
               <PromptCard
                 key={prompt.id}
@@ -81,11 +99,8 @@ export default function PublicLibrary() {
                 author={prompt.author}
                 showPinAction={false}
                 showStats={true}
-                onAuthorClick={() => {
-                  // Insert author name into search bar
-                  const authorName = prompt.author?.displayName || prompt.authorId;
-                  setSearchTerm(authorName);
-                }}
+                // Author names are display-only text (no click action)
+                // Use Mine/Others filter chips for author filtering (Issue 10 resolved)
               />
             )}
             searchPlaceholder="Search title, content, author..."
@@ -93,7 +108,7 @@ export default function PublicLibrary() {
             emptyTitle="No public prompts yet"
             emptyDescription="Be the first to share a prompt with the community!"
             noResultsTitle="No prompts found"
-            noResultsDescription="Try adjusting your search"
+            noResultsDescription="Try adjusting your search or filters"
           />
         </div>
       </div>

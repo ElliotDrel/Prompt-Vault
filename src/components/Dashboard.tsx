@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { usePromptFilters } from '@/hooks/usePromptFilters';
 import { useURLFilterSync } from '@/hooks/useURLFilterSync';
+import { useStorageAdapterContext } from '@/contexts/StorageAdapterContext';
 import { PromptCard } from './PromptCard';
 import { PromptListView } from './PromptListView';
 import { Button } from '@/components/ui/button';
@@ -10,17 +11,24 @@ import { Button } from '@/components/ui/button';
 export function Dashboard() {
   const { prompts, loading, isBackgroundRefresh } = usePrompts();
   const navigate = useNavigate();
+  const { adapter } = useStorageAdapterContext();
 
-  // URL-synced filter state
-  const urlFilters = useURLFilterSync({ debounceMs: 300 });
+  // URL-synced filter state with DB persistence
+  const urlFilters = useURLFilterSync({
+    debounceMs: 300,
+    persistToDb: true,
+    adapter: adapter?.stats,
+  });
 
   const {
     searchTerm,
     sortBy,
     sortDirection,
+    visibilityFilter,
     setSearchTerm,
     setSortBy,
     toggleSortDirection,
+    setVisibilityFilter,
     filteredPrompts,
     isEmpty,
   } = usePromptFilters({
@@ -56,6 +64,9 @@ export function Dashboard() {
           onSearchChange={setSearchTerm}
           onSortByChange={setSortBy}
           onSortDirectionChange={toggleSortDirection}
+          visibilityFilter={visibilityFilter}
+          onVisibilityChange={setVisibilityFilter}
+          showAuthorFilter={false}
           renderPromptCard={(prompt) => (
             <PromptCard
               key={prompt.id}
@@ -78,7 +89,7 @@ export function Dashboard() {
           noResultsDescription={
             isEmpty
               ? 'Create your first prompt to get started'
-              : 'Try adjusting your search or create a new prompt'
+              : 'Try adjusting your search or filters'
           }
           gridClassName="mb-20"
         />

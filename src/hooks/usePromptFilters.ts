@@ -2,8 +2,8 @@ import { useMemo, useState, useCallback } from 'react';
 import type { Prompt } from '@/types/prompt';
 
 // Re-export types from useURLFilterSync for convenience
-export type { SortBy, SortDirection, VisibilityFilter } from './useURLFilterSync';
-import type { SortBy, SortDirection, VisibilityFilter } from './useURLFilterSync';
+export type { SortBy, SortDirection, VisibilityFilter, AuthorFilter } from './useURLFilterSync';
+import type { SortBy, SortDirection, VisibilityFilter, AuthorFilter } from './useURLFilterSync';
 
 // Controlled state interface for external state management (e.g., URL sync)
 interface ControlledFilterState {
@@ -11,10 +11,12 @@ interface ControlledFilterState {
   sortBy: SortBy;
   sortDirection: SortDirection;
   visibilityFilter?: VisibilityFilter;
+  authorFilter?: AuthorFilter | string | null;
   setSearchTerm: (term: string) => void;
   setSortBy: (by: SortBy) => void;
   setSortDirection: (dir: SortDirection) => void;
   setVisibilityFilter?: (visibility: VisibilityFilter) => void;
+  setAuthorFilter?: (author: AuthorFilter) => void;
   toggleSortDirection: () => void;
 }
 
@@ -26,6 +28,8 @@ interface UsePromptFiltersOptions {
   pinFirst?: boolean; // Whether to sort pinned items to top (default: true)
   // Controlled mode: pass external state (e.g., from useURLFilterSync)
   controlledState?: ControlledFilterState;
+  // Current user ID (required for author filtering)
+  userId?: string;
 }
 
 interface UsePromptFiltersReturn {
@@ -34,19 +38,21 @@ interface UsePromptFiltersReturn {
   sortBy: SortBy;
   sortDirection: SortDirection;
   visibilityFilter: VisibilityFilter;
+  authorFilter: AuthorFilter;
 
   // Setters
   setSearchTerm: (term: string) => void;
   setSortBy: (by: SortBy) => void;
   setSortDirection: (dir: SortDirection) => void;
   setVisibilityFilter: (visibility: VisibilityFilter) => void;
+  setAuthorFilter: (author: AuthorFilter) => void;
   toggleSortDirection: () => void;
 
   // Computed
   filteredPrompts: Prompt[];
   hasResults: boolean;
   isEmpty: boolean; // true if prompts array was empty
-  isFiltered: boolean; // true if searchTerm or visibility filter is active
+  isFiltered: boolean; // true if searchTerm, visibility filter, or author filter is active
 }
 
 export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFiltersReturn {
@@ -56,6 +62,7 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
     initialSortDirection = 'desc',
     pinFirst = true,
     controlledState,
+    userId,
   } = options;
 
   // Internal state for uncontrolled mode
@@ -63,6 +70,7 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
   const [internalSortBy, setInternalSortBy] = useState<SortBy>(initialSortBy);
   const [internalSortDirection, setInternalSortDirection] = useState<SortDirection>(initialSortDirection);
   const [internalVisibilityFilter, setInternalVisibilityFilter] = useState<VisibilityFilter>('all');
+  const [internalAuthorFilter, setInternalAuthorFilter] = useState<AuthorFilter>('all');
 
   const internalToggleSortDirection = useCallback(() => {
     setInternalSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -73,10 +81,14 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
   const sortBy = controlledState?.sortBy ?? internalSortBy;
   const sortDirection = controlledState?.sortDirection ?? internalSortDirection;
   const visibilityFilter = controlledState?.visibilityFilter ?? internalVisibilityFilter;
+  // Normalize authorFilter: useURLFilterSync returns string | null, we need AuthorFilter
+  const rawAuthorFilter = controlledState?.authorFilter;
+  const authorFilter: AuthorFilter = (rawAuthorFilter === 'mine' || rawAuthorFilter === 'others') ? rawAuthorFilter : 'all';
   const setSearchTerm = controlledState?.setSearchTerm ?? setInternalSearchTerm;
   const setSortBy = controlledState?.setSortBy ?? setInternalSortBy;
   const setSortDirection = controlledState?.setSortDirection ?? setInternalSortDirection;
   const setVisibilityFilter = controlledState?.setVisibilityFilter ?? setInternalVisibilityFilter;
+  const setAuthorFilter = controlledState?.setAuthorFilter ?? setInternalAuthorFilter;
   const toggleSortDirection = controlledState?.toggleSortDirection ?? internalToggleSortDirection;
 
   const filteredPrompts = useMemo(() => {
@@ -85,6 +97,17 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
     // Visibility filter (apply first)
     if (visibilityFilter && visibilityFilter !== 'all') {
       result = result.filter((p) => p.visibility === visibilityFilter);
+    }
+
+    // Author filter (requires userId to work)
+    if (authorFilter && authorFilter !== 'all' && userId) {
+      if (authorFilter === 'mine') {
+        // Show only prompts authored by current user
+        result = result.filter((p) => p.authorId === userId || p.author?.id === userId);
+      } else if (authorFilter === 'others') {
+        // Show only prompts authored by other users
+        result = result.filter((p) => p.authorId !== userId && p.author?.id !== userId);
+      }
     }
 
     // Search filter (case-insensitive match across title, body, author name, and author ID)
@@ -129,10 +152,10 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
     });
 
     return sorted;
-  }, [prompts, visibilityFilter, searchTerm, sortBy, sortDirection, pinFirst]);
+  }, [prompts, visibilityFilter, authorFilter, userId, searchTerm, sortBy, sortDirection, pinFirst]);
 
   const isEmpty = prompts.length === 0;
-  const isFiltered = searchTerm.length > 0 || visibilityFilter !== 'all';
+  const isFiltered = searchTerm.length > 0 || visibilityFilter !== 'all' || authorFilter !== 'all';
   const hasResults = filteredPrompts.length > 0;
 
   return {
@@ -141,12 +164,14 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
     sortBy,
     sortDirection,
     visibilityFilter,
+    authorFilter,
 
     // Setters
     setSearchTerm,
     setSortBy,
     setSortDirection,
     setVisibilityFilter,
+    setAuthorFilter,
     toggleSortDirection,
 
     // Computed
