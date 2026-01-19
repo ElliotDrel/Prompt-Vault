@@ -1,5 +1,18 @@
 import { Prompt, CopyEvent, PromptVersion, PaginatedVersions, PublicPrompt } from '@/types/prompt';
 
+// Filter preference types for persisting user filter/sort state
+export type VisibilityFilter = 'all' | 'public' | 'private';
+export type AuthorFilter = 'all' | 'mine' | 'others';
+export type SortBy = 'name' | 'lastUpdated' | 'createdAt' | 'usage';
+export type SortDirection = 'asc' | 'desc';
+
+export interface FilterPreferences {
+  filterVisibility: VisibilityFilter;
+  filterAuthor: AuthorFilter;
+  sortBy: SortBy;
+  sortDirection: SortDirection;
+}
+
 // Optional metadata for prompt updates (e.g., for revert tracking)
 export interface UpdatePromptOptions {
   /** Version ID this update is reverting to (for version history tracking) */
@@ -35,7 +48,7 @@ export interface CopyEventsStorageAdapter {
   clearHistory(): Promise<void>;
 }
 
-// Storage interface for stats
+// Storage interface for stats and filter preferences
 export interface StatsStorageAdapter {
   getStats(): Promise<{
     totalPrompts: number;
@@ -44,6 +57,8 @@ export interface StatsStorageAdapter {
     timeSavedMultiplier: number;
   }>;
   incrementCopyCount(): Promise<void>;
+  getFilterPreferences(): Promise<FilterPreferences>;
+  updateFilterPreferences(prefs: Partial<FilterPreferences>): Promise<void>;
 }
 
 // Storage interface for versions
