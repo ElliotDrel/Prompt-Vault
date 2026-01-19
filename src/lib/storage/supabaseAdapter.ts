@@ -1,5 +1,5 @@
 import { Prompt, CopyEvent, PromptVersion, PaginatedVersions, PublicPrompt } from '@/types/prompt';
-import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions } from './types';
+import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions, FilterPreferences, VisibilityFilter, AuthorFilter, SortBy, SortDirection } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase-generated';
@@ -629,6 +629,76 @@ class SupabaseStatsAdapter implements StatsStorageAdapter {
 
   async incrementCopyCount(): Promise<void> {
     // Stats view is computed dynamically; no-op required for Supabase implementation.
+  }
+
+  async getFilterPreferences(): Promise<FilterPreferences> {
+    const userId = await requireUserId();
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('filter_visibility, filter_author, sort_by, sort_direction')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch filter preferences: ${error.message}`);
+    }
+
+    // Return defaults if no settings row exists (new user)
+    if (!data) {
+      return {
+        filterVisibility: 'all',
+        filterAuthor: 'all',
+        sortBy: 'lastUpdated',
+        sortDirection: 'desc',
+      };
+    }
+
+    return {
+      filterVisibility: (data.filter_visibility as VisibilityFilter) ?? 'all',
+      filterAuthor: (data.filter_author as AuthorFilter) ?? 'all',
+      sortBy: (data.sort_by as SortBy) ?? 'lastUpdated',
+      sortDirection: (data.sort_direction as SortDirection) ?? 'desc',
+    };
+  }
+
+  async updateFilterPreferences(prefs: Partial<FilterPreferences>): Promise<void> {
+    const userId = await requireUserId();
+
+    // Build update object with only the fields that are being changed
+    const updates: Record<string, unknown> = {};
+    if (prefs.filterVisibility !== undefined) {
+      updates.filter_visibility = prefs.filterVisibility;
+    }
+    if (prefs.filterAuthor !== undefined) {
+      updates.filter_author = prefs.filterAuthor;
+    }
+    if (prefs.sortBy !== undefined) {
+      updates.sort_by = prefs.sortBy;
+    }
+    if (prefs.sortDirection !== undefined) {
+      updates.sort_direction = prefs.sortDirection;
+    }
+
+    // Skip if no updates provided
+    if (Object.keys(updates).length === 0) {
+      return;
+    }
+
+    // Upsert to user_settings (insert if not exists, update if exists)
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({
+        user_id: userId,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id',
+      });
+
+    if (error) {
+      throw new Error(`Failed to update filter preferences: ${error.message}`);
+    }
   }
 }
 
