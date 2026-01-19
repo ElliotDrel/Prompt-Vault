@@ -4,13 +4,15 @@
 **Source:** PR #34 (commit 630e47a "Simplify variable proximity detection by skipping whitespace")
 **Reporter:** User via code review
 
-## Open Issues
+## Resolved Issues
 
-### VAR-001: Labeled standalone variables no longer receive XML wrapping
+### VAR-001: Labeled standalone variables no longer receive XML wrapping ✅
 
 **Discovered:** 2026-01-19
+**Resolved:** 2026-01-19
 **Severity:** Major (Broken functionality)
 **Feature:** Variable replacement / XML wrapping logic
+**Resolution:** Commit `4e4d67d` - Implemented two-layer proximity detection
 
 **Description:**
 After commit 630e47a simplified the variable proximity detection logic, labeled standalone variables like `## Input\n\n{All Comments}\n\n---` no longer receive XML wrapping. The variable is now directly replaced with its value instead of being wrapped as `<AllComments>value</AllComments>`.

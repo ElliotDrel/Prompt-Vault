@@ -2,6 +2,9 @@
 phase: variable-xml-replacement
 plan: FIX
 type: fix
+status: complete
+resolved: 2026-01-19
+commit: 4e4d67d
 ---
 
 <objective>
@@ -362,13 +365,13 @@ Test all three variable replacement scenarios:
 </tasks>
 
 <verification>
-Before declaring plan complete:
-- [ ] Original proximity constants restored (PROXIMITY_DISTANCE=3, NEWLINE_DISTANCE=3)
-- [ ] XML boundary detection added (isBetweenXmlBoundaries)
-- [ ] Proximity detection respects newlines as distance (hasAdjacentContent)
-- [ ] Two-layer detection with explicit precedence (hasNearbyNonSpaceCharacters)
-- [ ] Build and lint pass
-- [ ] All four manual test scenarios pass
+All verification items complete:
+- [x] Original proximity constants restored (PROXIMITY_DISTANCE=3, NEWLINE_DISTANCE=3)
+- [x] XML boundary detection added (isBetweenXmlBoundaries)
+- [x] Proximity detection respects newlines as distance (hasAdjacentContent)
+- [x] Two-layer detection with explicit precedence (hasNearbyNonSpaceCharacters)
+- [x] Build and lint pass
+- [x] All four manual test scenarios pass
 </verification>
 
 <success_criteria>
@@ -401,3 +404,43 @@ These test cases should be verified after implementation:
 <output>
 After completion, create `Planning and Task Files/1-19 - Variable XML Replacement Fix/FIX-SUMMARY.md`
 </output>
+
+---
+
+## Resolution Summary
+
+**Status:** ✅ Complete
+**Resolved:** 2026-01-19
+**Commit:** `4e4d67d`
+
+### Test Results
+
+| Test | Pattern | Expected | Result |
+|------|---------|----------|--------|
+| A | XML-wrapped `<tag>\n{var}\n</tag>` | Direct replacement | ✅ Pass |
+| B | Labeled standalone `## Input\n\n{var}` | XML wrapping | ✅ Pass |
+| C | Inline embedded `Hello {var}!` | Direct replacement | ✅ Pass |
+| D | Math operators `x > {var} < 5` | Direct replacement | ✅ Pass |
+
+### Changes Made
+
+1. **Restored proximity constants** (Task 1)
+   - `PROXIMITY_DISTANCE = 3`
+   - `NEWLINE_DISTANCE = 3`
+   - `XML_BOUNDARY_SCAN_RANGE = 50`
+
+2. **Added `isBetweenXmlBoundaries()`** (Task 2)
+   - Scans for `>` before and `<` after variable
+   - Skips whitespace during scan
+   - Validates tag structure to avoid math operator false positives
+
+3. **Added `hasAdjacentContent()`** (Task 3)
+   - Strict proximity detection with newline distance weighting
+   - Newlines add `NEWLINE_DISTANCE` instead of being skipped
+   - Early exit when distance exceeds threshold
+
+4. **Updated `hasNearbyNonSpaceCharacters()`** (Task 4)
+   - Two-layer detection with explicit precedence
+   - Rule 1: XML boundary detection (skips whitespace)
+   - Rule 2: General proximity detection (respects whitespace)
+   - Rule 3: No nearby content → XML wrapping
