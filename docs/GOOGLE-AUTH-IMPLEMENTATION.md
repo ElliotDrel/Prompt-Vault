@@ -34,7 +34,7 @@ Prompt Vault uses **Supabase Auth** with **Google OAuth** for user authenticatio
 
 ### Authentication Flow
 
-```
+```text
 User clicks "Continue with Google"
         |
         v
@@ -72,15 +72,17 @@ useEffect redirects to /dashboard
 
 ```tsx
 <QueryClientProvider>
-  <AuthProvider>              {/* Authentication state */}
-    <StorageAdapterProvider>  {/* Depends on auth state */}
-      <PromptsProvider>
-        <CopyHistoryProvider>
-          <RouterProvider />  {/* Routes with RequireAuth guards */}
-        </CopyHistoryProvider>
-      </PromptsProvider>
-    </StorageAdapterProvider>
-  </AuthProvider>
+  <TooltipProvider>           {/* UI tooltip support */}
+    <AuthProvider>              {/* Authentication state */}
+      <StorageAdapterProvider>  {/* Depends on auth state */}
+        <PromptsProvider>
+          <CopyHistoryProvider>
+            <RouterProvider />  {/* Routes with RequireAuth guards */}
+          </CopyHistoryProvider>
+        </PromptsProvider>
+      </StorageAdapterProvider>
+    </AuthProvider>
+  </TooltipProvider>
 </QueryClientProvider>
 ```
 
@@ -165,10 +167,11 @@ const handleGoogleSignIn = async () => {
   }, 5000);
 };
 
-// OAuth callback handling:
+// Auth callback handling (unified for both OAuth and magic links):
 useEffect(() => {
   if (!codeParam) return;
-  handleMagicLinkAuth(codeParam); // Works for both OAuth and magic links
+  // Exchanges the code (from OAuth redirect or magic link) for a Supabase session
+  handleMagicLinkAuth(codeParam);
 }, [codeParam, handleMagicLinkAuth]);
 ```
 
@@ -243,12 +246,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 ```toml
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:5173"  # Or your production URL
+site_url = "http://127.0.0.1:5173"  # Use your dev server port (Vite default: 5173)
 additional_redirect_urls = ["http://localhost:5173/auth", "https://yourdomain.com/auth"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 enable_signup = true
 ```
+
+> **Note:** The port and URLs above are examples using Vite's default port (5173). Adjust these values to match your development environment. For example, if your dev server runs on port 3000, use `http://127.0.0.1:3000` instead.
 
 ---
 
@@ -455,7 +460,8 @@ Create `src/pages/Auth.tsx` with:
 Key code patterns:
 
 ```tsx
-// Google icon SVG component (official brand colors)
+// Google icon with official brand colors (paths truncated for brevity)
+// See src/pages/Auth.tsx for complete SVG paths
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" {...props}>
