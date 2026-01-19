@@ -14,8 +14,7 @@
       "Bash(git log:*)",
       "WebSearch",
       "Skill(gsd:*)",
-      "Bash(git status:*)",
-      "mcp__supabase__execute_sql"
+      "Bash(git status:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
