@@ -59,6 +59,7 @@ Plans:
 #### Phase 13: URL-Based Search/Filter - COMPLETE
 
 **Goal**: Sync search queries and author filters to URL params on dashboard, library, and history pages
+**Note**: Author filter URL param exists, but UI currently uses unified search (15-FIX). Phase 15.1 will reintroduce author filter chips and update author click behavior (Issue 10).
 **Depends on**: Phase 12
 **Research**: Unlikely (React Router already in codebase)
 **Plans**: 1/1 complete
@@ -78,7 +79,7 @@ Plans:
 
 #### Phase 15: Public Library Page - COMPLETE (pending UAT)
 
-**Goal**: New /library route showing all public prompts with author attribution and clickable author filter
+**Goal**: New /library route showing all public prompts with author attribution and clickable author action (currently inserts search; dedicated author filter to be reinstated in Phase 15.1 - Issue 10)
 **Depends on**: Phase 14
 **Research**: Unlikely (building on existing patterns)
 **Plans**: 2/2 complete
@@ -94,12 +95,13 @@ Plans:
 - Visibility toggle works (private ↔ public)
 - RLS allows public read access across users
 - Public library shows all public prompts with correct attribution
-- Author filter works correctly
+- Author filter works correctly (note: current behavior inserts search term; Phase 15.1 will restore dedicated author filter chips)
 **Risk if skipped**: Broken RLS policies would cascade into Phase 16-20 work
 
 #### Phase 15.1: Visibility Filter Persistence (INSERTED)
 
 **Goal**: Add public/private visibility filter to Dashboard and Library pages, rework filtering system for better UX, and persist filter state to database via user_settings table
+**Also**: Resolve author click behavior so it uses the author filter state (Issue 10) without overwriting the search term.
 **Depends on**: UAT Checkpoint A
 **Research**: Unlikely (extending existing filter patterns + user_settings table)
 **Plans**: 0 plans
