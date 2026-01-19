@@ -98,16 +98,18 @@ Plans:
 - Author filter works correctly (note: current behavior inserts search term; Phase 15.1 will restore dedicated author filter chips)
 **Risk if skipped**: Broken RLS policies would cascade into Phase 16-20 work
 
-#### Phase 15.1: Visibility Filter Persistence (INSERTED)
+#### Phase 15.1: Visibility Filter Persistence (INSERTED) - IN PROGRESS
 
 **Goal**: Add public/private visibility filter to Dashboard and Library pages, rework filtering system for better UX, and persist filter state to database via user_settings table
 **Also**: Resolve author click behavior so it uses the author filter state (Issue 10) without overwriting the search term.
 **Depends on**: UAT Checkpoint A
 **Research**: Unlikely (extending existing filter patterns + user_settings table)
-**Plans**: 0 plans
+**Plans**: 1/3 complete
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 15.1 to break down)
+- [x] 15.1-01: Filter preferences data layer (2026-01-19)
+- [ ] 15.1-02: useFilterPreferences hook and context integration
+- [ ] 15.1-03: Filter chips UI and author click behavior
 
 #### Phase 16: Add to Vault
 
@@ -212,7 +214,7 @@ Plans:
 | 14. Visibility Toggle | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
 | 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
-| 15.1 Visibility Filter Persistence | v2.0 | 0/? | Not started | - |
+| 15.1 Visibility Filter Persistence | v2.0 | 1/3 | In progress | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint B** | v2.0 | — | Pending | - |

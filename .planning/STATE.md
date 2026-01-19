@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15 of 20 (Public Library Page)
-Plan: 15-FIX2 complete (broadcast fixes)
-Status: Phase 15 has critical open issue (UAT-011 - missing route)
-Last activity: 2026-01-18 - Documented UAT-011 (missing /library/prompt/:promptId route)
+Phase: 15.1 of 21 (Visibility Filter Persistence)
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-01-19 - Completed 15.1-01-PLAN.md (filter preferences data layer)
 
-Progress: █████░░░░░ 50%
+Progress: █████░░░░░ 52%
 
 ## Shipped Milestones
 
@@ -140,11 +140,10 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-01-18
-Stopped at: Documented UAT-011 (missing /library/prompt/:promptId route)
+Last session: 2026-01-19
+Stopped at: Completed 15.1-01-PLAN.md (filter preferences data layer)
 Resume file: None
 
 **Next Steps:**
-- **Resolve UAT-011 first:** Decide on approach for `/library/prompt/:promptId` route (Option A, B, or C - see Deferred Issues)
-- Then: Plan Phase 15.1: Visibility Filter Persistence (/gsd:plan-phase 15.1)
-- Or discuss phase first (/gsd:discuss-phase 15.1)
+- Execute 15.1-02-PLAN.md (useFilterPreferences hook)
+- Then 15.1-03-PLAN.md (filter chips UI)
