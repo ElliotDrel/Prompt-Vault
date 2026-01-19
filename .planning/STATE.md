@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15.1 of 21 (Visibility Filter Persistence)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-01-19 - Completed 15.1-01-PLAN.md (filter preferences data layer)
+Last activity: 2026-01-19 - Completed 15.1-02-PLAN.md (filter hooks extension)
 
-Progress: █████░░░░░ 52%
+Progress: █████░░░░░ 54%
 
 ## Shipped Milestones
 
@@ -141,9 +141,8 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 15.1-01-PLAN.md (filter preferences data layer)
+Stopped at: Completed 15.1-02-PLAN.md (filter hooks extension)
 Resume file: None
 
 **Next Steps:**
-- Execute 15.1-02-PLAN.md (useFilterPreferences hook)
-- Then 15.1-03-PLAN.md (filter chips UI)
+- Execute 15.1-03-PLAN.md (filter chips UI and author click behavior)
