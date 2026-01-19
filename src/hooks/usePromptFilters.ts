@@ -79,8 +79,8 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
       const titleMatch = prompt.title.toLowerCase().includes(searchLower);
       const bodyMatch = prompt.body.toLowerCase().includes(searchLower);
       // Check author name and ID for public prompts
-      const authorName = (prompt as any).author?.displayName;
-      const authorId = (prompt as any).authorId;
+      const authorName = prompt.author?.displayName;
+      const authorId = prompt.authorId;
       const authorMatch = (authorName && authorName.toLowerCase().includes(searchLower)) ||
                           (authorId && authorId.toLowerCase().includes(searchLower));
       return titleMatch || bodyMatch || authorMatch;

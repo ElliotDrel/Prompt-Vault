@@ -78,6 +78,8 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
 
   // Debounce timer ref for search term URL updates
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track URL updates triggered by this hook to avoid clobbering local state.
+  const lastSetParamsRef = useRef<string | null>(null);
 
   // Helper to update URL params (removes empty values)
   const updateURLParams = useCallback((updates: Record<string, string | null>) => {
@@ -92,9 +94,35 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
         }
       }
 
+      lastSetParamsRef.current = newParams.toString();
       return newParams;
     }, { replace: true });
   }, [setSearchParams]);
+
+  // Sync state when URL changes externally (e.g., back/forward navigation).
+  useEffect(() => {
+    const currentParams = searchParams.toString();
+    if (lastSetParamsRef.current === currentParams) {
+      return;
+    }
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    const nextSearchTerm = searchParams.get(searchParam) ?? '';
+    const sortByValue = searchParams.get(sortByParam);
+    const sortDirValue = searchParams.get(sortDirParam);
+    const nextSortBy = isValidSortBy(sortByValue) ? sortByValue : defaultSortBy;
+    const nextSortDirection = isValidSortDirection(sortDirValue) ? sortDirValue : defaultSortDirection;
+    const nextAuthorFilter = searchParams.get(authorParam) ?? null;
+
+    setSearchTermState((prev) => (prev === nextSearchTerm ? prev : nextSearchTerm));
+    setSortByState((prev) => (prev === nextSortBy ? prev : nextSortBy));
+    setSortDirectionState((prev) => (prev === nextSortDirection ? prev : nextSortDirection));
+    setAuthorFilterState((prev) => (prev === nextAuthorFilter ? prev : nextAuthorFilter));
+  }, [searchParams, searchParam, sortByParam, sortDirParam, authorParam, defaultSortBy, defaultSortDirection]);
 
   // Search term setter with debounced URL update
   const setSearchTerm = useCallback((term: string) => {
