@@ -27,8 +27,7 @@ export const Navigation = () => {
     try {
       await signOut();
       navigate('/');
-    } catch (error) {
-      console.error('Failed to sign out', error);
+    } catch {
       toast.error('Failed to sign out. Please try again.');
     }
   };
