@@ -94,6 +94,20 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 **Context:** Originally deferred to Phase 16, but basic increment functionality was needed for Phase 15 Library page to work (copying public prompts needs to increment usage). Full usage analytics is still pending.
 
+**Public Library Author Click Filter (Issue 10 - Phase 15.1)**
+
+**Current behavior:**
+- Clicking an author name in the Public Library inserts the author name into the search input.
+- This overwrites any existing search term and does not use a dedicated author filter.
+
+**Why this matters:**
+- The upcoming filter chips (Phase 15.1) are intended to carry author filtering state.
+- If author click remains tied to search, the author filter chips risk being ignored or inconsistent.
+
+**Follow-up for Phase 15.1:**
+- Decide whether author filtering should support a specific author ID or only Mine/Others.
+- Update author click to use the chosen author filter state without clobbering the current search term.
+
 ### Blockers/Concerns
 
 None.
