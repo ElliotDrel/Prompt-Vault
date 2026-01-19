@@ -304,7 +304,8 @@ function hasAdjacentContent(text: string, index: number, direction: 'before' | '
         distance += NEWLINE_DISTANCE;
       } else if (char !== ' ' && char !== '\t' && char !== '\r') {
         // Found non-space character - check if within proximity
-        if (distance + (beforeText.length - 1 - i) <= PROXIMITY_DISTANCE) {
+        // distance = weighted whitespace traversed, +1 for the character itself
+        if (distance + 1 <= PROXIMITY_DISTANCE) {
           return true;
         }
         break;
@@ -326,7 +327,8 @@ function hasAdjacentContent(text: string, index: number, direction: 'before' | '
         distance += NEWLINE_DISTANCE;
       } else if (char !== ' ' && char !== '\t' && char !== '\r') {
         // Found non-space character - check if within proximity
-        if (distance + i <= PROXIMITY_DISTANCE) {
+        // distance = weighted whitespace traversed, +1 for the character itself
+        if (distance + 1 <= PROXIMITY_DISTANCE) {
           return true;
         }
         break;
