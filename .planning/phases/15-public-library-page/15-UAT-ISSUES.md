@@ -41,6 +41,59 @@ Add a separate subscription channel filtered by `visibility=eq.public` instead o
 
 ---
 
+### UAT-011: Missing /library/prompt/:promptId route causes 404
+
+**Discovered:** 2026-01-18 (Code Review)
+**Phase/Plan:** 15
+**Severity:** Critical (Broken functionality)
+**Feature:** Public Library prompt detail navigation
+
+**Description:**
+PublicLibrary.tsx links to `/library/prompt/${prompt.id}` (line 70), but this route does not exist in App.tsx. Clicking any prompt card in the Public Library results in a 404 Not Found page.
+
+**Expected:**
+- Clicking a public prompt card navigates to a detail view
+- User can view the full prompt content
+
+**Actual:**
+- Clicking any card navigates to `/library/prompt/{id}` which matches the catch-all `*` route
+- User sees 404 Not Found page
+
+**Repro:**
+1. Navigate to /library
+2. Click any prompt card
+3. See 404 page
+
+**Root Cause:**
+Route definition missing in `src/App.tsx`. Only `/library` is defined (lines 96-102), not `/library/prompt/:promptId`.
+
+**Discussion Required:**
+This requires an architecture decision before implementation:
+
+1. **Option A: Add /library/prompt/:promptId route**
+   - Create new `PublicPromptDetail.tsx` page component
+   - Read-only view of public prompt
+   - Different from owned prompt detail (no edit, no visibility toggle)
+   - Pros: Clean separation, dedicated UX for public prompts
+   - Cons: New component to maintain
+
+2. **Option B: Reuse /dashboard/prompt/:promptId with read-only mode**
+   - Modify existing PromptDetail to detect if viewing someone else's public prompt
+   - Show read-only UI when not owner
+   - Pros: Code reuse
+   - Cons: Complexity in existing component, route semantics confusing
+
+3. **Option C: Make library cards non-navigable (temporary)**
+   - Remove the `to` prop or make cards display-only
+   - Add copy/save actions directly on card
+   - Defer detail view to future phase
+   - Pros: Quick fix, no 404
+   - Cons: Reduced functionality
+
+**Recommendation:** Option A (dedicated route/component) is cleanest for long-term maintainability. Option C is acceptable as v1 interim if time-constrained.
+
+---
+
 ## Resolved Issues
 
 ### UAT-007: Visibility toggle position and labeling UX improvements
