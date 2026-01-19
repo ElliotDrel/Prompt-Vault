@@ -182,12 +182,25 @@ Plans:
 - No regressions in v1.0 functionality (version history, revert, diff)
 **Risk if skipped**: Shipping broken milestone to production
 
+#### Phase 21: Public Library on Landing Page with Smart Auth Gates
+
+**Goal**: Enable unauthenticated users to browse public prompts on landing page with same UX as authenticated vault, implementing smart authentication gates for actions requiring auth
+**Depends on**: Phase 20
+**Research**: Unlikely (extending existing public library patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 21-01: TBD (run /gsd:plan-phase 21 to break down)
+
+**Details**:
+[To be added during planning]
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 10 | 8/? | In Progress | - |
+| v2.0 Public Prompt Library | 11 | 8/? | In Progress | - |
 
 ---
 
@@ -207,3 +220,4 @@ Plans:
 | 19. Copy History Attribution | v2.0 | 0/? | Not started | - |
 | 20. Auto-Fork on Unavailable | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint C** | v2.0 | — | Pending | - |
+| 21. Public Library on Landing Page with Smart Auth Gates | v2.0 | 0/? | Not started | - |
