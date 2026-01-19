@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Library } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { usePublicPrompts } from '@/hooks/usePublicPrompts';
@@ -8,6 +9,14 @@ import { PromptListView } from '@/components/PromptListView';
 import type { PublicPrompt } from '@/types/prompt';
 
 export default function PublicLibrary() {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'Public Library - Prompt Vault';
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
+
   const { prompts, loading, error } = usePublicPrompts();
 
   // URL-synced search/sort state

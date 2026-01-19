@@ -19,6 +19,14 @@ import { Trash2, Search, Loader2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const CopyHistory = () => {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'Copy History - Prompt Vault';
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
+
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const cacheUserId = user?.id ?? 'anonymous';
@@ -73,7 +81,9 @@ const CopyHistory = () => {
   // useURLFilterSync handles debouncing, so we can call searchCopyEvents directly
   useEffect(() => {
     if (searchTerm) {
-      searchCopyEvents(searchTerm);
+      void searchCopyEvents(searchTerm).catch(() => {
+        toast.error('Failed to search copy history');
+      });
     } else {
       clearSearch();
     }
@@ -84,8 +94,7 @@ const CopyHistory = () => {
       await clearHistory();
       setSearchTerm(''); // Clear URL search param - will trigger clearSearch via effect
       toast.success('Copy history cleared successfully. Note: This does not affect your usage statistics.');
-    } catch (err) {
-      console.error('Failed to clear copy history:', err);
+    } catch {
       toast.error('Failed to clear copy history');
     }
   }, [clearHistory, setSearchTerm]);
@@ -94,8 +103,7 @@ const CopyHistory = () => {
     try {
       await deleteCopyEvent(id);
       toast.success('Copy event deleted. Note: This does not affect your usage statistics.');
-    } catch (err) {
-      console.error('Failed to delete copy event:', err);
+    } catch {
       toast.error('Failed to delete copy event');
     }
   }, [deleteCopyEvent]);
@@ -123,8 +131,7 @@ const CopyHistory = () => {
       });
 
       toast.success('Copied from history');
-    } catch (err) {
-      console.error('Failed to copy history event:', err);
+    } catch {
       toast.error('Failed to copy from history');
     }
   }, [incrementCopyCount, incrementPromptUsage, addCopyEvent]);
