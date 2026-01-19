@@ -13,10 +13,24 @@
 export const CHARACTER_LIMIT = 50000;
 
 /**
- * Maximum characters to scan when looking for nearby content
- * Whitespace is skipped during the scan
+ * Proximity distance for general content detection.
+ * Variables with non-space characters within this distance use direct replacement.
+ * Intentionally restrictive (3 chars) so labeled variables remain "isolated".
  */
-const PROXIMITY_SCAN_RANGE = 50;
+const PROXIMITY_DISTANCE = 3;
+
+/**
+ * Effective distance newlines count as when checking proximity.
+ * Set to 3 so that even a single newline creates enough distance to isolate a variable.
+ * This ensures patterns like "Input:\n\n{var}" get XML wrapping.
+ */
+const NEWLINE_DISTANCE = 3;
+
+/**
+ * Maximum characters to scan when looking for XML boundaries.
+ * Whitespace is skipped during this scan (unlike general proximity).
+ */
+const XML_BOUNDARY_SCAN_RANGE = 50;
 
 // ============================================================================
 // REGEX PATTERNS
@@ -172,49 +186,159 @@ export function formatAsXML(variableName: string, value: string): string {
 }
 
 /**
- * Check if there are non-whitespace characters near the variable
- * Scans up to PROXIMITY_SCAN_RANGE chars, skipping whitespace
- * Used to determine whether to use XML format or direct replacement
+ * Check if variable sits between XML tag boundaries: >...{var}...<
+ *
+ * Algorithm:
+ * 1. Scan left from variable, skipping whitespace, looking for >
+ * 2. Scan right from variable, skipping whitespace, looking for <
+ * 3. Validate the < is actually a tag start (not math like "x < 5")
+ *
+ * This handles patterns like:
+ * - <tag>{var}</tag>
+ * - <tag>\n  {var}\n</tag>
+ * - <tag>\n\n{var}\n\n</tag>
+ */
+function isBetweenXmlBoundaries(text: string, startIndex: number, endIndex: number): boolean {
+  // Check for > before (skipping whitespace)
+  let foundClosingBracket = false;
+  for (let i = startIndex - 1; i >= Math.max(0, startIndex - XML_BOUNDARY_SCAN_RANGE); i--) {
+    const char = text[i];
+    if (/\s/.test(char)) continue; // Skip whitespace
+    foundClosingBracket = (char === '>');
+    break;
+  }
+
+  if (!foundClosingBracket) {
+    return false;
+  }
+
+  // Check for < after (skipping whitespace)
+  let openingBracketIndex = -1;
+  for (let i = endIndex; i < Math.min(text.length, endIndex + XML_BOUNDARY_SCAN_RANGE); i++) {
+    const char = text[i];
+    if (/\s/.test(char)) continue; // Skip whitespace
+    if (char === '<') {
+      openingBracketIndex = i;
+    }
+    break;
+  }
+
+  if (openingBracketIndex === -1) {
+    return false;
+  }
+
+  // Validate the < is actually a tag start, not math like "x < 5"
+  const charAfterBracket = text[openingBracketIndex + 1];
+  if (charAfterBracket === undefined) {
+    return false;
+  }
+
+  // Valid tag starts: </ (closing), <letter (opening), <? (processing), <! (doctype/comment)
+  const isValidTagStart =
+    charAfterBracket === '/' ||
+    charAfterBracket === '?' ||
+    charAfterBracket === '!' ||
+    /[a-zA-Z]/.test(charAfterBracket);
+
+  return isValidTagStart;
+}
+
+/**
+ * Determines if a variable should use direct replacement or XML wrapping.
+ *
+ * Decision order (explicit precedence):
+ * 1. If variable is between XML tag boundaries (>...{var}...<) → direct replacement
+ * 2. If variable has immediately adjacent content (within PROXIMITY_DISTANCE) → direct replacement
+ * 3. Otherwise → XML wrapping
+ *
+ * IMPORTANT: Rule 1 skips whitespace. Rule 2 does NOT skip whitespace (newlines add distance).
+ * This distinction is intentional - it allows XML-wrapped variables to work across newlines
+ * while preserving "isolated" detection for labeled variables like "## Input\n\n{var}".
+ *
  * @param text - The full text to search in
  * @param variableRegex - Regex matching the specific variable
- * @returns true if non-whitespace characters are found nearby
+ * @returns true if non-whitespace characters are found nearby (use direct replacement)
  */
 export function hasNearbyNonSpaceCharacters(text: string, variableRegex: RegExp): boolean {
   const matches = Array.from(text.matchAll(new RegExp(variableRegex.source, 'g')));
 
   for (const match of matches) {
     if (match.index === undefined) continue;
-
     const startIndex = match.index;
     const endIndex = startIndex + match[0].length;
 
-    if (hasNearbyContent(text, startIndex, 'before') ||
-        hasNearbyContent(text, endIndex, 'after')) {
+    // Rule 1: XML boundary detection (skips whitespace, validates tag structure)
+    if (isBetweenXmlBoundaries(text, startIndex, endIndex)) {
+      return true;
+    }
+
+    // Rule 2: Strict proximity detection (newlines ADD distance, not skip)
+    if (hasAdjacentContent(text, startIndex, 'before') ||
+        hasAdjacentContent(text, endIndex, 'after')) {
       return true;
     }
   }
 
+  // Rule 3: No nearby content found → will use XML wrapping
   return false;
 }
 
 /**
- * Check for non-whitespace content in a direction, skipping whitespace
- * Scans up to PROXIMITY_SCAN_RANGE characters from the given index
- * @param text - The full text to scan
- * @param index - The boundary index to start scanning from
- * @param direction - The direction to scan ('before' scans backwards, 'after' scans forwards)
- * @returns true if any non-whitespace character is found within the scan range
+ * Check for adjacent content using strict proximity rules.
+ *
+ * CRITICAL: This function does NOT skip whitespace uniformly.
+ * Newlines add NEWLINE_DISTANCE to the running distance count.
+ * This preserves "isolated" detection for patterns like:
+ * - "## Input\n\n{var}" → isolated (newlines add distance)
+ * - "Hello {name}!" → adjacent (no newlines)
  */
-function hasNearbyContent(text: string, index: number, direction: 'before' | 'after'): boolean {
+function hasAdjacentContent(text: string, index: number, direction: 'before' | 'after'): boolean {
   if (direction === 'before') {
-    for (let i = index - 1; i >= Math.max(0, index - PROXIMITY_SCAN_RANGE); i--) {
-      if (!/\s/.test(text[i])) return true;
+    const searchStart = Math.max(0, index - PROXIMITY_DISTANCE);
+    const beforeText = text.substring(searchStart, index);
+    let distance = 0;
+
+    for (let i = beforeText.length - 1; i >= 0; i--) {
+      const char = beforeText[i];
+      if (char === '\n') {
+        distance += NEWLINE_DISTANCE;
+      } else if (char !== ' ' && char !== '\t' && char !== '\r') {
+        // Found non-space character - check if within proximity
+        if (distance + (beforeText.length - 1 - i) <= PROXIMITY_DISTANCE) {
+          return true;
+        }
+        break;
+      } else {
+        distance += 1;
+      }
+
+      // Early exit if we've exceeded proximity
+      if (distance > PROXIMITY_DISTANCE) break;
     }
   } else {
-    for (let i = index; i < Math.min(text.length, index + PROXIMITY_SCAN_RANGE); i++) {
-      if (!/\s/.test(text[i])) return true;
+    const searchEnd = Math.min(text.length, index + PROXIMITY_DISTANCE);
+    const afterText = text.substring(index, searchEnd);
+    let distance = 0;
+
+    for (let i = 0; i < afterText.length; i++) {
+      const char = afterText[i];
+      if (char === '\n') {
+        distance += NEWLINE_DISTANCE;
+      } else if (char !== ' ' && char !== '\t' && char !== '\r') {
+        // Found non-space character - check if within proximity
+        if (distance + i <= PROXIMITY_DISTANCE) {
+          return true;
+        }
+        break;
+      } else {
+        distance += 1;
+      }
+
+      // Early exit if we've exceeded proximity
+      if (distance > PROXIMITY_DISTANCE) break;
     }
   }
+
   return false;
 }
 
