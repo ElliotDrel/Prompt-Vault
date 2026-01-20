@@ -34,12 +34,10 @@ export default function PublicLibrary() {
     searchTerm,
     sortBy,
     sortDirection,
-    visibilityFilter,
     authorFilter,
     setSearchTerm,
     setSortBy,
     toggleSortDirection,
-    setVisibilityFilter,
     setAuthorFilter,
     filteredPrompts,
   } = usePromptFilters({
@@ -85,8 +83,6 @@ export default function PublicLibrary() {
             onSearchChange={setSearchTerm}
             onSortByChange={setSortBy}
             onSortDirectionChange={toggleSortDirection}
-            visibilityFilter={visibilityFilter}
-            onVisibilityChange={setVisibilityFilter}
             authorFilter={authorFilter}
             onAuthorChange={setAuthorFilter}
             showAuthorFilter={true}

@@ -66,7 +66,7 @@ export function Dashboard() {
           onSortDirectionChange={toggleSortDirection}
           visibilityFilter={visibilityFilter}
           onVisibilityChange={setVisibilityFilter}
-          showAuthorFilter={false}
+          showVisibilityFilter={true}
           renderPromptCard={(prompt) => (
             <PromptCard
               key={prompt.id}
