@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Search, ArrowUp, ArrowDown, Loader2, FileText, X } from 'lucide-react';
+import { Search, Loader2, FileText, X } from 'lucide-react';
 import type { Prompt } from '@/types/prompt';
 import type { SortBy, SortDirection, VisibilityFilter, AuthorFilter } from '@/hooks/usePromptFilters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FilterChips } from '@/components/FilterChips';
+import { FilterSortPopover } from '@/components/FilterSortPopover';
 
 interface PromptListViewProps {
   // Data
@@ -20,11 +20,12 @@ interface PromptListViewProps {
   onSortByChange: (by: SortBy) => void;
   onSortDirectionChange: () => void;
 
-  // Visibility filter (optional)
+  // Visibility filter (Dashboard - for public/private)
   visibilityFilter?: VisibilityFilter;
   onVisibilityChange?: (v: VisibilityFilter) => void;
+  showVisibilityFilter?: boolean;
 
-  // Author filter (optional - only on pages showing multiple users' prompts)
+  // Author filter (Library - for mine/others)
   authorFilter?: AuthorFilter;
   onAuthorChange?: (a: AuthorFilter) => void;
   showAuthorFilter?: boolean;
@@ -60,6 +61,7 @@ export function PromptListView({
   onSortDirectionChange,
   visibilityFilter,
   onVisibilityChange,
+  showVisibilityFilter = false,
   authorFilter,
   onAuthorChange,
   showAuthorFilter = false,
@@ -76,17 +78,6 @@ export function PromptListView({
   const hasActiveFilters = searchTerm || (visibilityFilter && visibilityFilter !== 'all') || (authorFilter && authorFilter !== 'all');
   const isEmpty = prompts.length === 0 && !hasActiveFilters;
   const noResults = prompts.length === 0 && hasActiveFilters;
-  const showFilterChips = visibilityFilter !== undefined && onVisibilityChange !== undefined;
-
-  const handleSort = (newSortBy: SortBy) => {
-    if (sortBy === newSortBy) {
-      // Toggle direction if same sort option is clicked
-      onSortDirectionChange();
-    } else {
-      // Set new sort option
-      onSortByChange(newSortBy);
-    }
-  };
 
   // Loading state
   if (loading) {
@@ -100,92 +91,43 @@ export function PromptListView({
 
   return (
     <div>
-      {/* Search and Filter Controls */}
-      <div className="flex flex-col gap-4 mb-6">
-        {/* Row 1: Search bar */}
-        <div className="flex gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 pr-10"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => onSearchChange('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                type="button"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Row 2: Filter chips + Sort buttons */}
-        <div className="flex items-center justify-between">
-          {/* Filter chips (left) */}
-          {showFilterChips && (
-            <FilterChips
-              visibilityFilter={visibilityFilter}
-              onVisibilityChange={onVisibilityChange}
-              authorFilter={authorFilter}
-              onAuthorChange={onAuthorChange}
-              showAuthorFilter={showAuthorFilter}
-            />
+      {/* Search and Filter Controls - Single Row */}
+      <div className="flex items-center gap-3 mb-6">
+        {/* Search input */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder={searchPlaceholder}
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => onSearchChange('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              type="button"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
           )}
-          {!showFilterChips && <div />}
-
-          {/* Sort buttons (right) */}
-          <div className="flex gap-2">
-            <Button
-              variant={sortBy === 'lastUpdated' ? 'default' : 'outline'}
-              onClick={() => handleSort('lastUpdated')}
-              className="flex items-center gap-1"
-            >
-              Last Updated
-              {sortBy === 'lastUpdated' && (
-                sortDirection === 'desc' ? (
-                  <ArrowDown className="h-4 w-4" />
-                ) : (
-                  <ArrowUp className="h-4 w-4" />
-                )
-              )}
-            </Button>
-            <Button
-              variant={sortBy === 'name' ? 'default' : 'outline'}
-              onClick={() => handleSort('name')}
-              className="flex items-center gap-1"
-            >
-              Name
-              {sortBy === 'name' && (
-                sortDirection === 'desc' ? (
-                  <ArrowDown className="h-4 w-4" />
-                ) : (
-                  <ArrowUp className="h-4 w-4" />
-                )
-              )}
-            </Button>
-            <Button
-              variant={sortBy === 'usage' ? 'default' : 'outline'}
-              onClick={() => handleSort('usage')}
-              className="flex items-center gap-1"
-            >
-              Usage
-              {sortBy === 'usage' && (
-                sortDirection === 'desc' ? (
-                  <ArrowDown className="h-4 w-4" />
-                ) : (
-                  <ArrowUp className="h-4 w-4" />
-                )
-              )}
-            </Button>
-          </div>
         </div>
+
+        {/* Filter & Sort Popover */}
+        <FilterSortPopover
+          visibilityFilter={visibilityFilter}
+          onVisibilityChange={onVisibilityChange}
+          showVisibilityFilter={showVisibilityFilter}
+          authorFilter={authorFilter}
+          onAuthorChange={onAuthorChange}
+          showAuthorFilter={showAuthorFilter}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSortByChange={onSortByChange}
+          onSortDirectionChange={onSortDirectionChange}
+        />
       </div>
 
       {/* Empty state (no prompts at all) */}
