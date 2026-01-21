@@ -1,11 +1,29 @@
 import { useState } from 'react';
-import { Filter, Check, ArrowUpDown } from 'lucide-react';
+import { 
+  ListFilter, 
+  Check, 
+  ArrowUpAZ, 
+  ArrowDownAZ, 
+  Clock, 
+  BarChart2, 
+  CalendarDays,
+  Type,
+  Layers,
+  Globe,
+  Lock,
+  User,
+  Users
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import type { VisibilityFilter, AuthorFilter } from '@/lib/storage/types';
 import type { SortBy, SortDirection } from '@/hooks/useURLFilterSync';
 
@@ -28,25 +46,25 @@ interface FilterSortPopoverProps {
 }
 
 // Visibility filter options for Dashboard
-const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string }[] = [
-  { value: 'all', label: 'All Prompts' },
-  { value: 'public', label: 'Public' },
-  { value: 'private', label: 'My Prompts' }, // "Private" renamed to "My Prompts"
+const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string; icon: React.ElementType }[] = [
+  { value: 'all', label: 'All', icon: Layers },
+  { value: 'public', label: 'Public', icon: Globe },
+  { value: 'private', label: 'My Prompts', icon: Lock },
 ];
 
 // Author filter options for Library
-const AUTHOR_OPTIONS: { value: AuthorFilter; label: string }[] = [
-  { value: 'all', label: 'Everyone' },
-  { value: 'mine', label: 'My Prompts' },
-  { value: 'others', label: 'Others' },
+const AUTHOR_OPTIONS: { value: AuthorFilter; label: string; icon: React.ElementType }[] = [
+  { value: 'all', label: 'All', icon: Users },
+  { value: 'mine', label: 'Mine', icon: User },
+  { value: 'others', label: 'Others', icon: Globe },
 ];
 
 // Sort options
-const SORT_OPTIONS: { value: SortBy; label: string }[] = [
-  { value: 'lastUpdated', label: 'Last Updated' },
-  { value: 'name', label: 'Name' },
-  { value: 'usage', label: 'Usage' },
-  { value: 'createdAt', label: 'Created' },
+const SORT_OPTIONS: { value: SortBy; label: string; icon: React.ElementType }[] = [
+  { value: 'lastUpdated', label: 'Last Updated', icon: Clock },
+  { value: 'name', label: 'Name', icon: Type },
+  { value: 'usage', label: 'Usage Count', icon: BarChart2 },
+  { value: 'createdAt', label: 'Date Created', icon: CalendarDays },
 ];
 
 export function FilterSortPopover({
@@ -63,147 +81,184 @@ export function FilterSortPopover({
 }: FilterSortPopoverProps) {
   const [open, setOpen] = useState(false);
 
-  // Determine active filter labels for the trigger button
-  const activeFilters: string[] = [];
+  // Helper to get sort direction label
+  const getSortDirectionLabel = () => {
+    switch (sortBy) {
+      case 'name':
+        return sortDirection === 'asc' ? 'A to Z' : 'Z to A';
+      case 'usage':
+        return sortDirection === 'desc' ? 'Highest First' : 'Lowest First';
+      case 'lastUpdated':
+      case 'createdAt':
+      default:
+        return sortDirection === 'desc' ? 'Newest First' : 'Oldest First';
+    }
+  };
 
-  if (showVisibilityFilter && visibilityFilter && visibilityFilter !== 'all') {
-    const option = VISIBILITY_OPTIONS.find((o) => o.value === visibilityFilter);
-    if (option) activeFilters.push(option.label);
-  }
-
-  if (showAuthorFilter && authorFilter && authorFilter !== 'all') {
-    const option = AUTHOR_OPTIONS.find((o) => o.value === authorFilter);
-    if (option) activeFilters.push(option.label);
-  }
-
-  // Get current sort label
-  const sortLabel = SORT_OPTIONS.find((o) => o.value === sortBy)?.label || 'Last Updated';
-
-  const hasActiveFilters = activeFilters.length > 0;
+  // Check if any non-default filters are active
+  const isVisibilityActive = showVisibilityFilter && visibilityFilter && visibilityFilter !== 'all';
+  const isAuthorActive = showAuthorFilter && authorFilter && authorFilter !== 'all';
+  const isFilterActive = isVisibilityActive || isAuthorActive;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant={hasActiveFilters ? 'default' : 'outline'}
-          size="sm"
-          className="gap-2"
+          variant={isFilterActive ? "default" : "outline"}
+          className={cn(
+            "h-10 gap-2 pl-3 pr-4",
+            isFilterActive && "shadow-sm"
+          )}
         >
-          <Filter className="h-4 w-4" />
-          {hasActiveFilters ? (
-            <span className="flex items-center gap-1">
-              {activeFilters.join(', ')}
+          <div className="flex items-center gap-2">
+            <ListFilter className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              View Options
             </span>
-          ) : (
-            <span>Filter & Sort</span>
+          </div>
+          {isFilterActive && (
+             <Badge 
+               variant="secondary" 
+               className="ml-1 h-5 px-1.5 text-[10px] font-medium bg-white/20 text-white hover:bg-white/30 border-0"
+             >
+               Active
+             </Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="start">
-        <div className="p-3 space-y-4">
-          {/* Visibility Filter Section (Dashboard) */}
-          {showVisibilityFilter && onVisibilityChange && (
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Show
-              </h4>
-              <div className="space-y-1">
-                {VISIBILITY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      onVisibilityChange(option.value);
-                    }}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors ${
-                      visibilityFilter === option.value
-                        ? 'bg-accent text-accent-foreground'
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <span>{option.label}</span>
-                    {visibilityFilter === option.value && (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <PopoverContent className="w-80 p-4" align="end">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="font-semibold text-sm">View Settings</h4>
+          {isFilterActive && (
+             <Button 
+               variant="ghost" 
+               size="sm" 
+               className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+               onClick={() => {
+                 if (onVisibilityChange) onVisibilityChange('all');
+                 if (onAuthorChange) onAuthorChange('all');
+               }}
+             >
+               Reset
+             </Button>
           )}
+        </div>
 
-          {/* Author Filter Section (Library) */}
-          {showAuthorFilter && onAuthorChange && (
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                Show
-              </h4>
-              <div className="space-y-1">
-                {AUTHOR_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      onAuthorChange(option.value);
-                    }}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors ${
-                      authorFilter === option.value
-                        ? 'bg-accent text-accent-foreground'
-                        : 'hover:bg-muted'
-                    }`}
+        {/* Visibility Filter (Dashboard) */}
+        {showVisibilityFilter && onVisibilityChange && visibilityFilter && (
+          <div className="space-y-2 mb-4">
+            <label className="text-xs font-medium text-muted-foreground">
+              Filter By
+            </label>
+            <ToggleGroup 
+              type="single" 
+              value={visibilityFilter} 
+              onValueChange={(val) => val && onVisibilityChange(val as VisibilityFilter)}
+              className="justify-start w-full bg-muted p-1 rounded-md"
+            >
+              {VISIBILITY_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <ToggleGroupItem 
+                    key={option.value} 
+                    value={option.value}
+                    className="flex-1 gap-2 text-xs data-[state=on]:bg-background data-[state=on]:shadow-sm data-[state=on]:text-foreground text-muted-foreground hover:text-foreground"
+                    size="sm"
                   >
-                    <span>{option.label}</span>
-                    {authorFilter === option.value && (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    <Icon className="h-3.5 w-3.5" />
+                    {option.label}
+                  </ToggleGroupItem>
+                );
+              })}
+            </ToggleGroup>
+          </div>
+        )}
 
-          {/* Sort Section */}
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-              Sort by
-            </h4>
-            <div className="space-y-1">
-              {SORT_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    if (sortBy === option.value) {
-                      onSortDirectionChange();
-                    } else {
-                      onSortByChange(option.value);
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors ${
-                    sortBy === option.value
-                      ? 'bg-accent text-accent-foreground'
-                      : 'hover:bg-muted'
-                  }`}
-                >
-                  <span>{option.label}</span>
-                  {sortBy === option.value && (
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      {sortDirection === 'desc' ? '↓' : '↑'}
-                      <Check className="h-4 w-4" />
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+        {/* Author Filter (Library) */}
+        {showAuthorFilter && onAuthorChange && authorFilter && (
+          <div className="space-y-2 mb-4">
+            <label className="text-xs font-medium text-muted-foreground">
+              Filter By
+            </label>
+            <ToggleGroup 
+              type="single" 
+              value={authorFilter} 
+              onValueChange={(val) => val && onAuthorChange(val as AuthorFilter)}
+              className="justify-start w-full bg-muted p-1 rounded-md"
+            >
+              {AUTHOR_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <ToggleGroupItem 
+                    key={option.value} 
+                    value={option.value}
+                    className="flex-1 gap-2 text-xs data-[state=on]:bg-background data-[state=on]:shadow-sm data-[state=on]:text-foreground text-muted-foreground hover:text-foreground"
+                    size="sm"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {option.label}
+                  </ToggleGroupItem>
+                );
+              })}
+            </ToggleGroup>
+          </div>
+        )}
+
+        {(showVisibilityFilter || showAuthorFilter) && <Separator className="my-4" />}
+
+        {/* Sort Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">
+              Sort By
+            </label>
+            
+            {/* Sort Direction Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSortDirectionChange}
+              className="h-6 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              {sortDirection === 'desc' ? (
+                <ArrowDownAZ className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowUpAZ className="h-3.5 w-3.5" />
+              )}
+              {getSortDirectionLabel()}
+            </Button>
           </div>
 
-          {/* Sort Direction Toggle */}
-          <div className="pt-2 border-t">
-            <button
-              onClick={onSortDirectionChange}
-              className="w-full flex items-center justify-between px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <ArrowUpDown className="h-4 w-4" />
-                Order: {sortDirection === 'desc' ? 'Newest First' : 'Oldest First'}
-              </span>
-            </button>
+          <div className="grid gap-1">
+            {SORT_OPTIONS.map((option) => {
+              const Icon = option.icon;
+              const isActive = sortBy === option.value;
+              
+              return (
+                <Button
+                  key={option.value}
+                  variant="ghost"
+                  onClick={() => onSortByChange(option.value)}
+                  className={cn(
+                    "w-full justify-start h-auto py-2 px-3 text-sm font-normal",
+                    isActive
+                      ? "bg-accent text-accent-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <Icon className={cn("h-4 w-4", isActive ? "text-accent-foreground" : "text-muted-foreground")} />
+                    <span>{option.label}</span>
+                  </div>
+                  
+                  {isActive && (
+                    <Check className="h-4 w-4 ml-2" />
+                  )}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </PopoverContent>

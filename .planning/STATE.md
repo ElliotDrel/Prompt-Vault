@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15.1 of 21 (Visibility Filter Persistence)
-Plan: 2 of 3 complete
-Status: In progress
-Last activity: 2026-01-19 - Completed 15.1-02-PLAN.md (filter hooks extension)
+Plan: 3 of 3 complete
+Status: Awaiting verification
+Last activity: 2026-01-21 - Completed 15.1-03-PLAN.md (filter UI and page integration)
 
 Progress: █████░░░░░ 54%
 
@@ -94,19 +94,14 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 **Context:** Originally deferred to Phase 16, but basic increment functionality was needed for Phase 15 Library page to work (copying public prompts needs to increment usage). Full usage analytics is still pending.
 
-**Public Library Author Click Filter (Issue 10 - Phase 15.1)**
+**Public Library Author Click Filter (Issue 10 - RESOLVED in Phase 15.1)**
 
-**Current behavior:**
-- Clicking an author name in the Public Library inserts the author name into the search input.
-- This overwrites any existing search term and does not use a dedicated author filter.
-
-**Why this matters:**
-- The upcoming filter chips (Phase 15.1) are intended to carry author filtering state.
-- If author click remains tied to search, the author filter chips risk being ignored or inconsistent.
-
-**Follow-up for Phase 15.1:**
-- Decide whether author filtering should support a specific author ID or only Mine/Others.
-- Update author click to use the chosen author filter state without clobbering the current search term.
+**Resolution:**
+- Removed onAuthorClick handler from Library - author names are now display-only text
+- Added author filter in View Options popover: All / Mine / Others
+- "Mine" filters to show only the current user's public prompts
+- "Others" filters to show only other users' prompts
+- This provides cleaner UX without overwriting search terms
 
 **Missing /library/prompt/:promptId Route (UAT-011 - Critical)**
 
@@ -140,9 +135,10 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-01-19
-Stopped at: Completed 15.1-02-PLAN.md (filter hooks extension)
+Last session: 2026-01-21
+Stopped at: Completed 15.1-03-PLAN.md (filter UI and page integration)
 Resume file: None
 
 **Next Steps:**
-- Execute 15.1-03-PLAN.md (filter chips UI and author click behavior)
+- Run /gsd:verify-work to verify Phase 15.1 completion
+- If verified, proceed to Phase 16 (Profile & User Settings)
