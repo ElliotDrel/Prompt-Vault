@@ -49,7 +49,7 @@ interface FilterSortPopoverProps {
 const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string; icon: React.ElementType }[] = [
   { value: 'all', label: 'All', icon: Layers },
   { value: 'public', label: 'Public', icon: Globe },
-  { value: 'private', label: 'My Prompts', icon: Lock },
+  { value: 'private', label: 'Private', icon: Lock },
 ];
 
 // Author filter options for Library
@@ -126,11 +126,11 @@ export function FilterSortPopover({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="end">
+      <PopoverContent className="w-64 p-3" align="end">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-semibold text-sm">View Settings</h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold text-xs">View Settings</h4>
           {isFilterActive && (
              <Button 
                variant="ghost" 
@@ -148,8 +148,8 @@ export function FilterSortPopover({
 
         {/* Visibility Filter (Dashboard) */}
         {showVisibilityFilter && onVisibilityChange && visibilityFilter && (
-          <div className="space-y-2 mb-4">
-            <label className="text-xs font-medium text-muted-foreground">
+          <div className="space-y-2 mb-3">
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
               Filter By
             </label>
             <ToggleGroup 
@@ -206,12 +206,12 @@ export function FilterSortPopover({
           </div>
         )}
 
-        {(showVisibilityFilter || showAuthorFilter) && <Separator className="my-4" />}
+        {(showVisibilityFilter || showAuthorFilter) && <Separator className="my-3" />}
 
         {/* Sort Section */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-muted-foreground">
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
               Sort By
             </label>
             
@@ -220,12 +220,12 @@ export function FilterSortPopover({
               variant="ghost"
               size="sm"
               onClick={onSortDirectionChange}
-              className="h-6 px-2 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              className="h-5 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground"
             >
               {sortDirection === 'desc' ? (
-                <ArrowDownAZ className="h-3.5 w-3.5" />
+                <ArrowDownAZ className="h-3 w-3" />
               ) : (
-                <ArrowUpAZ className="h-3.5 w-3.5" />
+                <ArrowUpAZ className="h-3 w-3" />
               )}
               {getSortDirectionLabel()}
             </Button>
@@ -242,19 +242,19 @@ export function FilterSortPopover({
                   variant="ghost"
                   onClick={() => onSortByChange(option.value)}
                   className={cn(
-                    "w-full justify-start h-auto py-2 px-3 text-sm font-normal",
+                    "w-full justify-start h-auto py-1.5 px-2 text-xs font-normal",
                     isActive
                       ? "bg-accent text-accent-foreground font-medium"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <div className="flex items-center gap-3 flex-1">
-                    <Icon className={cn("h-4 w-4", isActive ? "text-accent-foreground" : "text-muted-foreground")} />
+                  <div className="flex items-center gap-2 flex-1">
+                    <Icon className={cn("h-3.5 w-3.5", isActive ? "text-accent-foreground" : "text-muted-foreground")} />
                     <span>{option.label}</span>
                   </div>
                   
                   {isActive && (
-                    <Check className="h-4 w-4 ml-2" />
+                    <Check className="h-3.5 w-3.5 ml-1" />
                   )}
                 </Button>
               );
