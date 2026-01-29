@@ -1,6 +1,6 @@
+import { useState, useRef, useEffect } from 'react';
 import { Filter, ArrowUpAZ, ArrowDownAZ, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import type { SortBy, SortDirection, VisibilityFilter, AuthorFilter } from '@/hooks/usePromptFilters';
 
@@ -54,7 +54,31 @@ export function FilterSortControl({
   onSortByChange,
   onSortDirectionChange,
 }: FilterSortControlProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const DirIcon = sortDirection === 'asc' ? ArrowUpAZ : ArrowDownAZ;
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
 
   // Get current filter label
   const getFilterLabel = () => {
@@ -82,23 +106,28 @@ export function FilterSortControl({
   const showFilter = showVisibilityFilter || showAuthorFilter;
 
   return (
-    <Popover>
-      <div className="flex items-center rounded-md border bg-card shadow-sm shrink-0">
-        <PopoverTrigger asChild>
-          <button type="button" className="flex items-center h-9 hover:bg-muted/50 transition-colors rounded-l-md">
-            {showFilter && (
-              <span className="flex items-center gap-2 px-3 border-r">
-                <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm">{getFilterLabel()}</span>
-              </span>
-            )}
-            <span className="px-3 text-sm border-r">
-              {getSortLabel()}
+    <div ref={containerRef} className="relative shrink-0">
+      {/* Trigger bar */}
+      <div className="flex items-center rounded-md border bg-card shadow-sm">
+        <button
+          type="button"
+          className="flex items-center h-9 hover:bg-muted/50 transition-colors rounded-l-md"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+        >
+          {showFilter && (
+            <span className="flex items-center gap-2 px-3 border-r">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-sm">{getFilterLabel()}</span>
             </span>
-          </button>
-        </PopoverTrigger>
+          )}
+          <span className="px-3 text-sm border-r">
+            {getSortLabel()}
+          </span>
+        </button>
 
-        {/* Direction toggle - outside popover trigger for direct access */}
+        {/* Direction toggle - outside dropdown trigger for direct access */}
         <Button
           variant="ghost"
           size="icon"
@@ -110,69 +139,75 @@ export function FilterSortControl({
         </Button>
       </div>
 
-      <PopoverContent className="w-[300px] p-0" align="end">
-        <div className="flex">
-          {/* Filter Column - only if filter is enabled */}
-          {showFilter && (
-            <div className="flex-1 p-2 border-r">
-              <div className="px-2 py-1.5 mb-1">
+      {/* Dropdown - pure CSS positioning, no JS calculations */}
+      {isOpen && (
+        <div
+          className="absolute right-0 top-full mt-1 z-50 w-[300px] rounded-md border bg-popover text-popover-foreground shadow-md"
+          role="menu"
+        >
+          <div className="flex">
+            {/* Filter Column - only if filter is enabled */}
+            {showFilter && (
+              <div className="flex-1 p-2 border-r">
+                <div className="px-2 py-1.5 mb-1">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Filter
+                  </span>
+                </div>
+                <div className="space-y-0.5">
+                  {filterOptions.map(({ value, label }) => (
+                    <Button
+                      key={value}
+                      variant="ghost"
+                      className={cn(
+                        'w-full justify-start h-8 px-2 font-normal',
+                        currentFilter === value && 'bg-primary/10 text-primary hover:bg-primary/15'
+                      )}
+                      onClick={() => onFilterChange(value)}
+                    >
+                      {label}
+                      {currentFilter === value && <Check className="ml-auto h-3.5 w-3.5" />}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sort Column */}
+            <div className={cn('flex-1 p-2', !showFilter && 'border-l-0')}>
+              <div className="flex items-center justify-between px-2 py-1.5 mb-1">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Filter
+                  Sort
                 </span>
+                <button
+                  type="button"
+                  onClick={onSortDirectionChange}
+                  className="p-1.5 -m-1 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                  title={sortDirection === 'asc' ? 'Switch to Descending' : 'Switch to Ascending'}
+                >
+                  <DirIcon className="h-4 w-4" />
+                </button>
               </div>
               <div className="space-y-0.5">
-                {filterOptions.map(({ value, label }) => (
+                {SORT_OPTIONS.map(({ value, label }) => (
                   <Button
                     key={value}
                     variant="ghost"
                     className={cn(
                       'w-full justify-start h-8 px-2 font-normal',
-                      currentFilter === value && 'bg-primary/10 text-primary hover:bg-primary/15'
+                      sortBy === value && 'bg-primary/10 text-primary hover:bg-primary/15'
                     )}
-                    onClick={() => onFilterChange(value)}
+                    onClick={() => onSortByChange(value)}
                   >
                     {label}
-                    {currentFilter === value && <Check className="ml-auto h-3.5 w-3.5" />}
+                    {sortBy === value && <Check className="ml-auto h-3.5 w-3.5" />}
                   </Button>
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Sort Column */}
-          <div className={cn('flex-1 p-2', !showFilter && 'border-l-0')}>
-            <div className="flex items-center justify-between px-2 py-1.5 mb-1">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Sort
-              </span>
-              <button
-                type="button"
-                onClick={onSortDirectionChange}
-                className="p-1.5 -m-1 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-                title={sortDirection === 'asc' ? 'Switch to Descending' : 'Switch to Ascending'}
-              >
-                <DirIcon className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="space-y-0.5">
-              {SORT_OPTIONS.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant="ghost"
-                  className={cn(
-                    'w-full justify-start h-8 px-2 font-normal',
-                    sortBy === value && 'bg-primary/10 text-primary hover:bg-primary/15'
-                  )}
-                  onClick={() => onSortByChange(value)}
-                >
-                  {label}
-                  {sortBy === value && <Check className="ml-auto h-3.5 w-3.5" />}
-                </Button>
-              ))}
-            </div>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 }
