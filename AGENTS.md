@@ -474,6 +474,12 @@ import { supabase } from '@/lib/supabaseClient';
 - Always provide explicit `key` props on `motion.div` children: `<motion.div key="backdrop" />`
 - Render auxiliary dialogs outside `AnimatePresence` blocks to avoid key conflicts
 
+### Dropdown Scroll Jitter (Radix/Floating UI)
+- **Symptom**: Popover/dropdown "bobbles" or lags behind trigger during fast scroll
+- **Root cause**: Radix components use Floating UI (JavaScript-based positioning) which can't update synchronously with browser scroll
+- **Fix**: Replace with pure CSS dropdown using `position: absolute` + `top-full` relative to a `position: relative` parent
+- **Example**: See `FilterSortControl.tsx` - uses React state for open/close, native event listeners for click-outside/Escape
+
 ## Lint & Tooling
 - Use `type Foo = Bar` instead of empty interfaces
 - ESM required: use `import` not `require()` in config files
