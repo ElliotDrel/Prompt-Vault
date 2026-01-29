@@ -100,7 +100,6 @@ const router = createBrowserRouter(
           </RequireAuth>
         }
       />
-
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Route>

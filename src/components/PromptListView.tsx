@@ -5,7 +5,7 @@ import type { Prompt } from '@/types/prompt';
 import type { SortBy, SortDirection, VisibilityFilter, AuthorFilter } from '@/hooks/usePromptFilters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FilterSortPopover } from '@/components/FilterSortPopover';
+import { FilterSortControl } from '@/components/FilterSortControl';
 
 interface PromptListViewProps {
   // Data
@@ -91,10 +91,10 @@ export function PromptListView({
 
   return (
     <div>
-      {/* Search and Filter Controls - Single Row */}
-      <div className="flex items-center gap-3 mb-6">
-        {/* Search input */}
-        <div className="relative flex-1 max-w-md">
+      {/* Search and Filter Controls */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        {/* Search input - Flexible width */}
+        <div className="relative flex-1 min-w-[260px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
@@ -115,8 +115,8 @@ export function PromptListView({
           )}
         </div>
 
-        {/* Filter & Sort Popover */}
-        <FilterSortPopover
+        {/* Filter & Sort Control */}
+        <FilterSortControl
           visibilityFilter={visibilityFilter}
           onVisibilityChange={onVisibilityChange}
           showVisibilityFilter={showVisibilityFilter}
