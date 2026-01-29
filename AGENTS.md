@@ -98,6 +98,17 @@ OAuth providers (Google, GitHub, etc.) must be configured in the Supabase dashbo
 - All routes wrapped in `AuthProvider` for consistent auth state
 - Protected routes use `RequireAuth` component in the route configuration
 
+#### React Router setSearchParams Scroll Behavior
+**CRITICAL**: React Router's `setSearchParams` triggers scroll-to-top by default, even with `replace: true`. For filter/sort controls that update URL params without full page navigation, always use:
+```typescript
+setSearchParams(newParams, { replace: true, preventScrollReset: true });
+```
+Without `preventScrollReset: true`, clicking filter options will scroll the page to the top. This applies to:
+- Filter dropdowns
+- Sort controls
+- Pagination
+- Any UI that updates URL search params while user is scrolled down
+
 ### Supabase Integration
 - Client configured in `src/lib/supabaseClient.ts` with environment variable validation
 - Environment variables required: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`

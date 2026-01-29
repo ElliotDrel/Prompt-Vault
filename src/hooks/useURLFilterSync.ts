@@ -168,7 +168,7 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
 
       lastSetParamsRef.current = newParams.toString();
       return newParams;
-    }, { replace: true });
+    }, { replace: true, preventScrollReset: true });
   }, [setSearchParams]);
 
   // Sync state when URL changes externally (e.g., back/forward navigation).
