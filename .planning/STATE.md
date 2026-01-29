@@ -132,6 +132,7 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Milestone v2.0 created: Public Prompt Library, 10 phases (Phase 11-20)
 - Phase 15.1 inserted after Phase 15: Visibility Filter Persistence (URGENT) - Rework filtering system with public/private toggle on Dashboard/Library, persist filter state to user_settings table
 - Phase 21 added: Public Library on Landing Page with Smart Auth Gates - Enable unauthenticated users to browse public prompts with smart authentication gates
+- Phase 15.2 inserted after Phase 15.1: Rework Filter UI - Visual redesign of filtering UI for improved aesthetics
 
 ## Session Continuity
 

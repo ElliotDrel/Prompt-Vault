@@ -111,6 +111,19 @@ Plans:
 - [x] 15.1-02: useFilterPreferences hook and context integration (2026-01-19)
 - [ ] 15.1-03: Filter chips UI and author click behavior
 
+#### Phase 15.2: Rework Filter UI (INSERTED)
+
+**Goal**: Rework the visual design and layout of the filtering UI for improved aesthetics and usability
+**Depends on**: Phase 15.1
+**Research**: Unlikely (UI refinement)
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 15.2 to break down)
+
+**Details**:
+[To be added during planning]
+
 #### Phase 16: Add to Vault
 
 **Goal**: Live-link functionality to add public prompts as read-only synced references with version history access
@@ -215,6 +228,7 @@ Plans:
 | 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
 | 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
 | 15.1 Visibility Filter Persistence | v2.0 | 2/3 | In progress | - |
+| 15.2 Rework Filter UI | v2.0 | 0/? | Not started | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint B** | v2.0 | — | Pending | - |
