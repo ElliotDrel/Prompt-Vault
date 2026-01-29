@@ -98,31 +98,31 @@ Plans:
 - Author filter works correctly (note: current behavior inserts search term; Phase 15.1 will restore dedicated author filter chips)
 **Risk if skipped**: Broken RLS policies would cascade into Phase 16-20 work
 
-#### Phase 15.1: Visibility Filter Persistence (INSERTED) - IN PROGRESS
+#### Phase 15.1: Visibility Filter Persistence (INSERTED) - COMPLETE
 
 **Goal**: Add public/private visibility filter to Dashboard and Library pages, rework filtering system for better UX, and persist filter state to database via user_settings table
 **Also**: Resolve author click behavior so it uses the author filter state (Issue 10) without overwriting the search term.
 **Depends on**: UAT Checkpoint A
 **Research**: Unlikely (extending existing filter patterns + user_settings table)
-**Plans**: 2/3 complete
+**Plans**: 3/3 complete
 
 Plans:
 - [x] 15.1-01: Filter preferences data layer (2026-01-19)
 - [x] 15.1-02: useFilterPreferences hook and context integration (2026-01-19)
-- [ ] 15.1-03: Filter chips UI and author click behavior
+- [x] 15.1-03: Filter chips UI and author click behavior (2026-01-21)
 
-#### Phase 15.2: Rework Filter UI (INSERTED)
+#### Phase 15.2: Rework Filter UI (INSERTED) - COMPLETE
 
 **Goal**: Rework the visual design and layout of the filtering UI for improved aesthetics and usability
 **Depends on**: Phase 15.1
 **Research**: Unlikely (UI refinement)
-**Plans**: 0 plans
+**Plans**: 1/1 complete
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 15.2 to break down)
+- [x] 15.2-01: Segmented FilterSortControl with pure CSS dropdown (2026-01-29)
 
 **Details**:
-[To be added during planning]
+Replaced FilterSortPopover with new FilterSortControl using segmented control pattern. Two debug sessions resolved scroll jitter (Radix/Floating UI) and scroll-to-top (React Router) issues. Patterns documented in CLAUDE.md.
 
 #### Phase 16: Add to Vault
 
@@ -228,7 +228,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 11 | 8/? | In Progress | - |
+| v2.0 Public Prompt Library | 12 | 12/? | In Progress | - |
 
 ---
 
@@ -240,8 +240,8 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | 14. Visibility Toggle | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
 | 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
-| 15.1 Visibility Filter Persistence | v2.0 | 2/3 | In progress | - |
-| 15.2 Rework Filter UI | v2.0 | 0/? | Not started | - |
+| 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
+| 15.2 Rework Filter UI | v2.0 | 1/1 | Complete | 2026-01-29 |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint B** | v2.0 | — | Pending | - |
