@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.1 of 21 (Visibility Filter Persistence)
-Plan: 3 of 3 complete
-Status: Awaiting verification
-Last activity: 2026-01-21 - Completed 15.1-03-PLAN.md (filter UI and page integration)
+Phase: 15.2 of 22 (Rework Filter UI) - COMPLETE
+Plan: 1 of 1 complete
+Status: Verified
+Last activity: 2026-01-29 - Completed 15.2-01-PLAN.md (segmented FilterSortControl)
 
-Progress: █████░░░░░ 54%
+Progress: ██████░░░░ 58%
 
 ## Shipped Milestones
 
@@ -40,9 +40,13 @@ See: `.planning/MILESTONES.md` for full details.
 4. **Dual analysis for validation** - Running two independent analyses caught errors
 5. **Never edit applied migrations** - Always create new migrations to fix issues
 
-### Key Learnings from v2.0 (Phase 15)
+### Key Learnings from v2.0 (Phases 15-15.2)
 
 6. **🚨 Supabase channel reuse gotcha** - `supabase.channel(name)` REUSES existing instances by name. If you have a persistent subscription and call `channel()` with same name to send, then `removeChannel()`, you CLOSE the persistent subscription! Fix: Check `channel.state === 'joined'` before removing. See CLAUDE.md "Supabase Broadcast Channel Gotcha" for full details and code examples.
+
+7. **Radix/Floating UI scroll jitter** - Radix Popover uses Floating UI (JavaScript-based positioning) which cannot update synchronously with browser scroll rendering. For dropdowns that need to stay perfectly anchored during fast scroll, use pure CSS positioning (`position: absolute` + `top-full` relative to parent) instead.
+
+8. **React Router setSearchParams scroll reset** - `setSearchParams` triggers scroll-to-top by default, treating URL param updates as navigation events. For filter/sort controls that update URL params without navigating, always include `preventScrollReset: true` in the options.
 
 ### Decisions Log
 
@@ -72,6 +76,13 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Switch component for visibility toggle with clear semantics
 - Visibility icons only on owned cards (reduces clutter on Library)
 - Favicon for nav logo (consistent branding, reuses existing asset)
+
+**Phase 15.2 decisions:**
+- Segmented control pattern for filter/sort UI - inline bar with filter|sort|direction sections
+- Pure CSS dropdown positioning instead of Radix Popover - eliminates scroll jitter
+- Direction toggle accessible directly on bar - no need to open dropdown for common action
+- Two-column dropdown menu - filter on left, sort on right
+- preventScrollReset option for setSearchParams - preserves scroll position on filter changes
 
 ### Deferred Issues
 
@@ -137,10 +148,10 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-01-21
-Stopped at: Completed 15.1-03-PLAN.md (filter UI and page integration)
+Last session: 2026-01-29
+Stopped at: Completed Phase 15.2 (Rework Filter UI)
 Resume file: None
 
 **Next Steps:**
-- Run /gsd:verify-work to verify Phase 15.1 completion
-- If verified, proceed to Phase 16 (Profile & User Settings)
+- Proceed to Phase 16 (Add to Vault) - live-link functionality
+- Note: UAT-011 (missing /library/prompt/:promptId route) still needs resolution
