@@ -3,7 +3,7 @@
 ## Milestones
 
 - [v1.0 Version History](milestones/v1.0-ROADMAP.md) (Phases 1-8.2) - SHIPPED 2026-01-13
-- 🚧 **v2.0 Public Prompt Library** - Phases 11-20 (in progress)
+- 🚧 **v2.0 Public Prompt Library** - Phases 11-22 (in progress)
 
 ## Completed Milestones
 
@@ -210,6 +210,19 @@ Plans:
 **Details**:
 [To be added during planning]
 
+#### Phase 22: Mobile Optimization
+
+**Goal**: Optimize the UI across all pages to work on mobile devices with responsive design and touch-friendly interactions
+**Depends on**: Phase 21
+**Research**: Unlikely (responsive design patterns)
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 22 to break down)
+
+**Details**:
+Current state: UI across all pages is not set up correctly for mobile and is unusable on mobile devices. This phase will address responsive layouts, touch targets, and mobile-specific UX for the entire application.
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
@@ -237,3 +250,4 @@ Plans:
 | 20. Auto-Fork on Unavailable | v2.0 | 0/? | Not started | - |
 | 🧪 **UAT Checkpoint C** | v2.0 | — | Pending | - |
 | 21. Public Library on Landing Page with Smart Auth Gates | v2.0 | 0/? | Not started | - |
+| 22. Mobile Optimization | v2.0 | 0/? | Not started | - |
