@@ -111,24 +111,22 @@ Plans:
 - [x] 15.1-02: useFilterPreferences hook and context integration (2026-01-19)
 - [x] 15.1-03: Filter chips UI and author click behavior (2026-01-21)
 
-#### Phase 15.2: Rework Filter UI (INSERTED) - GAP CLOSURE IN PROGRESS
+#### Phase 15.2: Rework Filter UI (INSERTED) - COMPLETE
 
 **Goal**: Rework the visual design and layout of the filtering UI for improved aesthetics and usability
 **Depends on**: Phase 15.1
 **Research**: Unlikely (UI refinement)
-**Plans**: 5 plans (1 complete, 4 gap closure)
+**Plans**: 5/5 complete
 
 Plans:
 - [x] 15.2-01: Segmented FilterSortControl with pure CSS dropdown (2026-01-29)
-- [ ] 15.2-02: Fix filter logic bugs (Gaps 1, 2, 4, 8) - gap closure
-- [ ] 15.2-03: Type safety and createdAt support (Gaps 3, 5, 6, 7) - gap closure
-- [ ] 15.2-04: UI accessibility fixes (Gaps 9, 10, 11) - gap closure
-- [ ] 15.2-05: Documentation fix (Gap 12) - gap closure
+- [x] 15.2-02: Fix filter logic bugs (Gaps 1, 2, 4, 8) (2026-01-30)
+- [x] 15.2-03: Type safety and createdAt support (Gaps 3, 5, 6, 7) (2026-01-30)
+- [x] 15.2-04: UI accessibility fixes (Gaps 9, 10, 11) (2026-01-30)
+- [x] 15.2-05: Documentation fix (Gap 12) (2026-01-30)
 
 **Details**:
-Replaced FilterSortPopover with new FilterSortControl using segmented control pattern. Two debug sessions resolved scroll jitter (Radix/Floating UI) and scroll-to-top (React Router) issues. Patterns documented in CLAUDE.md.
-
-**UAT Status**: 12 gaps diagnosed from PR review (2026-01-30). Gap closure plans created.
+Replaced FilterSortPopover with new FilterSortControl using segmented control pattern. Two debug sessions resolved scroll jitter (Radix/Floating UI) and scroll-to-top (React Router) issues. Patterns documented in CLAUDE.md. Gap closure completed: 12 PR review issues resolved.
 
 #### Phase 16: Add to Vault
 
@@ -247,7 +245,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
 | UAT Checkpoint A | v2.0 | - | Pending | - |
 | 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
-| 15.2 Rework Filter UI | v2.0 | 1/5 | Gap Closure | - |
+| 15.2 Rework Filter UI | v2.0 | 5/5 | Complete | 2026-01-30 |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | UAT Checkpoint B | v2.0 | - | Pending | - |
