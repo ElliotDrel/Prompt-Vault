@@ -164,6 +164,7 @@ export function PromptListView({
             </h3>
             <p className="text-muted-foreground mb-6">{noResultsDescription}</p>
             <Button
+              type="button"
               variant="outline"
               onClick={() => {
                 onSearchChange('');
