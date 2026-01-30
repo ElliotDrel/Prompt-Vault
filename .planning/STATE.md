@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.2 of 22 (Rework Filter UI) - COMPLETE
+Phase: 15.2 of 22 (Rework Filter UI) - UAT COMPLETE (12 gaps diagnosed)
 Plan: 1 of 1 complete
-Status: Verified
-Last activity: 2026-01-29 - Completed 15.2-01-PLAN.md (segmented FilterSortControl)
+Status: Gaps diagnosed, ready for fix planning
+Last activity: 2026-01-30 - UAT complete, 12 issues from PR review diagnosed
 
 Progress: ██████░░░░ 58%
 
@@ -148,10 +148,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-01-29
-Stopped at: Completed Phase 15.2 (Rework Filter UI)
-Resume file: None
+Last session: 2026-01-30
+Stopped at: UAT complete for Phase 15.2 - 12 gaps diagnosed from PR review
+Resume file: .planning/phases/15.2-rework-filter-ui/15.2-UAT.md
 
 **Next Steps:**
-- Proceed to Phase 16 (Add to Vault) - live-link functionality
+- Run `/gsd:plan-phase 15.2 --gaps` to create fix plans for 12 diagnosed issues
+- Execute fixes before proceeding to Phase 16
 - Note: UAT-011 (missing /library/prompt/:promptId route) still needs resolution
