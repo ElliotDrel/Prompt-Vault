@@ -3,7 +3,7 @@
 ## Milestones
 
 - [v1.0 Version History](milestones/v1.0-ROADMAP.md) (Phases 1-8.2) - SHIPPED 2026-01-13
-- 🚧 **v2.0 Public Prompt Library** - Phases 11-22 (in progress)
+- **v2.0 Public Prompt Library** - Phases 11-22 (in progress)
 
 ## Completed Milestones
 
@@ -30,7 +30,7 @@ See [full archive](milestones/v1.0-ROADMAP.md) for details.
 
 </details>
 
-### 🚧 v2.0 Public Prompt Library (In Progress)
+### v2.0 Public Prompt Library (In Progress)
 
 **Milestone Goal:** Enable users to share prompts publicly and discover prompts from others, with live-linking and forking capabilities.
 
@@ -88,11 +88,11 @@ Plans:
 - [x] 15-01: Public prompts data layer (2026-01-16)
 - [x] 15-02: Public Library page UI (2026-01-16)
 
-#### 🧪 UAT Checkpoint A: Public Visibility Flow
+#### UAT Checkpoint A: Public Visibility Flow
 
-**Purpose**: Validate end-to-end "make public → appears in library" flow before adding cross-user relationships
+**Purpose**: Validate end-to-end "make public -> appears in library" flow before adding cross-user relationships
 **Test scope**:
-- Visibility toggle works (private ↔ public)
+- Visibility toggle works (private <-> public)
 - RLS allows public read access across users
 - Public library shows all public prompts with correct attribution
 - Author filter works correctly (note: current behavior inserts search term; Phase 15.1 will restore dedicated author filter chips)
@@ -111,18 +111,24 @@ Plans:
 - [x] 15.1-02: useFilterPreferences hook and context integration (2026-01-19)
 - [x] 15.1-03: Filter chips UI and author click behavior (2026-01-21)
 
-#### Phase 15.2: Rework Filter UI (INSERTED) - COMPLETE
+#### Phase 15.2: Rework Filter UI (INSERTED) - GAP CLOSURE IN PROGRESS
 
 **Goal**: Rework the visual design and layout of the filtering UI for improved aesthetics and usability
 **Depends on**: Phase 15.1
 **Research**: Unlikely (UI refinement)
-**Plans**: 1/1 complete
+**Plans**: 5 plans (1 complete, 4 gap closure)
 
 Plans:
 - [x] 15.2-01: Segmented FilterSortControl with pure CSS dropdown (2026-01-29)
+- [ ] 15.2-02: Fix filter logic bugs (Gaps 1, 2, 4, 8) - gap closure
+- [ ] 15.2-03: Type safety and createdAt support (Gaps 3, 5, 6, 7) - gap closure
+- [ ] 15.2-04: UI accessibility fixes (Gaps 9, 10, 11) - gap closure
+- [ ] 15.2-05: Documentation fix (Gap 12) - gap closure
 
 **Details**:
 Replaced FilterSortPopover with new FilterSortControl using segmented control pattern. Two debug sessions resolved scroll jitter (Radix/Floating UI) and scroll-to-top (React Router) issues. Patterns documented in CLAUDE.md.
+
+**UAT Status**: 12 gaps diagnosed from PR review (2026-01-30). Gap closure plans created.
 
 #### Phase 16: Add to Vault
 
@@ -144,7 +150,7 @@ Plans:
 Plans:
 - [ ] 17-01: TBD
 
-#### 🧪 UAT Checkpoint B: Cross-User Relationships
+#### UAT Checkpoint B: Cross-User Relationships
 
 **Purpose**: Validate live-linking and forking mechanics before building metrics on top
 **Test scope**:
@@ -186,11 +192,11 @@ Plans:
 Plans:
 - [ ] 20-01: TBD
 
-#### 🧪 UAT Checkpoint C: Milestone Integration
+#### UAT Checkpoint C: Milestone Integration
 
 **Purpose**: Final integration test before shipping v2.0
 **Test scope**:
-- Full user journey: create prompt → make public → another user saves → fork → edit fork
+- Full user journey: create prompt -> make public -> another user saves -> fork -> edit fork
 - Metrics aggregate correctly across saves and forks
 - Copy history shows correct attribution for external prompts
 - Auto-fork triggers when source prompt becomes unavailable
@@ -228,7 +234,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 12 | 12/? | In Progress | - |
+| v2.0 Public Prompt Library | 12 | 16/? | In Progress | - |
 
 ---
 
@@ -239,15 +245,15 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | 13. URL-Based Search/Filter | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 14. Visibility Toggle | v2.0 | 1/1 | Complete | 2026-01-16 |
 | 15. Public Library Page | v2.0 | 2/2 | Complete | 2026-01-16 |
-| 🧪 **UAT Checkpoint A** | v2.0 | — | Pending | - |
+| UAT Checkpoint A | v2.0 | - | Pending | - |
 | 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
-| 15.2 Rework Filter UI | v2.0 | 1/1 | Complete | 2026-01-29 |
+| 15.2 Rework Filter UI | v2.0 | 1/5 | Gap Closure | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
-| 🧪 **UAT Checkpoint B** | v2.0 | — | Pending | - |
+| UAT Checkpoint B | v2.0 | - | Pending | - |
 | 18. Cross-Platform Metrics | v2.0 | 0/? | Not started | - |
 | 19. Copy History Attribution | v2.0 | 0/? | Not started | - |
 | 20. Auto-Fork on Unavailable | v2.0 | 0/? | Not started | - |
-| 🧪 **UAT Checkpoint C** | v2.0 | — | Pending | - |
+| UAT Checkpoint C | v2.0 | - | Pending | - |
 | 21. Public Library on Landing Page with Smart Auth Gates | v2.0 | 0/? | Not started | - |
 | 22. Mobile Optimization | v2.0 | 0/? | Not started | - |
