@@ -129,6 +129,7 @@ export function FilterSortControl({
 
         {/* Direction toggle - outside dropdown trigger for direct access */}
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className="h-9 w-9 rounded-none rounded-r-md hover:bg-muted/50"
@@ -157,13 +158,18 @@ export function FilterSortControl({
                 <div className="space-y-0.5">
                   {filterOptions.map(({ value, label }) => (
                     <Button
+                      type="button"
                       key={value}
+                      role="menuitem"
                       variant="ghost"
                       className={cn(
                         'w-full justify-start h-8 px-2 font-normal',
                         currentFilter === value && 'bg-primary/10 text-primary hover:bg-primary/15'
                       )}
-                      onClick={() => onFilterChange(value)}
+                      onClick={() => {
+                        onFilterChange(value);
+                        setIsOpen(false);
+                      }}
                     >
                       {label}
                       {currentFilter === value && <Check className="ml-auto h-3.5 w-3.5" />}
@@ -191,13 +197,18 @@ export function FilterSortControl({
               <div className="space-y-0.5">
                 {SORT_OPTIONS.map(({ value, label }) => (
                   <Button
+                    type="button"
                     key={value}
+                    role="menuitem"
                     variant="ghost"
                     className={cn(
                       'w-full justify-start h-8 px-2 font-normal',
                       sortBy === value && 'bg-primary/10 text-primary hover:bg-primary/15'
                     )}
-                    onClick={() => onSortByChange(value)}
+                    onClick={() => {
+                      onSortByChange(value);
+                      setIsOpen(false);
+                    }}
                   >
                     {label}
                     {sortBy === value && <Check className="ml-auto h-3.5 w-3.5" />}
