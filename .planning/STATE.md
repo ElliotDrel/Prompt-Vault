@@ -134,6 +134,48 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 **See:** `.planning/phases/15-public-library-page/15-UAT-ISSUES.md` for full details.
 
+**Cross-Page Author Filtering (Deferred)**
+
+**Desired behavior:**
+- Clicking on an author name in Public Library should filter to show all prompts by that user
+- Should work across both `/dashboard` (your prompts by that author if you have any) and `/library` (their public prompts)
+- Navigation flow: Click author → navigate to `/library?author=<identifier>` or show prompts inline
+
+**Current state:**
+- Author names are display-only text (Phase 15.1 removed click handler)
+- Author filter exists but only as All/Mine/Others dropdown, not specific user targeting
+
+**Implementation considerations:**
+- Requires user identifier system (see below)
+- May need cross-page URL param support for author=<user_identifier>
+
+**User Profiles with Display Names & Smart Identifiers (Deferred)**
+
+**Requirements:**
+1. Collect full name on signup (new users)
+2. Prompt existing users to add their name on next login
+3. Display name shown on prompts, fallback to "Anonymous" if not provided
+4. Smart searchable identifier that is:
+   - Precise (uniquely identifies a user)
+   - Human-friendly (not a raw UUID like `a1b2c3d4-e5f6-...`)
+   - Searchable via URL params
+
+**Identifier options to consider:**
+- **Short code**: 6-8 alphanumeric (e.g., `abc123xy`) - generated from UUID hash
+- **Handle**: Auto-generated from name + discriminator (e.g., `john-doe-42`)
+- **Username**: User-chosen unique handle (requires uniqueness check)
+
+**Database changes needed:**
+- Add `display_name` column to user profile/settings
+- Add `user_handle` or `short_id` column for search identifier
+- Consider `profiles` table vs extending `user_settings`
+
+**UI changes needed:**
+- Signup flow: Add name field
+- Return user prompt: "Add your name" modal/banner
+- Author display: Show name or "Anonymous"
+- Author click: Filter by user handle/identifier
+
 ### Blockers/Concerns
 
 **UAT-011 (Critical):** Missing `/library/prompt/:promptId` route causes 404 when clicking any prompt in Public Library. Must be resolved before Phase 15 can be considered fully functional. See Deferred Issues above for options.
