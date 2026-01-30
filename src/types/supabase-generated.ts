@@ -196,6 +196,10 @@ export type Database = {
         Row: {
           created_at: string | null
           default_visibility: Database["public"]["Enums"]["prompt_visibility"]
+          filter_author: string
+          filter_visibility: string
+          sort_by: string
+          sort_direction: string
           time_saved_multiplier: number
           updated_at: string | null
           user_id: string
@@ -203,6 +207,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           default_visibility?: Database["public"]["Enums"]["prompt_visibility"]
+          filter_author?: string
+          filter_visibility?: string
+          sort_by?: string
+          sort_direction?: string
           time_saved_multiplier?: number
           updated_at?: string | null
           user_id: string
@@ -210,6 +218,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           default_visibility?: Database["public"]["Enums"]["prompt_visibility"]
+          filter_author?: string
+          filter_visibility?: string
+          sort_by?: string
+          sort_direction?: string
           time_saved_multiplier?: number
           updated_at?: string | null
           user_id?: string
