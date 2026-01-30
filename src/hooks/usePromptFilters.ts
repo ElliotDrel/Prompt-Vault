@@ -141,9 +141,7 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
       } else if (sortBy === 'usage') {
         comparison = (a.timesUsed ?? 0) - (b.timesUsed ?? 0);
       } else if (sortBy === 'createdAt') {
-        // Note: Prompt type doesn't have createdAt field, use updatedAt as fallback
-        // This will be updated when createdAt is added to the Prompt type
-        comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else {
         // lastUpdated (default)
         comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();

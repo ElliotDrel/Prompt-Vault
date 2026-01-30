@@ -35,6 +35,7 @@ export interface Prompt {
   title: string;
   body: string;
   variables: string[];
+  createdAt: string;
   updatedAt: string;
   isPinned?: boolean;
   timesUsed?: number;

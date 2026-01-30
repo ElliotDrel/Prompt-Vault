@@ -10,6 +10,7 @@ type PromptRow = {
   title: string;
   body: string;
   variables: unknown;
+  created_at: string;
   updated_at: string;
   is_pinned: boolean | null;
   times_used: number | null;
@@ -52,6 +53,7 @@ const mapPromptRow = (row: PromptRow): Prompt => ({
   title: row.title,
   body: row.body,
   variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
+  createdAt: row.created_at,
   updatedAt: row.updated_at,
   isPinned: row.is_pinned ?? false,
   timesUsed: row.times_used ?? 0,
@@ -63,6 +65,7 @@ const mapPublicPromptRow = (row: PublicPromptRow): PublicPrompt => ({
   title: row.title,
   body: row.body,
   variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
+  createdAt: row.created_at,
   updatedAt: row.updated_at,
   isPinned: row.is_pinned ?? false,
   timesUsed: row.times_used ?? 0,
