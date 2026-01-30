@@ -34,14 +34,14 @@ interface UseURLFilterSyncReturn {
   searchTerm: string;
   sortBy: SortBy;
   sortDirection: SortDirection;
-  authorFilter: string | null;
+  authorFilter: AuthorFilter | null;
   visibilityFilter: VisibilityFilter;
 
   // Setters (update both state and URL)
   setSearchTerm: (term: string) => void;
   setSortBy: (by: SortBy) => void;
   setSortDirection: (dir: SortDirection) => void;
-  setAuthorFilter: (author: string | null) => void;
+  setAuthorFilter: (author: AuthorFilter | null) => void;
   setVisibilityFilter: (visibility: VisibilityFilter) => void;
   toggleSortDirection: () => void;
   clearFilters: () => void;
@@ -100,7 +100,10 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
     const value = searchParams.get(sortDirParam);
     return isValidSortDirection(value) ? value : defaultSortDirection;
   };
-  const getInitialAuthorFilter = () => searchParams.get(authorParam) ?? null;
+  const getInitialAuthorFilter = (): AuthorFilter | null => {
+    const value = searchParams.get(authorParam);
+    return isValidAuthorFilter(value) ? value : null;
+  };
   const getInitialVisibilityFilter = (): VisibilityFilter => {
     const value = searchParams.get(visibilityParam);
     return isValidVisibilityFilter(value) ? value : 'all';
@@ -110,7 +113,7 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
   const [searchTerm, setSearchTermState] = useState(getInitialSearchTerm);
   const [sortBy, setSortByState] = useState<SortBy>(getInitialSortBy);
   const [sortDirection, setSortDirectionState] = useState<SortDirection>(getInitialSortDirection);
-  const [authorFilter, setAuthorFilterState] = useState<string | null>(getInitialAuthorFilter);
+  const [authorFilter, setAuthorFilterState] = useState<AuthorFilter | null>(getInitialAuthorFilter);
   const [visibilityFilter, setVisibilityFilterState] = useState<VisibilityFilter>(getInitialVisibilityFilter);
 
   // Debounce timer ref for search term URL updates
@@ -142,8 +145,8 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
       if (!searchParams.has(visibilityParam) && prefs.filterVisibility !== 'all') {
         setVisibilityFilterState(prefs.filterVisibility);
       }
-      if (!searchParams.has(sortByParam) && prefs.sortBy !== defaultSortBy) {
-        setSortByState(prefs.sortBy as SortBy);
+      if (!searchParams.has(sortByParam) && isValidSortBy(prefs.sortBy) && prefs.sortBy !== defaultSortBy) {
+        setSortByState(prefs.sortBy);
       }
       if (!searchParams.has(sortDirParam) && prefs.sortDirection !== defaultSortDirection) {
         setSortDirectionState(prefs.sortDirection);
@@ -189,7 +192,8 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
     const visibilityValue = searchParams.get(visibilityParam);
     const nextSortBy = isValidSortBy(sortByValue) ? sortByValue : defaultSortBy;
     const nextSortDirection = isValidSortDirection(sortDirValue) ? sortDirValue : defaultSortDirection;
-    const nextAuthorFilter = searchParams.get(authorParam) ?? null;
+    const authorValue = searchParams.get(authorParam);
+    const nextAuthorFilter = isValidAuthorFilter(authorValue) ? authorValue : null;
     const nextVisibilityFilter = isValidVisibilityFilter(visibilityValue) ? visibilityValue : 'all';
 
     setSearchTermState((prev) => (prev === nextSearchTerm ? prev : nextSearchTerm));
@@ -249,9 +253,10 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
   }, [sortDirParam, defaultSortDirection, updateURLParams, debouncedPersist]);
 
   // Author filter setter (immediate URL update)
-  const setAuthorFilter = useCallback((author: string | null) => {
+  const setAuthorFilter = useCallback((author: AuthorFilter | null) => {
     setAuthorFilterState(author);
-    updateURLParams({ [authorParam]: author });
+    // Only show in URL if not default (matching other filters)
+    updateURLParams({ [authorParam]: author === 'all' ? null : author });
     // Note: author filter not persisted to DB currently (author filter is context-specific)
   }, [authorParam, updateURLParams]);
 

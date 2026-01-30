@@ -82,7 +82,8 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
   const sortDirection = controlledState?.sortDirection ?? internalSortDirection;
   const visibilityFilter = controlledState?.visibilityFilter ?? internalVisibilityFilter;
   // Normalize authorFilter: useURLFilterSync returns string | null, we need AuthorFilter
-  const rawAuthorFilter = controlledState?.authorFilter;
+  // Fall back to internalAuthorFilter when in uncontrolled mode
+  const rawAuthorFilter = controlledState?.authorFilter ?? internalAuthorFilter;
   const authorFilter: AuthorFilter = (rawAuthorFilter === 'mine' || rawAuthorFilter === 'others') ? rawAuthorFilter : 'all';
   const setSearchTerm = controlledState?.setSearchTerm ?? setInternalSearchTerm;
   const setSortBy = controlledState?.setSortBy ?? setInternalSortBy;
@@ -103,10 +104,10 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
     if (authorFilter && authorFilter !== 'all' && userId) {
       if (authorFilter === 'mine') {
         // Show only prompts authored by current user
-        result = result.filter((p) => p.authorId === userId || p.author?.id === userId);
+        result = result.filter((p) => p.authorId === userId || p.author?.userId === userId);
       } else if (authorFilter === 'others') {
         // Show only prompts authored by other users
-        result = result.filter((p) => p.authorId !== userId && p.author?.id !== userId);
+        result = result.filter((p) => p.authorId !== userId && p.author?.userId !== userId);
       }
     }
 
