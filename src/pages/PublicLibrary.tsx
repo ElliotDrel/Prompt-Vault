@@ -23,10 +23,10 @@ export default function PublicLibrary() {
   const { adapter } = useStorageAdapterContext();
   const { prompts, loading, error } = usePublicPrompts();
 
-  // URL-synced search/sort state with DB persistence
+  // URL-synced search/sort state (no DB persistence - Library has no visibility filter UI)
   const urlFilters = useURLFilterSync({
     debounceMs: 300,
-    persistToDb: true,
+    persistToDb: false,
     adapter: adapter?.stats,
   });
 
