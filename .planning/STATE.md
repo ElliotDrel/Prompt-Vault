@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.2 of 22 (Rework Filter UI) - Gap Closure Complete
-Plan: 5 of 5 gap plans complete
-Status: All 12 PR review gaps resolved
-Last activity: 2026-01-30 - Verified 15.2-02-PLAN fixes (Gaps 1, 2, 4, 8: filter logic bugs)
+Phase: 15.2 of 22 (Rework Filter UI) - COMPLETE
+Plan: 5 of 5 complete
+Status: Phase verified - 18/18 must-haves passed
+Last activity: 2026-01-30 - Gap closure complete, verification passed
 
-Progress: ██████░░░░ 58%
+Progress: ██████░░░░ 60%
 
 ## Shipped Milestones
 
@@ -149,9 +149,9 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Completed 15.2-02-PLAN verification (all gaps closed)
-Resume file: None
+Stopped at: Phase 15.2 complete - all plans executed, verification passed 18/18
+Resume file: .planning/phases/15.2-rework-filter-ui/15.2-VERIFICATION.md
 
 **Next Steps:**
-- Phase 15.2 gap closure is complete - proceed to Phase 16 or address UAT-011
-- Note: UAT-011 (missing /library/prompt/:promptId route) still needs resolution
+- Phase 16: Add to Vault - Live-link functionality
+- Note: UAT-011 (missing /library/prompt/:promptId route) still needs resolution before Phase 16
