@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.2 of 22 (Rework Filter UI) - COMPLETE
-Plan: 5 of 5 complete
-Status: Phase verified - 18/18 must-haves passed
-Last activity: 2026-01-30 - Gap closure complete, verification passed
+Phase: 15.3 of 22 (Public Prompt Detail Page) - IN PROGRESS
+Plan: 1 of 3 complete (15.3-01: Data Layer)
+Status: Plan 15.3-01 complete - storage adapter and hook implemented
+Last activity: 2026-01-31 - Completed 15.3-01-PLAN.md
 
-Progress: ██████░░░░ 60%
+Progress: ██████░░░░ 61%
 
 ## Shipped Milestones
 
@@ -83,6 +83,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Direction toggle accessible directly on bar - no need to open dropdown for common action
 - Two-column dropdown menu - filter on left, sort on right
 - preventScrollReset option for setSearchParams - preserves scroll position on filter changes
+
+**Phase 15.3 decisions (Plan 01):**
+- Return null for both non-existent and private prompts (security - don't reveal existence)
+- Query key isolation: Include promptId in ['publicPrompt', promptId] for proper cache per resource
+- Realtime subscription invalidates on any publicPrompts event (slightly over-aggressive but simpler)
 
 ### Deferred Issues
 
@@ -187,13 +192,15 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Phase 21 added: Public Library on Landing Page with Smart Auth Gates - Enable unauthenticated users to browse public prompts with smart authentication gates
 - Phase 15.2 inserted after Phase 15.1: Rework Filter UI - Visual redesign of filtering UI for improved aesthetics
 - Phase 22 added: Mobile Optimization - Optimize UI across all pages for mobile devices (current UI is unusable on mobile)
+- Phase 15.3 inserted after Phase 15.2: Public Prompt Detail Page (URGENT) - Resolves UAT-011 critical 404 bug
 
 ## Session Continuity
 
-Last session: 2026-01-30
-Stopped at: Phase 15.2 complete - all plans executed, verification passed 18/18
-Resume file: .planning/phases/15.2-rework-filter-ui/15.2-VERIFICATION.md
+Last session: 2026-01-31
+Stopped at: Phase 15.3 Plan 01 complete - data layer implemented
+Resume file: .planning/phases/15.3-public-prompt-detail-page/15.3-01-SUMMARY.md
 
 **Next Steps:**
+- Phase 15.3 Plan 02: PublicPromptDetail Component - Create read-only detail view
+- Phase 15.3 Plan 03: Route Integration - Add /library/prompt/:promptId route to App.tsx
 - Phase 16: Add to Vault - Live-link functionality
-- Note: UAT-011 (missing /library/prompt/:promptId route) still needs resolution before Phase 16
