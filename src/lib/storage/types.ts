@@ -23,6 +23,7 @@ export interface UpdatePromptOptions {
 export interface PromptsStorageAdapter {
   getPrompts(): Promise<Prompt[]>;
   getPublicPrompts(): Promise<PublicPrompt[]>;
+  getPublicPromptById(promptId: string): Promise<PublicPrompt | null>;
   addPrompt(prompt: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt>;
   updatePrompt(id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions): Promise<Prompt>;
   deletePrompt(id: string): Promise<void>;

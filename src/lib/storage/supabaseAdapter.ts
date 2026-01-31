@@ -213,6 +213,29 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     return (data as PublicPromptRow[]).map(mapPublicPromptRow);
   }
 
+  async getPublicPromptById(promptId: string): Promise<PublicPrompt | null> {
+    // Requires authentication - RLS policy allows reading public prompts for any authenticated user
+    await requireUserId();
+
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('id, user_id, title, body, variables, created_at, updated_at, is_pinned, times_used, visibility')
+      .eq('id', promptId)
+      .eq('visibility', 'public')  // CRITICAL: Only fetch if public
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch public prompt: ${error.message}`);
+    }
+
+    // Return null for both "not found" AND "not public" (security - don't reveal existence)
+    if (!data) {
+      return null;
+    }
+
+    return mapPublicPromptRow(data as PublicPromptRow);
+  }
+
   async addPrompt(promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
     const userId = await requireUserId();
 
