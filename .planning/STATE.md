@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15.3 of 22 (Public Prompt Detail Page) - IN PROGRESS
-Plan: 1 of 3 complete (15.3-01: Data Layer)
-Status: Plan 15.3-01 complete - storage adapter and hook implemented
-Last activity: 2026-01-31 - Completed 15.3-01-PLAN.md
+Plan: 2 of 2 complete (15.3-02: UI Component)
+Status: Phase 15.3 complete - UAT-011 resolved, public prompt detail page functional
+Last activity: 2026-01-31 - Completed 15.3-02-PLAN.md
 
-Progress: ██████░░░░ 61%
+Progress: ██████░░░░ 62%
 
 ## Shipped Milestones
 
@@ -84,10 +84,14 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Two-column dropdown menu - filter on left, sort on right
 - preventScrollReset option for setSearchParams - preserves scroll position on filter changes
 
-**Phase 15.3 decisions (Plan 01):**
+**Phase 15.3 decisions:**
 - Return null for both non-existent and private prompts (security - don't reveal existence)
 - Query key isolation: Include promptId in ['publicPrompt', promptId] for proper cache per resource
 - Realtime subscription invalidates on any publicPrompts event (slightly over-aggressive but simpler)
+- Ownership detection: Compare prompt.authorId === user?.id (simple, works with PublicPrompt type)
+- Security through same error: Show same "Prompt Not Found" message for non-existent and private (prevents revealing existence)
+- Conditional feature hiding: Use optional props with defaults instead of separate components (reuses PromptView logic, avoids duplication)
+- Symmetric navigation: Dashboard public prompts show "View Public Version", Library owned prompts show "View in Dashboard"
 
 ### Deferred Issues
 
@@ -119,25 +123,18 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - "Others" filters to show only other users' prompts
 - This provides cleaner UX without overwriting search terms
 
-**Missing /library/prompt/:promptId Route (UAT-011 - Critical)**
+**Missing /library/prompt/:promptId Route (UAT-011 - RESOLVED in Phase 15.3)**
 
-**Current behavior:**
-- PublicLibrary.tsx links prompt cards to `/library/prompt/${prompt.id}` (line 70)
-- This route does not exist in App.tsx - only `/library` is defined
-- Clicking any prompt card in the Public Library results in a 404 page
+**Resolution:**
+- Created `PublicPromptDetail.tsx` component as thin wrapper around PromptView
+- Registered `/library/prompt/:promptId` route in App.tsx
+- Enhanced PromptView with conditional props for public context
+- Owners see banner "You're viewing this as others see it" with "View in Dashboard" button
+- Non-owners see read-only view (no Edit, Delete, Version History, or Visibility Toggle)
+- 404 page for missing/private prompts (same message for security)
+- Symmetric navigation: Dashboard ↔ Library for public prompts
 
-**Why this matters:**
-- Core functionality is broken - users cannot view details of public prompts
-- This blocks the public library from being usable for prompt discovery
-
-**Options to discuss:**
-1. **Option A:** Create new `/library/prompt/:promptId` route with dedicated `PublicPromptDetail.tsx` component (read-only view, different from owned prompt detail)
-2. **Option B:** Reuse `/dashboard/prompt/:promptId` with read-only mode when viewing others' public prompts (more code reuse but adds complexity)
-3. **Option C:** Make library cards non-navigable temporarily (add copy/save actions directly on card, defer detail view)
-
-**Recommendation:** Option A for clean separation. Option C acceptable as interim if time-constrained.
-
-**See:** `.planning/phases/15-public-library-page/15-UAT-ISSUES.md` for full details.
+**See:** `.planning/phases/15.3-public-prompt-detail-page/15.3-02-SUMMARY.md` for implementation details.
 
 **Cross-Page Author Filtering (Deferred)**
 
@@ -183,7 +180,7 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 
 ### Blockers/Concerns
 
-**UAT-011 (Critical):** Missing `/library/prompt/:promptId` route causes 404 when clicking any prompt in Public Library. Must be resolved before Phase 15 can be considered fully functional. See Deferred Issues above for options.
+None - UAT-011 resolved in Phase 15.3.
 
 ### Roadmap Evolution
 
@@ -197,10 +194,10 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-01-31
-Stopped at: Phase 15.3 Plan 01 complete - data layer implemented
-Resume file: .planning/phases/15.3-public-prompt-detail-page/15.3-01-SUMMARY.md
+Stopped at: Phase 15.3 complete - UAT-011 resolved, public prompt detail page functional
+Resume file: .planning/phases/15.3-public-prompt-detail-page/15.3-02-SUMMARY.md
 
 **Next Steps:**
-- Phase 15.3 Plan 02: PublicPromptDetail Component - Create read-only detail view
-- Phase 15.3 Plan 03: Route Integration - Add /library/prompt/:promptId route to App.tsx
 - Phase 16: Add to Vault - Live-link functionality
+- Phase 17: Public Prompt Search & Discovery
+- Phase 18: Analytics & Insights
