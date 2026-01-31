@@ -8,8 +8,7 @@ import { PromptView } from '@/components/PromptView';
 import { Button } from '@/components/ui/button';
 import { NavLink } from '@/components/ui/NavLink';
 import { usePublicPrompt } from '@/hooks/usePublicPrompt';
-
-const LIBRARY_ROUTE = '/library';
+import { LIBRARY_ROUTE } from '@/config/routes';
 
 export default function PublicPromptDetail() {
   const { promptId } = useParams<{ promptId: string }>();

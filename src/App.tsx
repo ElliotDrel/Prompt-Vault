@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import PromptDetail from "./pages/PromptDetail";
 import PublicLibrary from "./pages/PublicLibrary";
+import PublicPromptDetail from "./pages/PublicPromptDetail";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +98,14 @@ const router = createBrowserRouter(
         element={
           <RequireAuth>
             <PublicLibrary />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/library/prompt/:promptId"
+        element={
+          <RequireAuth>
+            <PublicPromptDetail />
           </RequireAuth>
         }
       />

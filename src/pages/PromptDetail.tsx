@@ -54,6 +54,13 @@ export default function PromptDetail() {
     navigate(DASHBOARD_ROUTE);
   };
 
+  // Handle navigation to public version (for public prompts)
+  const handleViewPublicVersion = () => {
+    if (promptId) {
+      navigate(`/library/prompt/${promptId}`);
+    }
+  };
+
   // Handle cancel in edit mode
   const handleCancelEdit = () => {
     if (isCreating) {
@@ -156,6 +163,8 @@ export default function PromptDetail() {
             onEdit={() => setIsEditing(true)}
             onDelete={handleDelete}
             onNavigateBack={handleNavigateBack}
+            showViewPublicButton={prompt.visibility === 'public'}
+            onViewPublicVersion={prompt.visibility === 'public' ? handleViewPublicVersion : undefined}
           />
         )
       )}
