@@ -128,19 +128,19 @@ Plans:
 **Details**:
 Replaced FilterSortPopover with new FilterSortControl using segmented control pattern. Two debug sessions resolved scroll jitter (Radix/Floating UI) and scroll-to-top (React Router) issues. Patterns documented in CLAUDE.md. Gap closure completed: 12 PR review issues resolved.
 
-#### Phase 15.3: Public Prompt Detail Page (INSERTED)
+#### Phase 15.3: Public Prompt Detail Page (INSERTED) - COMPLETE
 
 **Goal**: Add /library/prompt/:promptId route with full-featured public prompt detail page to resolve UAT-011 critical bug
 **Depends on**: Phase 15.2
 **Research**: Unlikely (extending existing prompt detail patterns)
-**Plans**: 2 plans
+**Plans**: 2/2 complete
 
 Plans:
-- [ ] 15.3-01-PLAN.md - Data layer (getPublicPromptById + usePublicPrompt hook)
-- [ ] 15.3-02-PLAN.md - Page component (PublicPromptDetail + PromptView enhancements)
+- [x] 15.3-01: Data layer - getPublicPromptById + usePublicPrompt hook (2026-01-31)
+- [x] 15.3-02: UI component - PublicPromptDetail + PromptView enhancements (2026-01-31)
 
 **Details**:
-Resolves UAT-011 (Critical): Currently clicking any prompt card in the Public Library results in a 404. This phase adds the missing route and enables full prompt interaction for public prompts. Owners viewing their own public prompts see a banner explaining they're viewing as others see it, with navigation to Dashboard view.
+Resolved UAT-011 (Critical): Clicking prompt cards in Public Library now opens detail page with full prompt interaction. Non-owners see read-only view. Owners see banner "You're viewing this as others see it" with navigation to Dashboard. Security-conscious: same 404 message for non-existent and private prompts.
 
 #### Phase 16: Add to Vault
 
@@ -246,7 +246,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 13 | 18/? | In Progress | - |
+| v2.0 Public Prompt Library | 13 | 20/? | In Progress | - |
 
 ---
 
@@ -260,7 +260,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | UAT Checkpoint A | v2.0 | - | Pending | - |
 | 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
 | 15.2 Rework Filter UI | v2.0 | 5/5 | Complete | 2026-01-30 |
-| 15.3 Public Prompt Detail Page | v2.0 | 2/2 | Planned | - |
+| 15.3 Public Prompt Detail Page | v2.0 | 2/2 | Complete | 2026-01-31 |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | UAT Checkpoint B | v2.0 | - | Pending | - |
