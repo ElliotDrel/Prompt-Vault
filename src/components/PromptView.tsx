@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History } from 'lucide-react';
+import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History, Globe } from 'lucide-react';
 import { Prompt, VariableValues, CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -53,12 +53,37 @@ const clearVariableValues = (promptId: string): void => {
 
 interface PromptViewProps {
   prompt: Prompt;
-  onEdit: () => void;
-  onDelete: (promptId: string) => Promise<void>;
+  onEdit?: () => void;        // undefined = hide Edit button
+  onDelete?: (promptId: string) => Promise<void>; // undefined = hide Delete
   onNavigateBack: () => void;
+  backLabel?: string;         // "Back to Dashboard" vs "Back to Library"
+  backRoute?: string;         // route for back navigation
+  showVersionHistory?: boolean;  // defaults to true, hide for non-owners
+  showVisibilityToggle?: boolean; // defaults to true, hide for non-owners
+
+  // Owner viewing public prompt banner
+  isOwnerViewingPublic?: boolean; // show "viewing as others see it" banner
+  onViewInDashboard?: () => void; // action for "View in Dashboard" button
+
+  // Dashboard symmetric navigation
+  showViewPublicButton?: boolean; // show "View Public Version" button on dashboard
+  onViewPublicVersion?: () => void; // action for public version button
 }
 
-export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptViewProps) {
+export function PromptView({
+  prompt,
+  onEdit,
+  onDelete,
+  onNavigateBack,
+  backLabel,
+  backRoute,
+  showVersionHistory,
+  showVisibilityToggle,
+  isOwnerViewingPublic,
+  onViewInDashboard,
+  showViewPublicButton,
+  onViewPublicVersion,
+}: PromptViewProps) {
   const { stats, togglePinPrompt, toggleVisibility, incrementCopyCount, incrementPromptUsage } = usePrompts();
   const {
     promptHistory,
@@ -229,16 +254,36 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         {/* Header row: Back button on left, Visibility toggle on right */}
         <div className="flex justify-between items-start mb-6">
           <Button variant="ghost" className="-ml-2" asChild>
-            <NavLink to={DASHBOARD_ROUTE} onNavigate={onNavigateBack}>
+            <NavLink to={backRoute ?? DASHBOARD_ROUTE} onNavigate={onNavigateBack}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              {backLabel ?? 'Back to Dashboard'}
             </NavLink>
           </Button>
-          <VisibilityToggle
-            visibility={prompt.visibility ?? 'private'}
-            onToggle={handleVisibilityToggle}
-          />
+          {(showVisibilityToggle ?? true) && (
+            <VisibilityToggle
+              visibility={prompt.visibility ?? 'private'}
+              onToggle={handleVisibilityToggle}
+            />
+          )}
         </div>
+
+        {/* Owner viewing public prompt banner */}
+        {isOwnerViewingPublic && onViewInDashboard && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                You're viewing this as others see it
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onViewInDashboard}
+              >
+                View in Dashboard
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Main view card */}
         <div className="bg-card border rounded-lg p-6 shadow-sm">
@@ -254,14 +299,24 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
               )}
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
-                <History className="h-4 w-4 mr-2" />
-                History
-              </Button>
-              <Button onClick={onEdit} className="bg-primary hover:bg-primary/90">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
+              {(showVersionHistory ?? true) && (
+                <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
+                  <History className="h-4 w-4 mr-2" />
+                  History
+                </Button>
+              )}
+              {showViewPublicButton && onViewPublicVersion && (
+                <Button variant="outline" onClick={onViewPublicVersion}>
+                  <Globe className="h-4 w-4 mr-2" />
+                  View Public Version
+                </Button>
+              )}
+              {onEdit && (
+                <Button onClick={onEdit} className="bg-primary hover:bg-primary/90">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
             </div>
           </div>
 
@@ -368,31 +423,33 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
 
           {/* Footer actions */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="text-destructive-foreground"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this prompt? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            {onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="text-destructive-foreground"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this prompt? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
 
             <Button
               onClick={handlePin}
@@ -410,22 +467,26 @@ export function PromptView({ prompt, onEdit, onDelete, onNavigateBack }: PromptV
         </div>
 
         {/* Version History Modal */}
-        <VersionHistoryModal
-          open={historyModalOpen}
-          onOpenChange={setHistoryModalOpen}
-          prompt={prompt}
-          onRevert={requestRevert}
-        />
+        {(showVersionHistory ?? true) && (
+          <>
+            <VersionHistoryModal
+              open={historyModalOpen}
+              onOpenChange={setHistoryModalOpen}
+              prompt={prompt}
+              onRevert={requestRevert}
+            />
 
-        {/* Revert Confirmation Dialog */}
-        <RevertConfirmDialog
-          open={!!pendingVersion}
-          onOpenChange={(open) => !open && cancelRevert()}
-          versionNumber={pendingVersion?.versionNumber ?? 0}
-          onConfirm={confirmRevert}
-          onCancel={cancelRevert}
-          isReverting={isReverting}
-        />
+            {/* Revert Confirmation Dialog */}
+            <RevertConfirmDialog
+              open={!!pendingVersion}
+              onOpenChange={(open) => !open && cancelRevert()}
+              versionNumber={pendingVersion?.versionNumber ?? 0}
+              onConfirm={confirmRevert}
+              onCancel={cancelRevert}
+              isReverting={isReverting}
+            />
+          </>
+        )}
 
         {/* Usage History - Separate Card */}
         <div className="mt-6">
