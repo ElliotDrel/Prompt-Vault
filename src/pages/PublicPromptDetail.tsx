@@ -82,6 +82,7 @@ export default function PublicPromptDetail() {
         backRoute={LIBRARY_ROUTE}
         showVersionHistory={isOwner} // Only owner sees version history
         showVisibilityToggle={false} // Never show visibility toggle in public view
+        showPinButton={false}        // Never show pin button in public view
         isOwnerViewingPublic={isOwner}
         onViewInDashboard={isOwner ? handleViewInDashboard : undefined}
       />

@@ -60,6 +60,7 @@ interface PromptViewProps {
   backRoute?: string;         // route for back navigation
   showVersionHistory?: boolean;  // defaults to true, hide for non-owners
   showVisibilityToggle?: boolean; // defaults to true, hide for non-owners
+  showPinButton?: boolean;       // defaults to true, hide for non-owners viewing public prompts
 
   // Owner viewing public prompt banner
   isOwnerViewingPublic?: boolean; // show "viewing as others see it" banner
@@ -79,6 +80,7 @@ export function PromptView({
   backRoute,
   showVersionHistory,
   showVisibilityToggle,
+  showPinButton,
   isOwnerViewingPublic,
   onViewInDashboard,
   showViewPublicButton,
@@ -291,19 +293,23 @@ export function PromptView({
           <div className="flex justify-between items-start mb-6">
             <div className="flex-1">
               <h2 className="text-2xl font-semibold">{prompt.title}</h2>
-              {prompt.isPinned && (
+              {(showPinButton ?? true) && prompt.isPinned && (
                 <span className="inline-flex items-center gap-1 mt-2 text-sm text-yellow-700 bg-yellow-100 px-2 py-1 rounded-full">
                   <Pin className="h-3 w-3 fill-current" />
                   Pinned
                 </span>
               )}
             </div>
-            <div className="flex gap-2">
-              {(showVersionHistory ?? true) && (
+            <div className="flex gap-2 items-center">
+              {(showVersionHistory ?? true) ? (
                 <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
                   <History className="h-4 w-4 mr-2" />
                   History
                 </Button>
+              ) : (
+                <span className="text-sm text-muted-foreground">
+                  Version history is only available for your own prompts
+                </span>
               )}
               {showViewPublicButton && onViewPublicVersion && (
                 <Button variant="outline" onClick={onViewPublicVersion}>
@@ -451,18 +457,20 @@ export function PromptView({
               </AlertDialog>
             )}
 
-            <Button
-              onClick={handlePin}
-              variant="outline"
-              className={`${
-                prompt.isPinned
-                  ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
-                  : 'hover:bg-yellow-50'
-              }`}
-            >
-              <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
-              {prompt.isPinned ? 'Unpin' : 'Pin'}
-            </Button>
+{(showPinButton ?? true) && (
+              <Button
+                onClick={handlePin}
+                variant="outline"
+                className={`${
+                  prompt.isPinned
+                    ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
+                    : 'hover:bg-yellow-50'
+                }`}
+              >
+                <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
+                {prompt.isPinned ? 'Unpin' : 'Pin'}
+              </Button>
+            )}
           </div>
         </div>
 
