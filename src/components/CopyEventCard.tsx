@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2, Eye, Copy, ChevronDown, ChevronRight } from 'lucide-react';
+import { Trash2, Eye, Copy, ChevronDown, ChevronRight, Globe } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VirtualizedText } from '@/components/ui/VirtualizedText';
@@ -14,6 +14,8 @@ interface CopyEventCardProps {
   event: CopyEvent;
   onDelete: (id: string) => void;
   onCopy: (event: CopyEvent) => void;
+  /** Whether the source prompt is a public (non-owned) prompt */
+  isPublicPrompt?: boolean;
 }
 
 const formatDate = (timestamp: string) => {
@@ -30,7 +32,7 @@ const SKELETON_DELAY_MS = DIALOG_ANIMATION_MS + 20;
 
 const getVariableEntryKey = (variableKey: string, index: number) => `var-${index}-${variableKey || 'empty'}`;
 
-export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCopy }: CopyEventCardProps) {
+export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCopy, isPublicPrompt }: CopyEventCardProps) {
   const [isDialogVariablesExpanded, setIsDialogVariablesExpanded] = useState(true);
   const [isDialogOutputExpanded, setIsDialogOutputExpanded] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,7 +57,15 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg">{event.promptTitle}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg">{event.promptTitle}</CardTitle>
+              {isPublicPrompt && (
+                <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                  <Globe className="h-3 w-3 mr-1" />
+                  Public
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground mt-1">
               {formatDate(event.timestamp)}
             </p>
