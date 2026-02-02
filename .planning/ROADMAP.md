@@ -147,16 +147,17 @@ Resolved UAT-011 (Critical): Clicking prompt cards in Public Library now opens d
 **Goal**: Polish public prompt experience with realtime updates, improved navigation flow, visual distinction for owned prompts, and clearer copy history context
 **Depends on**: Phase 15.3
 **Research**: Unlikely (extending existing patterns)
-**Plans**: 4/4 complete
+**Plans**: 5/5 complete
 
 Plans:
 - [x] 15.4-01: Realtime copy event updates across all pages (2026-02-02)
 - [x] 15.4-02: Navigation improvements (button placement, owner redirect) (2026-02-02)
 - [x] 15.4-03: Visual distinction and context notes (owner border, history notes, public badge) (2026-02-02)
 - [x] 15.4-04: Public preview modal on Dashboard (2026-02-02)
+- [x] 15.4-05: UAT gap closure - remove obsolete buttons and Preview feature (2026-02-02)
 
 **Details**:
-Addresses 7 UX issues identified during Phase 15.3 completion: realtime usage history updates, View Public Version button placement, owner auto-redirect, Preview as Public button, owner prompt visual distinction in Library, copy history context note, and public prompt indicator on /history page.
+Addresses UX issues identified during Phase 15.3 completion: realtime usage history updates, owner auto-redirect from Library, owner prompt visual distinction in Library, copy history context note, and public prompt indicator on /history page. UAT found Preview as Public feature added too much complexity - removed per user decision.
 
 #### Phase 16: Add to Vault
 
@@ -262,7 +263,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 13 | 28/? | In Progress | - |
+| v2.0 Public Prompt Library | 13 | 29/? | In Progress | - |
 
 ---
 
@@ -277,7 +278,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
 | 15.2 Rework Filter UI | v2.0 | 5/5 | Complete | 2026-01-30 |
 | 15.3 Public Prompt Detail Page | v2.0 | 2/2 | Complete | 2026-01-31 |
-| 15.4 Public Prompt UX Improvements | v2.0 | 4/4 | Complete | 2026-02-02 |
+| 15.4 Public Prompt UX Improvements | v2.0 | 5/5 | Complete | 2026-02-02 |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | UAT Checkpoint B | v2.0 | - | Pending | - |
