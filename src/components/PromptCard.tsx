@@ -220,7 +220,7 @@ export function PromptCard({
       className={`prompt-card p-6 cursor-pointer flex flex-col gap-4 relative block ${
         prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
       } ${
-        isOwnPrompt ? 'ring-2 ring-primary/50 bg-primary/5' : ''
+        isOwnPrompt === false ? 'ring-2 ring-green-500/50 bg-green-50/30' : ''
       }`}
     >
       {/* Action buttons - only shown for owned prompts */}

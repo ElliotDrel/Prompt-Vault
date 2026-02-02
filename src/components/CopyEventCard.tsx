@@ -81,7 +81,15 @@ export const CopyEventCard = memo(function CopyEventCard({ event, onDelete, onCo
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <div className="flex items-start justify-between gap-4 pr-6">
-                    <DialogTitle className="flex-1">{event.promptTitle}</DialogTitle>
+                    <div className="flex items-center gap-2 flex-1">
+                      <DialogTitle>{event.promptTitle}</DialogTitle>
+                      {isPublicPrompt && (
+                        <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                          <Globe className="h-3 w-3 mr-1" />
+                          Public
+                        </Badge>
+                      )}
+                    </div>
                     <Button onClick={() => onCopy(event)} size="sm">
                       <Copy className="h-4 w-4 mr-2" />
                       Copy
