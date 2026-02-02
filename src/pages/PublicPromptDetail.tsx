@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +19,13 @@ export default function PublicPromptDetail() {
 
   // Determine if current user is the owner of this public prompt
   const isOwner = prompt && prompt.authorId === user?.id;
+
+  // Auto-redirect owners to Dashboard (avoid showing public view with banner)
+  useEffect(() => {
+    if (!loading && prompt && isOwner && promptId) {
+      navigate(`/dashboard/prompt/${promptId}`, { replace: true });
+    }
+  }, [loading, prompt, isOwner, promptId, navigate]);
 
   // Handle navigation back to library
   const handleNavigateBack = () => {
@@ -41,6 +48,21 @@ export default function PublicPromptDetail() {
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-lg text-muted-foreground">Loading prompt...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Redirecting owner to Dashboard
+  if (!loading && prompt && isOwner) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-lg text-muted-foreground">Redirecting to Dashboard...</p>
           </div>
         </div>
       </>
