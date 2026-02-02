@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History, Globe, Eye } from 'lucide-react';
+import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History, Globe, Eye, Info } from 'lucide-react';
 import { Prompt, VariableValues, CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -526,6 +526,14 @@ export function PromptView({
               <Badge variant="secondary">{totalCount}</Badge>
             )}
           </button>
+
+          {/* Context note for public prompts */}
+          {showCopyHistoryContextNote && historyExpanded && (
+            <div className="mb-4 flex items-start gap-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+              <Info className="h-4 w-4 mt-0.5 shrink-0" />
+              <p>This shows your personal copy history with this prompt. Other users' activity is private.</p>
+            </div>
+          )}
 
           {historyExpanded && (
             <InfiniteScrollContainer
