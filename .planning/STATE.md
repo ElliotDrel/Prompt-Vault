@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15.4 of 22 (Public Prompt UX Improvements) - IN PROGRESS
-Plan: 2 of 4 complete (15.4-02: Navigation Flow Improvements)
-Status: Phase 15.4 in progress - Relocated View Public Version button, added owner auto-redirect
-Last activity: 2026-02-02 - Completed 15.4-02-PLAN.md
+Plan: 2 of 4 complete (15.4-01: Realtime Copy Event Updates)
+Status: Phase 15.4 in progress - Realtime usage history, owner redirect flow complete
+Last activity: 2026-02-02 - Completed 15.4-01-PLAN.md
 
 Progress: ██████░░░░ 63%
 
@@ -97,6 +97,8 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Relocate View Public Version button to top-right near visibility toggle (groups visibility-related controls)
 - Auto-redirect owners from Library to Dashboard (reduces friction, no need to see public view banner)
 - Use replace: true in navigate for auto-redirect (avoids polluting browser history)
+- Use queryClient.invalidateQueries instead of refetch() for realtime updates (invalidates all copy event queries instead of just current instance)
+- Use refetchType 'active' for invalidation (only refetches visible queries, optimal performance)
 
 ### Deferred Issues
 
@@ -200,11 +202,11 @@ None - UAT-011 resolved in Phase 15.3.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 15.4-02-PLAN.md (Navigation Flow Improvements)
-Resume file: .planning/phases/15.4-public-prompt-ux-improvements/15.4-02-SUMMARY.md
+Stopped at: Completed 15.4-01-PLAN.md (Realtime Copy Event Updates)
+Resume file: .planning/phases/15.4-public-prompt-ux-improvements/15.4-01-SUMMARY.md
 
 **Next Steps:**
-- Complete Phase 15.4: Plans 03-04 (Owner visual distinction, Preview button, Copy history context)
+- Complete Phase 15.4: Plans 03-04 (Preview button, Visual distinction for owned prompts)
 - Phase 16: Add to Vault - Live-link functionality
 - Phase 17: Public Prompt Search & Discovery
 - Phase 18: Analytics & Insights
