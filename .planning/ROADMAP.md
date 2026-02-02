@@ -142,6 +142,22 @@ Plans:
 **Details**:
 Resolved UAT-011 (Critical): Clicking prompt cards in Public Library now opens detail page with full prompt interaction. Non-owners see read-only view. Owners see banner "You're viewing this as others see it" with navigation to Dashboard. Security-conscious: same 404 message for non-existent and private prompts.
 
+#### Phase 15.4: Public Prompt UX Improvements (INSERTED)
+
+**Goal**: Polish public prompt experience with realtime updates, improved navigation flow, visual distinction for owned prompts, and clearer copy history context
+**Depends on**: Phase 15.3
+**Research**: Unlikely (extending existing patterns)
+**Plans**: 4 plans
+
+Plans:
+- [ ] 15.4-01-PLAN.md - Realtime copy event updates across all pages
+- [ ] 15.4-02-PLAN.md - Navigation improvements (button placement, owner redirect)
+- [ ] 15.4-03-PLAN.md - Visual distinction and context notes (owner border, history notes, public badge)
+- [ ] 15.4-04-PLAN.md - Public preview modal on Dashboard
+
+**Details**:
+Addresses 7 UX issues identified during Phase 15.3 completion: realtime usage history updates, View Public Version button placement, owner auto-redirect, Preview as Public button, owner prompt visual distinction in Library, copy history context note, and public prompt indicator on /history page.
+
 #### Phase 16: Add to Vault
 
 **Goal**: Live-link functionality to add public prompts as read-only synced references with version history access
@@ -246,7 +262,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 13 | 20/? | In Progress | - |
+| v2.0 Public Prompt Library | 13 | 24/? | In Progress | - |
 
 ---
 
@@ -261,6 +277,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
 | 15.2 Rework Filter UI | v2.0 | 5/5 | Complete | 2026-01-30 |
 | 15.3 Public Prompt Detail Page | v2.0 | 2/2 | Complete | 2026-01-31 |
+| 15.4 Public Prompt UX Improvements | v2.0 | 4/4 | Ready | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | UAT Checkpoint B | v2.0 | - | Pending | - |

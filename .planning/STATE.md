@@ -190,6 +190,7 @@ None - UAT-011 resolved in Phase 15.3.
 - Phase 15.2 inserted after Phase 15.1: Rework Filter UI - Visual redesign of filtering UI for improved aesthetics
 - Phase 22 added: Mobile Optimization - Optimize UI across all pages for mobile devices (current UI is unusable on mobile)
 - Phase 15.3 inserted after Phase 15.2: Public Prompt Detail Page (URGENT) - Resolves UAT-011 critical 404 bug
+- Phase 15.4 inserted after Phase 15.3: Public Prompt UX Improvements - Realtime usage history, owner redirect flow, preview button, visual distinction for owned prompts, copy history context notes
 
 ## Session Continuity
 
