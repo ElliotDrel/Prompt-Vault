@@ -76,6 +76,9 @@ interface PromptCardProps {
 
   /** Callback when author name is clicked (for filtering) */
   onAuthorClick?: () => void;
+
+  /** Whether this prompt is owned by the current user (for visual distinction in Library) */
+  isOwnPrompt?: boolean;
 }
 
 export function PromptCard({
@@ -89,6 +92,7 @@ export function PromptCard({
   showStats,
   timeSavedMultiplier,
   onAuthorClick,
+  isOwnPrompt,
 }: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
@@ -215,6 +219,8 @@ export function PromptCard({
       transition={{ duration: 0.2 }}
       className={`prompt-card p-6 cursor-pointer flex flex-col gap-4 relative block ${
         prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
+      } ${
+        isOwnPrompt ? 'ring-2 ring-primary/50 bg-primary/5' : ''
       }`}
     >
       {/* Action buttons - only shown for owned prompts */}
