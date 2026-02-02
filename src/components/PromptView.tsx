@@ -253,7 +253,7 @@ export function PromptView({
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
-        {/* Header row: Back button on left, Visibility toggle on right */}
+        {/* Header row: Back button on left, Visibility toggle + View Public on right */}
         <div className="flex justify-between items-start mb-6">
           <Button variant="ghost" className="-ml-2" asChild>
             <NavLink to={backRoute ?? DASHBOARD_ROUTE} onNavigate={onNavigateBack}>
@@ -261,12 +261,20 @@ export function PromptView({
               {backLabel ?? 'Back to Dashboard'}
             </NavLink>
           </Button>
-          {(showVisibilityToggle ?? true) && (
-            <VisibilityToggle
-              visibility={prompt.visibility ?? 'private'}
-              onToggle={handleVisibilityToggle}
-            />
-          )}
+          <div className="flex items-center gap-3">
+            {showViewPublicButton && onViewPublicVersion && (
+              <Button variant="outline" size="sm" onClick={onViewPublicVersion}>
+                <Globe className="h-4 w-4 mr-2" />
+                View Public Version
+              </Button>
+            )}
+            {(showVisibilityToggle ?? true) && (
+              <VisibilityToggle
+                visibility={prompt.visibility ?? 'private'}
+                onToggle={handleVisibilityToggle}
+              />
+            )}
+          </div>
         </div>
 
         {/* Owner viewing public prompt banner */}
@@ -305,12 +313,6 @@ export function PromptView({
                 <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
                   <History className="h-4 w-4 mr-2" />
                   History
-                </Button>
-              )}
-              {showViewPublicButton && onViewPublicVersion && (
-                <Button variant="outline" onClick={onViewPublicVersion}>
-                  <Globe className="h-4 w-4 mr-2" />
-                  View Public Version
                 </Button>
               )}
               {onEdit && (
