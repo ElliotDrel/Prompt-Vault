@@ -215,9 +215,13 @@ export function useInfiniteCopyEvents({
         return;
       }
 
-      // For realtime updates, use silent background refetch
-      void refetch().catch((err) => {
-        console.error('Failed to refetch copy events via subscription:', err);
+      // Invalidate all copy event queries to trigger background refetch
+      // This ensures all active queries (global history, prompt-specific history) update
+      queryClient.invalidateQueries({
+        queryKey: ['copyEvents'],
+        refetchType: 'active',
+      }).catch((err) => {
+        console.error('Failed to invalidate copy event queries via subscription:', err);
       });
     });
 
@@ -225,7 +229,7 @@ export function useInfiniteCopyEvents({
       isMounted = false;
       unsubscribe();
     };
-  }, [storageAdapter, userId, refetch]);
+  }, [storageAdapter, userId, queryClient]);
 
   return {
     events,
