@@ -5,7 +5,6 @@ import { usePrompts } from '@/contexts/PromptsContext';
 import { Navigation } from '@/components/Navigation';
 import { PromptEditor } from '@/components/PromptEditor';
 import { PromptView } from '@/components/PromptView';
-import { PublicPreviewModal } from '@/components/PublicPreviewModal';
 import { Button } from '@/components/ui/button';
 import { NavLink } from '@/components/ui/NavLink';
 import { Prompt } from '@/types/prompt';
@@ -23,7 +22,6 @@ export default function PromptDetail() {
 
   // For creating, start in edit mode. For viewing, start in view mode
   const [isEditing, setIsEditing] = useState(isCreating);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Sync editing state when route changes
   useEffect(() => {
@@ -54,13 +52,6 @@ export default function PromptDetail() {
   // Handle navigation back to dashboard
   const handleNavigateBack = () => {
     navigate(DASHBOARD_ROUTE);
-  };
-
-  // Handle navigation to public version (for public prompts)
-  const handleViewPublicVersion = () => {
-    if (promptId) {
-      navigate(`/library/prompt/${promptId}`);
-    }
   };
 
   // Handle cancel in edit mode
@@ -160,27 +151,12 @@ export default function PromptDetail() {
         />
       ) : (
         prompt && (
-          <>
-            <PromptView
-              prompt={prompt}
-              onEdit={() => setIsEditing(true)}
-              onDelete={handleDelete}
-              onNavigateBack={handleNavigateBack}
-              showViewPublicButton={prompt.visibility === 'public'}
-              onViewPublicVersion={prompt.visibility === 'public' ? handleViewPublicVersion : undefined}
-              showPreviewButton={prompt.visibility === 'public'}
-              onPreview={prompt.visibility === 'public' ? () => setPreviewOpen(true) : undefined}
-            />
-
-            {/* Public Preview Modal */}
-            {prompt.visibility === 'public' && (
-              <PublicPreviewModal
-                open={previewOpen}
-                onOpenChange={setPreviewOpen}
-                prompt={prompt}
-              />
-            )}
-          </>
+          <PromptView
+            prompt={prompt}
+            onEdit={() => setIsEditing(true)}
+            onDelete={handleDelete}
+            onNavigateBack={handleNavigateBack}
+          />
         )
       )}
     </>

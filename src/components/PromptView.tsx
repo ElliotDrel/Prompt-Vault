@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History, Globe, Eye, Info } from 'lucide-react';
+import { ArrowLeft, Edit, Pin, Trash2, Copy, Check, ChevronDown, ChevronRight, History, Info } from 'lucide-react';
 import { Prompt, VariableValues, CopyEvent } from '@/types/prompt';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -66,14 +66,6 @@ interface PromptViewProps {
   isOwnerViewingPublic?: boolean; // show "viewing as others see it" banner
   onViewInDashboard?: () => void; // action for "View in Dashboard" button
 
-  // Dashboard symmetric navigation
-  showViewPublicButton?: boolean; // show "View Public Version" button on dashboard
-  onViewPublicVersion?: () => void; // action for public version button
-
-  // Preview as Public
-  showPreviewButton?: boolean; // show "Preview as Public" button (for public prompts on Dashboard)
-  onPreview?: () => void; // callback when preview button is clicked
-
   // Copy history context note
   showCopyHistoryContextNote?: boolean; // show context note explaining copy history is personal (for public prompts)
 }
@@ -90,10 +82,6 @@ export function PromptView({
   showPinButton,
   isOwnerViewingPublic,
   onViewInDashboard,
-  showViewPublicButton,
-  onViewPublicVersion,
-  showPreviewButton,
-  onPreview,
   showCopyHistoryContextNote,
 }: PromptViewProps) {
   const { stats, togglePinPrompt, toggleVisibility, incrementCopyCount, incrementPromptUsage } = usePrompts();
@@ -272,18 +260,6 @@ export function PromptView({
             </NavLink>
           </Button>
           <div className="flex items-center gap-3">
-            {showPreviewButton && onPreview && (
-              <Button variant="outline" size="sm" onClick={onPreview}>
-                <Eye className="h-4 w-4 mr-2" />
-                Preview as Public
-              </Button>
-            )}
-            {showViewPublicButton && onViewPublicVersion && (
-              <Button variant="outline" size="sm" onClick={onViewPublicVersion}>
-                <Globe className="h-4 w-4 mr-2" />
-                View Public Version
-              </Button>
-            )}
             {(showVisibilityToggle ?? true) && (
               <VisibilityToggle
                 visibility={prompt.visibility ?? 'private'}
