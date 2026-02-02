@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.3 of 22 (Public Prompt Detail Page) - IN PROGRESS
-Plan: 2 of 2 complete (15.3-02: UI Component)
-Status: Phase 15.3 complete - UAT-011 resolved, public prompt detail page functional
-Last activity: 2026-01-31 - Completed 15.3-02-PLAN.md
+Phase: 15.4 of 22 (Public Prompt UX Improvements) - IN PROGRESS
+Plan: 2 of 4 complete (15.4-02: Navigation Flow Improvements)
+Status: Phase 15.4 in progress - Relocated View Public Version button, added owner auto-redirect
+Last activity: 2026-02-02 - Completed 15.4-02-PLAN.md
 
-Progress: ██████░░░░ 62%
+Progress: ██████░░░░ 63%
 
 ## Shipped Milestones
 
@@ -92,6 +92,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Security through same error: Show same "Prompt Not Found" message for non-existent and private (prevents revealing existence)
 - Conditional feature hiding: Use optional props with defaults instead of separate components (reuses PromptView logic, avoids duplication)
 - Symmetric navigation: Dashboard public prompts show "View Public Version", Library owned prompts show "View in Dashboard"
+
+**Phase 15.4 decisions:**
+- Relocate View Public Version button to top-right near visibility toggle (groups visibility-related controls)
+- Auto-redirect owners from Library to Dashboard (reduces friction, no need to see public view banner)
+- Use replace: true in navigate for auto-redirect (avoids polluting browser history)
 
 ### Deferred Issues
 
@@ -194,11 +199,12 @@ None - UAT-011 resolved in Phase 15.3.
 
 ## Session Continuity
 
-Last session: 2026-01-31
-Stopped at: Phase 15.3 complete - UAT-011 resolved, public prompt detail page functional
-Resume file: .planning/phases/15.3-public-prompt-detail-page/15.3-02-SUMMARY.md
+Last session: 2026-02-02
+Stopped at: Completed 15.4-02-PLAN.md (Navigation Flow Improvements)
+Resume file: .planning/phases/15.4-public-prompt-ux-improvements/15.4-02-SUMMARY.md
 
 **Next Steps:**
+- Complete Phase 15.4: Plans 03-04 (Owner visual distinction, Preview button, Copy history context)
 - Phase 16: Add to Vault - Live-link functionality
 - Phase 17: Public Prompt Search & Discovery
 - Phase 18: Analytics & Insights
