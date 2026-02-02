@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.4 of 22 (Public Prompt UX Improvements) - COMPLETE
-Plan: 4 of 4 complete (15.4-04: Preview as Public Modal)
-Status: Phase 15.4 complete - All improvements shipped
-Last activity: 2026-02-02 - Completed 15.4-04-PLAN.md
+Phase: 15.4 of 22 (Public Prompt UX Improvements) - IN PROGRESS
+Plan: 3 of 4 complete (15.4-03: Owner Visual Distinction & Context Notes)
+Status: Phase 15.4 in progress - 3 of 4 plans complete
+Last activity: 2026-02-02 - Completed 15.4-03-PLAN.md
 
-Progress: ██████░░░░ 64%
+Progress: ██████░░░░ 63%
 
 ## Shipped Milestones
 
@@ -102,6 +102,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Show Preview button only for public prompts (user should make prompt public first before previewing)
 - Preview modal copy button tracks stats (owner is still using their own prompt)
 - Modal preview instead of separate route (quick validation without leaving context)
+- Border styling priority: pinned yellow ring takes priority over own-prompt primary ring (pins only exist on Dashboard)
+- Use primary color for owned prompt borders (matches existing theme system)
+- Context note only shows when history is expanded (reduces noise when collapsed)
+- Public indicator via Set membership check (O(1) lookup, efficient for large prompt lists)
+- Deleted prompts treated as public for simplicity (won't be in owned set)
 
 ### Deferred Issues
 
@@ -205,10 +210,11 @@ None - UAT-011 resolved in Phase 15.3.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 15.4-04-PLAN.md (Preview as Public Modal)
-Resume file: .planning/phases/15.4-public-prompt-ux-improvements/15.4-04-SUMMARY.md
+Stopped at: Completed 15.4-03-PLAN.md (Owner Visual Distinction & Context Notes)
+Resume file: .planning/phases/15.4-public-prompt-ux-improvements/15.4-03-SUMMARY.md
 
 **Next Steps:**
+- Complete Phase 15.4 (1 plan remaining: 15.4-04 Preview as Public Modal)
 - Phase 16: Add to Vault - Live-link functionality
 - Phase 17: Public Prompt Search & Discovery
 - Phase 18: Analytics & Insights
