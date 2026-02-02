@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
 import { PaginatedCopyEvents } from '@/lib/storage/types';
@@ -47,7 +47,10 @@ const CopyHistory = () => {
     isSearching,
     clearSearch,
   } = useCopyHistory();
-  const { incrementCopyCount, incrementPromptUsage } = usePrompts();
+  const { prompts, incrementCopyCount, incrementPromptUsage } = usePrompts();
+
+  // Determine owned prompt IDs for public prompt detection
+  const ownedPromptIds = useMemo(() => new Set(prompts.map(p => p.id)), [prompts]);
 
   // URL-synced search state (only using search, not sort)
   const { searchTerm, setSearchTerm } = useURLFilterSync({
@@ -229,6 +232,7 @@ const CopyHistory = () => {
                   event={event}
                   onDelete={handleDeleteEvent}
                   onCopy={handleCopyHistoryEvent}
+                  isPublicPrompt={!ownedPromptIds.has(event.promptId)}
                 />
               ))}
             </div>
@@ -248,6 +252,7 @@ const CopyHistory = () => {
                 event={event}
                 onDelete={handleDeleteEvent}
                 onCopy={handleCopyHistoryEvent}
+                isPublicPrompt={!ownedPromptIds.has(event.promptId)}
               />
             )}
             getItemKey={(event) => event.id}
