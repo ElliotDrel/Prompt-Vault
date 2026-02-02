@@ -106,94 +106,30 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - **Remove View Public Version button** - obsolete with auto-redirect (navigates to page that immediately redirects back)
 - **Remove Preview as Public feature** - user decision, adds too much complexity
 
-### Deferred Issues
+### Deferred Features
 
-**Public Prompt Usage Tracking (Partial - Phase 16+)**
+**1. Public Prompt Usage Analytics (Phase 16+)**
 
-⚠️ **REMINDER**: Ask the user about this when resuming work on public prompts features.
+Basic increment works (any user can increment `times_used` on public prompts). Full analytics deferred:
+- Track owner usage vs community usage separately
+- Display split stats: "Used X times by you, Y times by community"
+- Consider privacy implications
 
-**What was done (15-FIX2):**
-- Migration `20260118104008_allow_public_increment_prompt_usage.sql` allows any authenticated user to increment `times_used` on public prompts (not just the owner)
-- RPC `increment_prompt_usage` now checks `user_id = auth.uid() OR visibility = 'public'`
-- PromptsContext updated to skip optimistic updates for prompts not in local state (prevents incorrect state when incrementing usage on public prompts you don't own)
-- Broadcast implemented to notify Library viewers when public prompt usage changes
+**2. User Profiles & Display Names (Phase 19+)**
 
-**What still needs to be done:**
-- Track total public usage separately (aggregate across all users, not just owner's count)
-- Distinguish between owner usage vs community usage
-- Display community usage metrics on public prompts
-- Potentially separate stats: "Used X times by you, Y times by community"
-- Consider privacy implications of usage tracking
+Currently shows truncated userId (e.g., "44f2ca5f..."). Future:
+- Collect display name on signup / prompt existing users
+- Add `display_name` column to user_settings or new `profiles` table
+- Smart identifier for URLs (short code, handle, or username)
 
-**Context:** Originally deferred to Phase 16, but basic increment functionality was needed for Phase 15 Library page to work (copying public prompts needs to increment usage). Full usage analytics is still pending.
+**3. Cross-Page Author Filtering (Blocked by #2)**
 
-**Public Library Author Click Filter (Issue 10 - RESOLVED in Phase 15.1)**
-
-**Resolution:**
-- Removed onAuthorClick handler from Library - author names are now display-only text
-- Added author filter in View Options popover: All / Mine / Others
-- "Mine" filters to show only the current user's public prompts
-- "Others" filters to show only other users' prompts
-- This provides cleaner UX without overwriting search terms
-
-**Missing /library/prompt/:promptId Route (UAT-011 - RESOLVED in Phase 15.3)**
-
-**Resolution:**
-- Created `PublicPromptDetail.tsx` component as thin wrapper around PromptView
-- Registered `/library/prompt/:promptId` route in App.tsx
-- Enhanced PromptView with conditional props for public context
-- Owners see banner "You're viewing this as others see it" with "View in Dashboard" button
-- Non-owners see read-only view (no Edit, Delete, Version History, or Visibility Toggle)
-- 404 page for missing/private prompts (same message for security)
-- Symmetric navigation: Dashboard ↔ Library for public prompts
-
-**See:** `.planning/phases/15.3-public-prompt-detail-page/15.3-02-SUMMARY.md` for implementation details.
-
-**Cross-Page Author Filtering (Deferred)**
-
-**Desired behavior:**
-- Clicking on an author name in Public Library should filter to show all prompts by that user
-- Should work across both `/dashboard` (your prompts by that author if you have any) and `/library` (their public prompts)
-- Navigation flow: Click author → navigate to `/library?author=<identifier>` or show prompts inline
-
-**Current state:**
-- Author names are display-only text (Phase 15.1 removed click handler)
-- Author filter exists but only as All/Mine/Others dropdown, not specific user targeting
-
-**Implementation considerations:**
-- Requires user identifier system (see below)
-- May need cross-page URL param support for author=<user_identifier>
-
-**User Profiles with Display Names & Smart Identifiers (Deferred)**
-
-**Requirements:**
-1. Collect full name on signup (new users)
-2. Prompt existing users to add their name on next login
-3. Display name shown on prompts, fallback to "Anonymous" if not provided
-4. Smart searchable identifier that is:
-   - Precise (uniquely identifies a user)
-   - Human-friendly (not a raw UUID like `a1b2c3d4-e5f6-...`)
-   - Searchable via URL params
-
-**Identifier options to consider:**
-- **Short code**: 6-8 alphanumeric (e.g., `abc123xy`) - generated from UUID hash
-- **Handle**: Auto-generated from name + discriminator (e.g., `john-doe-42`)
-- **Username**: User-chosen unique handle (requires uniqueness check)
-
-**Database changes needed:**
-- Add `display_name` column to user profile/settings
-- Add `user_handle` or `short_id` column for search identifier
-- Consider `profiles` table vs extending `user_settings`
-
-**UI changes needed:**
-- Signup flow: Add name field
-- Return user prompt: "Add your name" modal/banner
-- Author display: Show name or "Anonymous"
-- Author click: Filter by user handle/identifier
+Click author → filter to their prompts. Requires user identifier system first.
+Current workaround: Mine/Others dropdown filter.
 
 ### Blockers/Concerns
 
-None - UAT-011 resolved in Phase 15.3.
+None.
 
 ### Roadmap Evolution
 
