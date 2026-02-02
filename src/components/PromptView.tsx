@@ -300,16 +300,12 @@ export function PromptView({
                 </span>
               )}
             </div>
-            <div className="flex gap-2 items-center">
-              {(showVersionHistory ?? true) ? (
+            <div className="flex gap-2">
+              {(showVersionHistory ?? true) && (
                 <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
                   <History className="h-4 w-4 mr-2" />
                   History
                 </Button>
-              ) : (
-                <span className="text-sm text-muted-foreground">
-                  Version history is only available for your own prompts
-                </span>
               )}
               {showViewPublicButton && onViewPublicVersion && (
                 <Button variant="outline" onClick={onViewPublicVersion}>

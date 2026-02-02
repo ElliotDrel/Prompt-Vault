@@ -80,7 +80,7 @@ export default function PublicPromptDetail() {
         onNavigateBack={handleNavigateBack}
         backLabel="Back to Library"
         backRoute={LIBRARY_ROUTE}
-        showVersionHistory={isOwner} // Only owner sees version history
+        showVersionHistory={false}   // Always hide in public view (use Dashboard for history)
         showVisibilityToggle={false} // Never show visibility toggle in public view
         showPinButton={false}        // Never show pin button in public view
         isOwnerViewingPublic={isOwner}
