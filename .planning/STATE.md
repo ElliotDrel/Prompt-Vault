@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 ## Current Position
 
 Phase: 15.4 of 22 (Public Prompt UX Improvements) - COMPLETE
-Plan: 4 of 4 complete
-Status: Phase 15.4 complete - realtime updates, navigation improvements, visual distinction, preview modal
-Last activity: 2026-02-02 - Completed all 4 plans (executed in parallel)
+Plan: 5 of 5 complete (including gap closure)
+Status: Phase 15.4 complete - realtime updates, navigation improvements, visual distinction, obsolete features removed
+Last activity: 2026-02-02 - Completed gap closure plan 05 (removed View Public Version button and Preview as Public feature)
 
 Progress: ██████░░░░ 65%
 
@@ -94,19 +94,17 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Symmetric navigation: Dashboard public prompts show "View Public Version", Library owned prompts show "View in Dashboard"
 
 **Phase 15.4 decisions:**
-- Relocate View Public Version button to top-right near visibility toggle (groups visibility-related controls)
 - Auto-redirect owners from Library to Dashboard (reduces friction, no need to see public view banner)
 - Use replace: true in navigate for auto-redirect (avoids polluting browser history)
 - Use queryClient.invalidateQueries instead of refetch() for realtime updates (invalidates all copy event queries instead of just current instance)
 - Use refetchType 'active' for invalidation (only refetches visible queries, optimal performance)
-- Show Preview button only for public prompts (user should make prompt public first before previewing)
-- Preview modal copy button tracks stats (owner is still using their own prompt)
-- Modal preview instead of separate route (quick validation without leaving context)
 - Border styling priority: pinned yellow ring takes priority over own-prompt primary ring (pins only exist on Dashboard)
 - Use primary color for owned prompt borders (matches existing theme system)
 - Context note only shows when history is expanded (reduces noise when collapsed)
 - Public indicator via Set membership check (O(1) lookup, efficient for large prompt lists)
 - Deleted prompts treated as public for simplicity (won't be in owned set)
+- **Remove View Public Version button** - obsolete with auto-redirect (navigates to page that immediately redirects back)
+- **Remove Preview as Public feature** - user decision, adds too much complexity
 
 ### Deferred Issues
 
@@ -210,8 +208,8 @@ None - UAT-011 resolved in Phase 15.3.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Phase 15.4 complete - all 4 plans verified
-Resume file: .planning/phases/15.4-public-prompt-ux-improvements/15.4-VERIFICATION.md
+Stopped at: Phase 15.4 fully complete - all 5 plans (including gap closure) verified
+Resume file: None
 
 **Next Steps:**
 - Phase 16: Add to Vault - Live-link functionality
