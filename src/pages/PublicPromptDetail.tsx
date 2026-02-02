@@ -107,6 +107,7 @@ export default function PublicPromptDetail() {
         showPinButton={false}        // Never show pin button in public view
         isOwnerViewingPublic={isOwner}
         onViewInDashboard={isOwner ? handleViewInDashboard : undefined}
+        showCopyHistoryContextNote={true} // Show context note explaining copy history is personal
       />
     </>
   );
