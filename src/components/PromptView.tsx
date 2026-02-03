@@ -159,6 +159,7 @@ export function PromptView({
   };
 
   const handleDelete = async () => {
+    if (!onDelete) return;
     try {
       await onDelete(prompt.id);
       toast.success('Prompt deleted');
