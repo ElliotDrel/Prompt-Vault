@@ -142,12 +142,12 @@ Plans:
 **Details**:
 Resolved UAT-011 (Critical): Clicking prompt cards in Public Library now opens detail page with full prompt interaction. Non-owners see read-only view. Owners see banner "You're viewing this as others see it" with navigation to Dashboard. Security-conscious: same 404 message for non-existent and private prompts.
 
-#### Phase 15.4: Public Prompt UX Improvements (INSERTED) - COMPLETE
+#### Phase 15.4: Public Prompt UX Improvements (INSERTED) - IN PROGRESS
 
 **Goal**: Polish public prompt experience with realtime updates, improved navigation flow, visual distinction for owned prompts, and clearer copy history context
 **Depends on**: Phase 15.3
 **Research**: Unlikely (extending existing patterns)
-**Plans**: 5/5 complete
+**Plans**: 6 plans (5 complete, 1 gap closure pending)
 
 Plans:
 - [x] 15.4-01: Realtime copy event updates across all pages (2026-02-02)
@@ -155,9 +155,10 @@ Plans:
 - [x] 15.4-03: Visual distinction and context notes (owner border, history notes, public badge) (2026-02-02)
 - [x] 15.4-04: Public preview modal on Dashboard (2026-02-02)
 - [x] 15.4-05: UAT gap closure - remove obsolete buttons and Preview feature (2026-02-02)
+- [ ] 15.4-06: PR #41 review gap closure - 14 issues (created_at, race condition, validation, security)
 
 **Details**:
-Addresses UX issues identified during Phase 15.3 completion: realtime usage history updates, owner auto-redirect from Library, owner prompt visual distinction in Library, copy history context note, and public prompt indicator on /history page. UAT found Preview as Public feature added too much complexity - removed per user decision.
+Addresses UX issues identified during Phase 15.3 completion: realtime usage history updates, owner auto-redirect from Library, owner prompt visual distinction in Library, copy history context note, and public prompt indicator on /history page. UAT found Preview as Public feature added too much complexity - removed per user decision. PR #41 automated review identified 14 additional issues requiring gap closure.
 
 #### Phase 16: Add to Vault
 
@@ -263,7 +264,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | Milestone | Phases | Plans | Status | Shipped |
 |-----------|--------|-------|--------|---------|
 | v1.0 Version History | 10 | 22 | Complete | 2026-01-13 |
-| v2.0 Public Prompt Library | 13 | 29/? | In Progress | - |
+| v2.0 Public Prompt Library | 13 | 30/? | In Progress | - |
 
 ---
 
@@ -278,7 +279,7 @@ Current state: UI across all pages is not set up correctly for mobile and is unu
 | 15.1 Visibility Filter Persistence | v2.0 | 3/3 | Complete | 2026-01-21 |
 | 15.2 Rework Filter UI | v2.0 | 5/5 | Complete | 2026-01-30 |
 | 15.3 Public Prompt Detail Page | v2.0 | 2/2 | Complete | 2026-01-31 |
-| 15.4 Public Prompt UX Improvements | v2.0 | 5/5 | Complete | 2026-02-02 |
+| 15.4 Public Prompt UX Improvements | v2.0 | 5/6 | In Progress | - |
 | 16. Add to Vault | v2.0 | 0/? | Not started | - |
 | 17. Fork | v2.0 | 0/? | Not started | - |
 | UAT Checkpoint B | v2.0 | - | Pending | - |
