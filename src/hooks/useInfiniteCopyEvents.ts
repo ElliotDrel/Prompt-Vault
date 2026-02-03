@@ -217,11 +217,13 @@ export function useInfiniteCopyEvents({
 
       // Invalidate all copy event queries to trigger background refetch
       // This ensures all active queries (global history, prompt-specific history) update
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: ['copyEvents'],
         refetchType: 'active',
       }).catch((err) => {
-        console.error('Failed to invalidate copy event queries via subscription:', err);
+        if (import.meta.env.DEV) {
+          console.error('Failed to invalidate copy event queries via subscription:', err);
+        }
       });
     });
 
