@@ -65,9 +65,9 @@ function isValidAuthorFilter(value: string | null): value is AuthorFilter {
 }
 
 // Simple debounce helper
-function debounce<T extends (...args: Parameters<T>) => void>(fn: T, ms: number): T {
+function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): T {
   let timer: ReturnType<typeof setTimeout> | null = null;
-  return ((...args: Parameters<T>) => {
+  return ((...args: unknown[]) => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   }) as T;
@@ -128,7 +128,9 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
     debounce((prefs: Partial<FilterPreferences>) => {
       if (persistToDb && adapter) {
         adapter.updateFilterPreferences(prefs).catch((err) => {
-          console.error('Failed to persist filter preferences:', err);
+          if (import.meta.env.DEV) {
+            console.error('Failed to persist filter preferences:', err);
+          }
         });
       }
     }, 500),
@@ -142,17 +144,19 @@ export function useURLFilterSync(config: URLFilterConfig = {}): UseURLFilterSync
 
     adapter.getFilterPreferences().then((prefs) => {
       // Only apply DB values if URL doesn't have explicit values for these fields
-      if (!searchParams.has(visibilityParam) && prefs.filterVisibility !== 'all') {
+      if (!searchParams.has(visibilityParam) && isValidVisibilityFilter(prefs.filterVisibility) && prefs.filterVisibility !== 'all') {
         setVisibilityFilterState(prefs.filterVisibility);
       }
       if (!searchParams.has(sortByParam) && isValidSortBy(prefs.sortBy) && prefs.sortBy !== defaultSortBy) {
         setSortByState(prefs.sortBy);
       }
-      if (!searchParams.has(sortDirParam) && prefs.sortDirection !== defaultSortDirection) {
+      if (!searchParams.has(sortDirParam) && isValidSortDirection(prefs.sortDirection) && prefs.sortDirection !== defaultSortDirection) {
         setSortDirectionState(prefs.sortDirection);
       }
     }).catch((err) => {
-      console.error('Failed to load filter preferences:', err);
+      if (import.meta.env.DEV) {
+        console.error('Failed to load filter preferences:', err);
+      }
     });
   }, [persistToDb, adapter, searchParams, visibilityParam, sortByParam, sortDirParam, defaultSortBy, defaultSortDirection]);
 
