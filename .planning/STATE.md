@@ -9,24 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.4 of 22 (Public Prompt UX Improvements) - UAT ISSUES OPEN
-Plan: 5 of 5 complete, but PR #41 review identified 15 issues requiring gap closure
-Status: Phase 15.4 has open UAT issues from automated PR review (see 15.4-UAT-ISSUES.md)
-Last activity: 2026-02-03 - Documented PR #41 review comments, created UAT issues file
+Phase: 15.4 of 22 (Public Prompt UX Improvements) - COMPLETE
+Plan: 6 of 6 complete
+Status: Phase complete, ready for merge
+Last activity: 2026-02-03 - Completed gap closure plan 15.4-06, fixed all 14 PR #41 issues
 
 Progress: ██████░░░░ 60%
-
-### Open UAT Issues (PR #41)
-
-**Critical:** 15 issues marked IMPLEMENT NOW
-- UAT-041-01: Missing `created_at` in getPublicPrompts (broken "Created" sort)
-- UAT-041-02: CopyHistory loading race condition (incorrect public badges)
-- UAT-041-03: Optional onDelete called without guard (crash risk)
-- UAT-041-12: Trust gate missing for @claude workflow (security)
-
-**See:** `.planning/phases/15.4-public-prompt-ux-improvements/15.4-UAT-ISSUES.md`
-
-**Next:** Create gap closure plan 15.4-06 to address all IMPLEMENT NOW issues
 
 ## Shipped Milestones
 
@@ -117,6 +105,11 @@ All v1.0 decisions documented in PROJECT.md Key Decisions table.
 - Deleted prompts treated as public for simplicity (won't be in owned set)
 - **Remove View Public Version button** - obsolete with auto-redirect (navigates to page that immediately redirects back)
 - **Remove Preview as Public feature** - user decision, adds too much complexity
+- **Gap closure (15.4-06):** Use null during loading states instead of empty Set to prevent false public badges
+- **Gap closure (15.4-06):** Dev-gate all console.error statements to prevent production noise
+- **Gap closure (15.4-06):** Validate all DB preferences before applying (isValidVisibilityFilter, isValidSortDirection)
+- **Gap closure (15.4-06):** Restrict @claude workflow to MEMBER/OWNER/COLLABORATOR only
+- **Gap closure (15.4-06):** Normalize search by removing spaces/underscores for flexible matching
 
 ### Deferred Features
 
@@ -141,10 +134,7 @@ Current workaround: Mine/Others dropdown filter.
 
 ### Blockers/Concerns
 
-**PR #41 UAT Issues (2026-02-03):**
-- Phase 15.4 has 15 open issues from automated PR review
-- Must complete gap closure plan 15.4-06 before merge
-- See: `.planning/phases/15.4-public-prompt-ux-improvements/15.4-UAT-ISSUES.md`
+None - all PR #41 UAT issues resolved in gap closure plan 15.4-06.
 
 ### Roadmap Evolution
 
@@ -159,11 +149,9 @@ Current workaround: Mine/Others dropdown filter.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: PR #41 review identified 15 issues requiring gap closure plan
-Resume file: `.planning/phases/15.4-public-prompt-ux-improvements/15.4-UAT-ISSUES.md`
+Stopped at: Completed gap closure plan 15.4-06, fixed all 14 PR #41 issues
+Resume file: `.planning/phases/15.4-public-prompt-ux-improvements/15.4-06-SUMMARY.md`
 
 **Next Steps:**
-1. **IMMEDIATE:** Create gap closure plan 15.4-06 for PR #41 UAT issues
-2. Execute plan 15.4-06 to fix all IMPLEMENT NOW issues
-3. Re-verify Phase 15.4 after fixes
-4. Then proceed to Phase 16: Add to Vault - Live-link functionality
+1. Merge PR #41 (Phase 15.4 complete, all UAT issues resolved)
+2. Proceed to Phase 16: Add to Vault - Live-link functionality
