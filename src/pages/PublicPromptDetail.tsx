@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePrompts } from '@/contexts/PromptsContext';
 import { Navigation } from '@/components/Navigation';
 import { PromptView } from '@/components/PromptView';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ export default function PublicPromptDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { prompt, loading, error } = usePublicPrompt(promptId);
-  const { togglePinPrompt, incrementCopyCount, incrementPromptUsage } = usePrompts();
 
   // Determine if current user is the owner of this public prompt
   const isOwner = prompt && prompt.authorId === user?.id;
