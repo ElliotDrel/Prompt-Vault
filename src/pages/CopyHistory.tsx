@@ -47,10 +47,14 @@ const CopyHistory = () => {
     isSearching,
     clearSearch,
   } = useCopyHistory();
-  const { prompts, incrementCopyCount, incrementPromptUsage } = usePrompts();
+  const { prompts, loading: promptsLoading, incrementCopyCount, incrementPromptUsage } = usePrompts();
 
   // Determine owned prompt IDs for public prompt detection
-  const ownedPromptIds = useMemo(() => new Set(prompts.map(p => p.id)), [prompts]);
+  // Return null during loading to prevent race condition showing incorrect badges
+  const ownedPromptIds = useMemo(
+    () => promptsLoading ? null : new Set(prompts.map(p => p.id)),
+    [prompts, promptsLoading]
+  );
 
   // URL-synced search state (only using search, not sort)
   const { searchTerm, setSearchTerm } = useURLFilterSync({
@@ -232,7 +236,7 @@ const CopyHistory = () => {
                   event={event}
                   onDelete={handleDeleteEvent}
                   onCopy={handleCopyHistoryEvent}
-                  isPublicPrompt={!ownedPromptIds.has(event.promptId)}
+                  isPublicPrompt={ownedPromptIds === null ? undefined : !ownedPromptIds.has(event.promptId)}
                 />
               ))}
             </div>
@@ -252,7 +256,7 @@ const CopyHistory = () => {
                 event={event}
                 onDelete={handleDeleteEvent}
                 onCopy={handleCopyHistoryEvent}
-                isPublicPrompt={!ownedPromptIds.has(event.promptId)}
+                isPublicPrompt={ownedPromptIds === null ? undefined : !ownedPromptIds.has(event.promptId)}
               />
             )}
             getItemKey={(event) => event.id}
