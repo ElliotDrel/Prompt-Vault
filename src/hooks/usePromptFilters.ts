@@ -111,17 +111,18 @@ export function usePromptFilters(options: UsePromptFiltersOptions): UsePromptFil
       }
     }
 
-    // Search filter (case-insensitive match across title, body, author name, and author ID)
+    // Search filter (normalized match across title, body, author name, and author ID)
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      const normalizeSearchString = (s: string) => s.replace(/[\s_]+/g, '').toLowerCase();
+      const searchNormalized = normalizeSearchString(searchTerm);
       result = result.filter((prompt) => {
-        const titleMatch = prompt.title.toLowerCase().includes(searchLower);
-        const bodyMatch = prompt.body.toLowerCase().includes(searchLower);
+        const titleMatch = normalizeSearchString(prompt.title).includes(searchNormalized);
+        const bodyMatch = normalizeSearchString(prompt.body).includes(searchNormalized);
         // Check author name and ID for public prompts
         const authorName = prompt.author?.displayName;
         const authorId = prompt.authorId;
-        const authorMatch = (authorName && authorName.toLowerCase().includes(searchLower)) ||
-                            (authorId && authorId.toLowerCase().includes(searchLower));
+        const authorMatch = (authorName && normalizeSearchString(authorName).includes(searchNormalized)) ||
+                            (authorId && normalizeSearchString(authorId).includes(searchNormalized));
         return titleMatch || bodyMatch || authorMatch;
       });
     }
