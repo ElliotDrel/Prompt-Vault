@@ -9,12 +9,24 @@ See: .planning/PROJECT.md (updated 2026-01-13)
 
 ## Current Position
 
-Phase: 15.4 of 22 (Public Prompt UX Improvements) - COMPLETE
-Plan: 5 of 5 complete (including gap closure)
-Status: Phase 15.4 complete - realtime updates, navigation improvements, visual distinction, obsolete features removed
-Last activity: 2026-02-02 - Completed gap closure plan 05 (removed View Public Version button and Preview as Public feature)
+Phase: 15.4 of 22 (Public Prompt UX Improvements) - UAT ISSUES OPEN
+Plan: 5 of 5 complete, but PR #41 review identified 15 issues requiring gap closure
+Status: Phase 15.4 has open UAT issues from automated PR review (see 15.4-UAT-ISSUES.md)
+Last activity: 2026-02-03 - Documented PR #41 review comments, created UAT issues file
 
-Progress: ██████░░░░ 65%
+Progress: ██████░░░░ 60%
+
+### Open UAT Issues (PR #41)
+
+**Critical:** 15 issues marked IMPLEMENT NOW
+- UAT-041-01: Missing `created_at` in getPublicPrompts (broken "Created" sort)
+- UAT-041-02: CopyHistory loading race condition (incorrect public badges)
+- UAT-041-03: Optional onDelete called without guard (crash risk)
+- UAT-041-12: Trust gate missing for @claude workflow (security)
+
+**See:** `.planning/phases/15.4-public-prompt-ux-improvements/15.4-UAT-ISSUES.md`
+
+**Next:** Create gap closure plan 15.4-06 to address all IMPLEMENT NOW issues
 
 ## Shipped Milestones
 
@@ -129,7 +141,10 @@ Current workaround: Mine/Others dropdown filter.
 
 ### Blockers/Concerns
 
-None.
+**PR #41 UAT Issues (2026-02-03):**
+- Phase 15.4 has 15 open issues from automated PR review
+- Must complete gap closure plan 15.4-06 before merge
+- See: `.planning/phases/15.4-public-prompt-ux-improvements/15.4-UAT-ISSUES.md`
 
 ### Roadmap Evolution
 
@@ -143,11 +158,12 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Phase 15.4 fully complete - all 5 plans (including gap closure) verified
-Resume file: None
+Last session: 2026-02-03
+Stopped at: PR #41 review identified 15 issues requiring gap closure plan
+Resume file: `.planning/phases/15.4-public-prompt-ux-improvements/15.4-UAT-ISSUES.md`
 
 **Next Steps:**
-- Phase 16: Add to Vault - Live-link functionality
-- Phase 17: Fork
-- Phase 18: Cross-Platform Metrics
+1. **IMMEDIATE:** Create gap closure plan 15.4-06 for PR #41 UAT issues
+2. Execute plan 15.4-06 to fix all IMPLEMENT NOW issues
+3. Re-verify Phase 15.4 after fixes
+4. Then proceed to Phase 16: Add to Vault - Live-link functionality
