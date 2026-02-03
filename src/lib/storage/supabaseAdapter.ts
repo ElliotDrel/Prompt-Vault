@@ -202,7 +202,7 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 
     const { data, error } = await supabase
       .from('prompts')
-      .select('id, user_id, title, body, variables, updated_at, is_pinned, times_used, visibility')
+      .select('id, user_id, title, body, variables, created_at, updated_at, is_pinned, times_used, visibility')
       .eq('visibility', 'public')
       .order('updated_at', { ascending: false });
 
