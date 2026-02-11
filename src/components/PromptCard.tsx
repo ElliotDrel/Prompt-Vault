@@ -218,9 +218,11 @@ export function PromptCard({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       className={`prompt-card p-6 cursor-pointer flex flex-col gap-4 relative block ${
-        prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
-      } ${
-        isOwnPrompt === false ? 'ring-2 ring-green-500/50 bg-green-50/30' : ''
+        isOwnPrompt === false
+          ? 'ring-2 ring-green-500/50 bg-green-50/30'
+          : prompt.isPinned
+            ? 'ring-2 ring-yellow-400 bg-yellow-50/30'
+            : ''
       }`}
     >
       {/* Action buttons - only shown for owned prompts */}

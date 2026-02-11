@@ -96,8 +96,6 @@ export default function PublicLibrary() {
                 showPinAction={false}
                 showStats={true}
                 isOwnPrompt={prompt.authorId === user?.id}
-                // Author names are display-only text (no click action)
-                // Use Mine/Others filter chips for author filtering (Issue 10 resolved)
               />
             )}
             searchPlaceholder="Search title, content, author..."
