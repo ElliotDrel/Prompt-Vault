@@ -3,3 +3,4 @@
  */
 
 export const DASHBOARD_ROUTE = '/dashboard';
+export const LIBRARY_ROUTE = '/library';

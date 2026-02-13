@@ -1,13 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Copy, Pin, Check } from 'lucide-react';
+import { Copy, Pin, Check, Link2, Globe, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Prompt, VariableValues } from '@/types/prompt';
+import type { Prompt, VariableValues, PromptSource, AuthorInfo } from '@/types/prompt';
 import { buildPromptPayload, copyToClipboard, formatRelativeTime } from '@/utils/promptUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { usePrompts } from '@/contexts/PromptsContext';
 import { useCopyHistory } from '@/contexts/CopyHistoryContext';
 import { sanitizeVariables } from '@/utils/variableUtils';
@@ -48,9 +54,46 @@ interface PromptCardProps {
   prompt: Prompt;
   /** URL to navigate to when the card is clicked */
   to: string;
+
+  // Variant support for different rendering contexts
+  /** Source of the prompt - determines ownership and available actions */
+  source?: PromptSource; // Default: 'owned'
+  /** Author info for public prompts - displays author attribution */
+  author?: AuthorInfo;
+
+  // Action customization (optional - use defaults if not provided)
+  /** Custom copy handler - receives the prompt being copied */
+  onCopy?: (prompt: Prompt) => Promise<void>;
+  /** Custom pin handler - receives the prompt ID */
+  onPin?: (promptId: string) => Promise<void>;
+  /** Whether to show the pin action button. Default: true for 'owned', false otherwise */
+  showPinAction?: boolean;
+  /** Whether to show usage stats (times used, time saved). Default: true */
+  showStats?: boolean;
+
+  /** Override time saved multiplier (for viewing other users' prompts) */
+  timeSavedMultiplier?: number;
+
+  /** Callback when author name is clicked (for filtering) */
+  onAuthorClick?: () => void;
+
+  /** Whether this prompt is owned by the current user (for visual distinction in Library) */
+  isOwnPrompt?: boolean;
 }
 
-export function PromptCard({ prompt, to }: PromptCardProps) {
+export function PromptCard({
+  prompt,
+  to,
+  source,
+  author,
+  onCopy,
+  onPin,
+  showPinAction,
+  showStats,
+  timeSavedMultiplier,
+  onAuthorClick,
+  isOwnPrompt,
+}: PromptCardProps) {
   const { stats, incrementCopyCount, incrementPromptUsage, togglePinPrompt } = usePrompts();
   const { addCopyEvent } = useCopyHistory();
   const [variableValues, setVariableValues] = useState<VariableValues>(() => loadVariableValues(prompt.id));
@@ -61,6 +104,12 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
     () => ({ ...prompt, variables: sanitizedVariables }),
     [prompt, sanitizedVariables]
   );
+
+  // Derive defaults from source
+  const effectiveSource = source ?? 'owned';
+  const shouldShowPinAction = showPinAction ?? (effectiveSource === 'owned');
+  const shouldShowStats = showStats ?? true;
+  const effectiveMultiplier = timeSavedMultiplier ?? stats.timeSavedMultiplier;
 
   // Auto-save variable values to sessionStorage whenever they change
   useEffect(() => {
@@ -74,11 +123,23 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
     }));
   };
 
-  const handleCopy = async (e: React.MouseEvent) => {
+  const handleCopyClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation
     e.stopPropagation(); // Prevent event bubbling
 
     try {
+      // Use custom copy handler if provided
+      if (onCopy) {
+        await onCopy(prompt);
+        // Still show visual feedback for custom handlers
+        setIsCopied(true);
+        setShowSuccessEffect(true);
+        setTimeout(() => setIsCopied(false), 1500);
+        setTimeout(() => setShowSuccessEffect(false), 2000);
+        return;
+      }
+
+      // Default copy behavior for owned prompts
       const payload = buildPromptPayload(sanitizedPrompt, variableValues);
       const success = await copyToClipboard(payload);
 
@@ -125,12 +186,17 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
     }
   };
 
-  const handlePin = async (e: React.MouseEvent) => {
+  const handlePinClick = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation
     e.stopPropagation(); // Prevent event bubbling
 
     try {
-      await togglePinPrompt(prompt.id);
+      // Use custom pin handler if provided
+      if (onPin) {
+        await onPin(prompt.id);
+      } else {
+        await togglePinPrompt(prompt.id);
+      }
     } catch (err) {
       toast.error('Failed to update pin state');
     }
@@ -152,31 +218,110 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
       className={`prompt-card p-6 cursor-pointer flex flex-col gap-4 relative block ${
-        prompt.isPinned ? 'ring-2 ring-yellow-400 bg-yellow-50/30' : ''
+        isOwnPrompt === false
+          ? 'ring-2 ring-green-500/50 bg-green-50/30'
+          : prompt.isPinned
+            ? 'ring-2 ring-yellow-400 bg-yellow-50/30'
+            : ''
       }`}
     >
-      {/* Pin button */}
-      <Button
-        onClick={handlePin}
-        onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
-        onKeyDown={(event) => event.stopPropagation()}
-        variant="ghost"
-        size="sm"
-        className={`absolute top-2 right-2 h-8 w-8 p-0 ${
-          prompt.isPinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-muted-foreground hover:text-foreground'
-        }`}
-      >
-        <Pin className={`h-4 w-4 ${prompt.isPinned ? 'fill-current' : ''}`} />
-      </Button>
+      {/* Action buttons - only shown for owned prompts */}
+      {shouldShowPinAction && (
+        <div className="absolute top-2 right-2 flex gap-1">
+          {/* Visibility indicator with tooltip - shown for owned prompts (public/private) */}
+          {effectiveSource === 'owned' && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`h-8 w-8 flex items-center justify-center ${
+                      prompt.visibility === 'public' ? 'text-green-600' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {prompt.visibility === 'public' ? (
+                      <Globe className="h-4 w-4" />
+                    ) : (
+                      <Lock className="h-4 w-4" />
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {prompt.visibility === 'public'
+                      ? 'Public - visible in the Prompt Library'
+                      : 'Private - only visible to you'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {/* Pin button */}
+          <Button
+            onClick={handlePinClick}
+            onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
+            onKeyDown={(event) => event.stopPropagation()}
+            variant="ghost"
+            size="sm"
+            className={`h-8 w-8 p-0 ${
+              prompt.isPinned ? 'text-yellow-600 hover:text-yellow-700' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Pin className={`h-4 w-4 ${prompt.isPinned ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
+      )}
+
+      {/* Linked indicator for saved prompts */}
+      {effectiveSource === 'saved' && (
+        <div className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center text-muted-foreground">
+          <Link2 className="h-4 w-4" />
+        </div>
+      )}
+
+      {/* Public indicator for Library cards (source='public') */}
+      {effectiveSource === 'public' && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center text-green-600">
+                <Globe className="h-4 w-4" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Public - visible in the Prompt Library</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
       {/* Header with timestamp and title */}
-      <div className="flex flex-col gap-1 pr-10">
+      <div className={`flex flex-col gap-1 ${shouldShowPinAction ? 'pr-20' : (effectiveSource === 'saved' || effectiveSource === 'public') ? 'pr-10' : ''}`}>
         <span className="text-xs text-muted-foreground">
           Last updated: {formatRelativeTime(prompt.updatedAt)}
         </span>
         <h3 className="text-lg font-semibold text-card-foreground line-clamp-2 w-full">
           {prompt.title}
         </h3>
+        {/* Author attribution for public prompts */}
+        {author && (
+          onAuthorClick ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onAuthorClick();
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground hover:underline text-left"
+            >
+              by {author.displayName || `${author.userId.slice(0, 8)}...`}
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              by {author.displayName || `${author.userId.slice(0, 8)}...`}
+            </span>
+          )
+        )}
       </div>
 
       {/* Variable inputs */}
@@ -210,15 +355,17 @@ export function PromptCard({ prompt, to }: PromptCardProps) {
         </div>
       )}
 
-      {/* Usage stats */}
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>Used {prompt.timesUsed || 0} times</span>
-        <span>Saved {formatTime((prompt.timesUsed || 0) * stats.timeSavedMultiplier)}</span>
-      </div>
+      {/* Usage stats - conditionally shown */}
+      {shouldShowStats && (
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>Used {prompt.timesUsed || 0} times</span>
+          <span>Saved {formatTime((prompt.timesUsed || 0) * effectiveMultiplier)}</span>
+        </div>
+      )}
 
       {/* Copy button */}
       <Button
-        onClick={handleCopy}
+        onClick={handleCopyClick}
         onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
         onKeyDown={(event) => event.stopPropagation()}
         className={`w-full mt-auto font-medium transition-all duration-300 ${
