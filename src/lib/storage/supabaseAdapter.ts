@@ -1,7 +1,8 @@
-import { Prompt, CopyEvent, PromptVersion, PaginatedVersions } from '@/types/prompt';
-import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions } from './types';
+import { Prompt, CopyEvent, PromptVersion, PaginatedVersions, PublicPrompt } from '@/types/prompt';
+import { PromptsStorageAdapter, CopyEventsStorageAdapter, StatsStorageAdapter, VersionsStorageAdapter, StorageAdapter, PaginatedCopyEvents, UpdatePromptOptions, FilterPreferences, VisibilityFilter, AuthorFilter, SortBy, SortDirection } from './types';
 import { supabase, getCurrentUserId } from '@/lib/supabaseClient';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase-generated';
 import { COPY_HISTORY_SEARCH_LIMIT } from '@/config/copyHistory';
 
 type PromptRow = {
@@ -9,9 +10,15 @@ type PromptRow = {
   title: string;
   body: string;
   variables: unknown;
+  created_at: string;
   updated_at: string;
   is_pinned: boolean | null;
   times_used: number | null;
+  visibility: Database["public"]["Enums"]["prompt_visibility"];
+};
+
+type PublicPromptRow = PromptRow & {
+  user_id: string;
 };
 
 type CopyEventRow = {
@@ -36,14 +43,38 @@ type VersionRow = {
   created_at: string;
 };
 
+// 🚨 IMPORTANT: See CLAUDE.md "Supabase Broadcast Channel Gotcha" for critical details!
+// supabase.channel(name) REUSES existing instances - calling removeChannel() on a channel
+// that's also used for persistent subscriptions will CLOSE those subscriptions!
+// Solution: Check channel.state === 'joined' before removing (see broadcastPublicPromptChange).
+
 const mapPromptRow = (row: PromptRow): Prompt => ({
   id: row.id,
   title: row.title,
   body: row.body,
   variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
+  createdAt: row.created_at,
   updatedAt: row.updated_at,
   isPinned: row.is_pinned ?? false,
   timesUsed: row.times_used ?? 0,
+  visibility: row.visibility ?? 'private',
+});
+
+const mapPublicPromptRow = (row: PublicPromptRow): PublicPrompt => ({
+  id: row.id,
+  title: row.title,
+  body: row.body,
+  variables: Array.isArray(row.variables) ? (row.variables as string[]) : [],
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  isPinned: row.is_pinned ?? false,
+  timesUsed: row.times_used ?? 0,
+  visibility: 'public',
+  authorId: row.user_id,
+  author: {
+    userId: row.user_id,
+    displayName: undefined, // No user profile system yet; UI will use truncated userId as fallback
+  },
 });
 
 const mapCopyEventRow = (row: CopyEventRow): CopyEvent => ({
@@ -103,6 +134,45 @@ function hasContentChanges(oldPrompt: Prompt, newData: Omit<Prompt, 'id' | 'upda
   );
 }
 
+/**
+ * Broadcast a notification that a public prompt has changed.
+ * This notifies all users viewing the Library page to refresh their data.
+ * Uses Supabase Broadcast for client-to-client messaging (bypasses RLS).
+ *
+ * 🚨 CRITICAL: See CLAUDE.md "Supabase Broadcast Channel Gotcha" for why this is implemented this way!
+ *
+ * Implementation: Reuses existing subscription channel if available.
+ * - supabase.channel(name) REUSES existing instances by name
+ * - If channel.state === 'joined' (persistent subscription), just send without removing
+ * - If channel is newly created (not subscribed), remove after sending to prevent accumulation
+ * - Calling removeChannel() on a 'joined' channel would CLOSE the persistent subscription!
+ * - Non-blocking: failures are logged but don't break the main operation
+ */
+async function broadcastPublicPromptChange(): Promise<void> {
+  try {
+    const channel = supabase.channel('public_prompts_broadcast');
+
+    // Check if this channel is already being used for persistent subscription
+    // A subscribed channel will have 'joined' state; a new channel won't
+    const isExistingSubscription = channel.state === 'joined';
+
+    await channel.send({
+      type: 'broadcast',
+      event: 'public_prompt_changed',
+      payload: {},
+    });
+
+    // Only remove if this was a newly created channel (not the persistent subscription)
+    // Removing a persistent subscription would cause reconnection churn
+    if (!isExistingSubscription) {
+      await supabase.removeChannel(channel);
+    }
+  } catch (err) {
+    // Non-critical: broadcast failure shouldn't break the main operation
+    console.error('Failed to broadcast public prompt change:', err);
+  }
+}
+
 class SupabasePromptsAdapter implements PromptsStorageAdapter {
   private versionsAdapter: SupabaseVersionsAdapter;
 
@@ -126,6 +196,46 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     return (data as PromptRow[]).map(mapPromptRow);
   }
 
+  async getPublicPrompts(): Promise<PublicPrompt[]> {
+    // Requires authentication - RLS policy allows reading public prompts for any authenticated user
+    await requireUserId();
+
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('id, user_id, title, body, variables, created_at, updated_at, is_pinned, times_used, visibility')
+      .eq('visibility', 'public')
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch public prompts: ${error.message}`);
+    }
+
+    return (data as PublicPromptRow[]).map(mapPublicPromptRow);
+  }
+
+  async getPublicPromptById(promptId: string): Promise<PublicPrompt | null> {
+    // Requires authentication - RLS policy allows reading public prompts for any authenticated user
+    await requireUserId();
+
+    const { data, error } = await supabase
+      .from('prompts')
+      .select('id, user_id, title, body, variables, created_at, updated_at, is_pinned, times_used, visibility')
+      .eq('id', promptId)
+      .eq('visibility', 'public')  // CRITICAL: Only fetch if public
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch public prompt: ${error.message}`);
+    }
+
+    // Return null for both "not found" AND "not public" (security - don't reveal existence)
+    if (!data) {
+      return null;
+    }
+
+    return mapPublicPromptRow(data as PublicPromptRow);
+  }
+
   async addPrompt(promptData: Omit<Prompt, 'id' | 'updatedAt'>): Promise<Prompt> {
     const userId = await requireUserId();
 
@@ -136,6 +246,7 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       variables: promptData.variables ?? [],
       is_pinned: promptData.isPinned ?? false,
       times_used: promptData.timesUsed ?? 0,
+      visibility: promptData.visibility ?? 'private',
     };
 
     const { data, error } = await supabase
@@ -162,6 +273,11 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     } catch (versionError) {
       // Log but don't fail prompt creation
       console.error('Failed to create initial version:', versionError);
+    }
+
+    // Broadcast if prompt is created as public so Library viewers see it
+    if (createdPrompt.visibility === 'public') {
+      void broadcastPublicPromptChange();
     }
 
     return createdPrompt;
@@ -247,11 +363,20 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       }
     }
 
+    // Broadcast if prompt is public so Library viewers see the update
+    if (updatedPrompt.visibility === 'public') {
+      void broadcastPublicPromptChange();
+    }
+
     return updatedPrompt;
   }
 
   async deletePrompt(id: string): Promise<void> {
     const userId = await requireUserId();
+
+    // Fetch prompt before deletion to check if it's public
+    const promptRow = await fetchPromptRowById(userId, id);
+    const wasPublic = promptRow.visibility === 'public';
 
     const { error } = await supabase
       .from('prompts')
@@ -261,6 +386,11 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
 
     if (error) {
       throw new Error(`Failed to delete prompt: ${error.message}`);
+    }
+
+    // Broadcast if deleted prompt was public so Library viewers see it removed
+    if (wasPublic) {
+      void broadcastPublicPromptChange();
     }
   }
 
@@ -287,6 +417,34 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
     return mapPromptRow(data as PromptRow);
   }
 
+  async toggleVisibility(id: string): Promise<Prompt> {
+    const userId = await requireUserId();
+    const currentPrompt = await fetchPromptRowById(userId, id);
+    const newVisibility = currentPrompt.visibility === 'public' ? 'private' : 'public';
+
+    const { data, error } = await supabase
+      .from('prompts')
+      .update({ visibility: newVisibility })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to toggle visibility: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error(`Prompt not found or you don't have permission to toggle visibility`);
+    }
+
+    // Broadcast to notify all Library page viewers
+    // Handles both private→public (new prompt appears) and public→private (prompt disappears)
+    void broadcastPublicPromptChange();
+
+    return mapPromptRow(data as PromptRow);
+  }
+
   async incrementPromptUsage(id: string): Promise<Prompt> {
     await requireUserId();
 
@@ -306,7 +464,14 @@ class SupabasePromptsAdapter implements PromptsStorageAdapter {
       throw new Error(`Prompt not found or you don't have permission to increment usage`);
     }
 
-    return mapPromptRow(data as PromptRow);
+    const updatedPrompt = mapPromptRow(data as PromptRow);
+
+    // Broadcast if prompt is public so Library viewers see updated usage count
+    if (updatedPrompt.visibility === 'public') {
+      void broadcastPublicPromptChange();
+    }
+
+    return updatedPrompt;
   }
 }
 
@@ -491,6 +656,76 @@ class SupabaseStatsAdapter implements StatsStorageAdapter {
   async incrementCopyCount(): Promise<void> {
     // Stats view is computed dynamically; no-op required for Supabase implementation.
   }
+
+  async getFilterPreferences(): Promise<FilterPreferences> {
+    const userId = await requireUserId();
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('filter_visibility, filter_author, sort_by, sort_direction')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to fetch filter preferences: ${error.message}`);
+    }
+
+    // Return defaults if no settings row exists (new user)
+    if (!data) {
+      return {
+        filterVisibility: 'all',
+        filterAuthor: 'all',
+        sortBy: 'lastUpdated',
+        sortDirection: 'desc',
+      };
+    }
+
+    return {
+      filterVisibility: (data.filter_visibility as VisibilityFilter) ?? 'all',
+      filterAuthor: (data.filter_author as AuthorFilter) ?? 'all',
+      sortBy: (data.sort_by as SortBy) ?? 'lastUpdated',
+      sortDirection: (data.sort_direction as SortDirection) ?? 'desc',
+    };
+  }
+
+  async updateFilterPreferences(prefs: Partial<FilterPreferences>): Promise<void> {
+    const userId = await requireUserId();
+
+    // Build update object with only the fields that are being changed
+    const updates: Record<string, unknown> = {};
+    if (prefs.filterVisibility !== undefined) {
+      updates.filter_visibility = prefs.filterVisibility;
+    }
+    if (prefs.filterAuthor !== undefined) {
+      updates.filter_author = prefs.filterAuthor;
+    }
+    if (prefs.sortBy !== undefined) {
+      updates.sort_by = prefs.sortBy;
+    }
+    if (prefs.sortDirection !== undefined) {
+      updates.sort_direction = prefs.sortDirection;
+    }
+
+    // Skip if no updates provided
+    if (Object.keys(updates).length === 0) {
+      return;
+    }
+
+    // Upsert to user_settings (insert if not exists, update if exists)
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({
+        user_id: userId,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id',
+      });
+
+    if (error) {
+      throw new Error(`Failed to update filter preferences: ${error.message}`);
+    }
+  }
 }
 
 class SupabaseVersionsAdapter implements VersionsStorageAdapter {
@@ -571,8 +806,9 @@ export class SupabaseAdapter implements StorageAdapter {
   public stats: StatsStorageAdapter;
   public versions: VersionsStorageAdapter;
   private channel: RealtimeChannel | null = null;
+  private broadcastChannel: RealtimeChannel | null = null;
   private channelUserId: string | null = null;
-  private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void>();
+  private subscribers = new Set<(type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void>();
   private subscriptionGeneration = 0;
   private subscribeTask: Promise<void> | null = null;
 
@@ -596,7 +832,7 @@ export class SupabaseAdapter implements StorageAdapter {
     return 'supabase';
   }
 
-  subscribe(callback: (type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) => void): () => void {
+  subscribe(callback: (type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) => void): () => void {
     this.subscribers.add(callback);
     if (this.subscribers.size === 1) {
       const generation = ++this.subscriptionGeneration;
@@ -612,7 +848,7 @@ export class SupabaseAdapter implements StorageAdapter {
     };
   }
 
-  private notifySubscribers(type: 'prompts' | 'copyEvents' | 'stats', data?: unknown) {
+  private notifySubscribers(type: 'prompts' | 'copyEvents' | 'stats' | 'publicPrompts', data?: unknown) {
     this.subscribers.forEach((subscriber) => {
       try {
         subscriber(type, data);
@@ -702,9 +938,21 @@ export class SupabaseAdapter implements StorageAdapter {
         this.notifySubscribers('prompts', payload);
       });
 
+    // Create a broadcast channel for public prompt notifications
+    // Uses Supabase Broadcast instead of postgres_changes because RLS evaluates
+    // against the OLD row state - when private→public, other users can't see the
+    // old (private) row, so they never receive postgres_changes events.
+    // Broadcast bypasses RLS for notifications; actual data fetch still uses RLS.
+    const broadcastChannel = supabase
+      .channel('public_prompts_broadcast')
+      .on('broadcast', { event: 'public_prompt_changed' }, () => {
+        this.notifySubscribers('publicPrompts');
+      });
+
     if (generation !== this.subscriptionGeneration || this.subscribers.size === 0) {
       try {
         await supabase.removeChannel(channel);
+        await supabase.removeChannel(broadcastChannel);
       } catch (err) {
         console.error('Failed to remove Supabase channel:', err);
       }
@@ -712,19 +960,33 @@ export class SupabaseAdapter implements StorageAdapter {
     }
 
     this.channel = channel;
+    this.broadcastChannel = broadcastChannel;
     this.channelUserId = userId;
 
     channel.subscribe((status, err) => {
       if (status === 'CHANNEL_ERROR') {
         console.error('Realtime subscription error:', err);
-        console.error('Channel state:', channel);
         void this.resubscribe();
       }
       if (status === 'TIMED_OUT') {
         console.error('Realtime subscription timed out');
       }
       if (status === 'CLOSED') {
-        console.warn('Realtime subscription closed');
+        // Silently resubscribe on close - no logging needed for expected disconnections
+        void this.resubscribe();
+      }
+    });
+
+    broadcastChannel.subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.error('Public prompts broadcast subscription error:', err);
+        void this.resubscribe();
+      }
+      if (status === 'TIMED_OUT') {
+        console.error('Public prompts broadcast subscription timed out');
+      }
+      if (status === 'CLOSED') {
+        // Silently resubscribe on close - no logging needed for expected disconnections
         void this.resubscribe();
       }
     });
@@ -750,17 +1012,24 @@ export class SupabaseAdapter implements StorageAdapter {
       return;
     }
 
-    if (!this.channel) {
+    if (!this.channel && !this.broadcastChannel) {
       this.channelUserId = null;
       return;
     }
 
     const channel = this.channel;
+    const broadcastChannel = this.broadcastChannel;
     this.channel = null;
+    this.broadcastChannel = null;
     this.channelUserId = null;
 
     try {
-      await supabase.removeChannel(channel);
+      if (channel) {
+        await supabase.removeChannel(channel);
+      }
+      if (broadcastChannel) {
+        await supabase.removeChannel(broadcastChannel);
+      }
     } catch (err) {
       console.error('Failed to remove Supabase channel:', err);
     }

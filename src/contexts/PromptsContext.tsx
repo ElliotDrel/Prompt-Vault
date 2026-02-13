@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Prompt } from '@/types/prompt';
 import { StorageAdapter, UpdatePromptOptions } from '@/lib/storage';
 import { sanitizeVariables } from '@/utils/variableUtils';
@@ -13,6 +14,7 @@ interface PromptsContextType {
   updatePrompt: (id: string, prompt: Omit<Prompt, 'id' | 'updatedAt'>, options?: UpdatePromptOptions) => Promise<Prompt>;
   deletePrompt: (id: string) => Promise<void>;
   togglePinPrompt: (id: string) => Promise<void>;
+  toggleVisibility: (id: string) => Promise<void>;
   stats: {
     totalPrompts: number;
     totalCopies: number;
@@ -35,6 +37,7 @@ const defaultStats = {
 };
 
 export function PromptsProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -217,18 +220,70 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [getAdapter]);
 
+  const toggleVisibility = useCallback(async (id: string) => {
+    const adapter = getAdapter();
+
+    // Store previous state for rollback on error
+    let previousPrompts: Prompt[] | null = null;
+
+    try {
+      setError(null);
+
+      // Optimistic update for instant feedback
+      setPrompts((prev) => {
+        previousPrompts = prev;
+        return prev.map((p) =>
+          p.id === id
+            ? { ...p, visibility: p.visibility === 'public' ? 'private' : 'public' }
+            : p
+        );
+      });
+
+      const updatedPrompt = await adapter.prompts.toggleVisibility(id);
+      const sanitizedPrompt = {
+        ...updatedPrompt,
+        variables: sanitizeVariables(updatedPrompt.variables ?? []),
+      };
+
+      // Sync with server response
+      setPrompts((prev) => prev.map((p) =>
+        p.id === id ? sanitizedPrompt : p
+      ));
+
+      // Invalidate public prompts query so Library page reflects the change
+      await queryClient.invalidateQueries({ queryKey: ['publicPrompts'] });
+    } catch (err) {
+      console.error('Failed to toggle visibility:', err);
+      setError('Failed to toggle visibility');
+
+      // Rollback optimistic update on error
+      if (previousPrompts !== null) {
+        setPrompts(previousPrompts);
+      }
+
+      throw err;
+    }
+  }, [getAdapter, queryClient]);
+
   const incrementPromptUsage = useCallback(async (promptId: string) => {
     const adapter = getAdapter();
 
     // Store previous state for rollback on error
     let previousPrompts: Prompt[] | null = null;
     let previousStats: typeof stats | null = null;
+    let shouldUpdateStats = false;
 
     try {
       setError(null);
 
       // Optimistic update: Immediately update UI state before database call
       setPrompts((prev) => {
+        const hasPrompt = prev.some((prompt) => prompt.id === promptId);
+        if (!hasPrompt) {
+          return prev;
+        }
+
+        shouldUpdateStats = true;
         previousPrompts = prev; // Store for rollback
         return prev.map((prompt) =>
           prompt.id === promptId
@@ -237,13 +292,15 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
         );
       });
 
-      setStats((prev) => {
-        previousStats = prev; // Store for rollback
-        return {
-          ...prev,
-          totalPromptUses: (prev.totalPromptUses ?? 0) + 1,
-        };
-      });
+      if (shouldUpdateStats) {
+        setStats((prev) => {
+          previousStats = prev; // Store for rollback
+          return {
+            ...prev,
+            totalPromptUses: (prev.totalPromptUses ?? 0) + 1,
+          };
+        });
+      }
 
       // Background: Confirm with database
       const updatedPrompt = await adapter.prompts.incrementPromptUsage(promptId);
@@ -304,6 +361,7 @@ export function PromptsProvider({ children }: { children: React.ReactNode }) {
       updatePrompt,
       deletePrompt,
       togglePinPrompt,
+      toggleVisibility,
       stats,
       statsLoading,
       incrementCopyCount,

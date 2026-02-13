@@ -85,7 +85,7 @@ OAuth providers (Google, GitHub, etc.) must be configured in the Supabase dashbo
    - Client ID (from provider's developer console)
    - Client Secret (from provider's developer console)
 4. Set authorized redirect URLs:
-   - Development: `http://localhost:5173/auth`
+   - Development: `http://localhost:2902/auth`
    - Production: `https://yourdomain.com/auth`
 5. Save configuration
 
@@ -97,6 +97,17 @@ OAuth providers (Google, GitHub, etc.) must be configured in the Supabase dashbo
 - `/dashboard` supports nested subroutes (for example, `/dashboard/prompt/...` workflows)
 - All routes wrapped in `AuthProvider` for consistent auth state
 - Protected routes use `RequireAuth` component in the route configuration
+
+#### React Router setSearchParams Scroll Behavior
+**CRITICAL**: React Router's `setSearchParams` triggers scroll-to-top by default, even with `replace: true`. For filter/sort controls that update URL params without full page navigation, always use:
+```typescript
+setSearchParams(newParams, { replace: true, preventScrollReset: true });
+```
+Without `preventScrollReset: true`, clicking filter options will scroll the page to the top. This applies to:
+- Filter dropdowns
+- Sort controls
+- Pagination
+- Any UI that updates URL search params while user is scrolled down
 
 ### Supabase Integration
 - Client configured in `src/lib/supabaseClient.ts` with environment variable validation
@@ -258,6 +269,13 @@ npx supabase functions delete my-function
 
 **Real Example (2026-01-07)**: The `increment_prompt_usage` function was created as a two-parameter function and pushed to remote. Later, the migration files were edited to use a one-parameter signature (with `auth.uid()` internally). However, the remote DB still had the old two-parameter version, causing runtime errors. Fixed by creating migration `20260107150343_fix_increment_prompt_usage_signature_mismatch.sql` that explicitly dropped the old function and created the new one.
 
+### SECURITY DEFINER Functions:
+- **Always** add `SET search_path = public` to the function definition
+- **Always** schema-qualify tables (`public.my_table`, not `my_table`)
+- Auth triggers run in a different schema context; without explicit search_path they fail with "relation does not exist"
+
+**Real Example (2026-01-13)**: `initialize_user_settings` trigger lacked `SET search_path = public`, breaking new user signups for 8 days until discovered. Fixed in `20260113201104_fix_initialize_user_settings_schema.sql`.
+
 ### Supabase Realtime Setup:
 - **Enable first**: Dashboard → Database → Publications → `supabase_realtime` → Toggle tables ON
 - **Verify RLS**: SELECT policy must exist for `auth.uid() = user_id`
@@ -265,6 +283,55 @@ npx supabase functions delete my-function
 - **Race condition symptom**: Code works with console.logs but breaks without them → missing callback
 - **Debug checklist**: Publication enabled? RLS policy exists? User authenticated? Callback handles status?
 - **Test**: Two tabs logged in, edit in Tab A, Tab B updates instantly
+
+### 🚨 CRITICAL: Supabase Broadcast Channel Gotcha (2026-01-18)
+
+**THE PROBLEM**: `supabase.channel(name)` REUSES existing channel instances by name. If you have a persistent subscription to `'my_channel'` and later call `supabase.channel('my_channel')` to send a one-off broadcast, you get the SAME channel instance. Calling `removeChannel()` on it will CLOSE your persistent subscription!
+
+**SYMPTOM**: Console spam with "subscription closed" messages, channels constantly reconnecting, functionality appears to work but with excessive churn.
+
+**WRONG APPROACH** (causes subscription churn):
+```typescript
+// ❌ DON'T DO THIS - creates/removes same channel instance as receiver
+async function broadcastChange() {
+  const channel = supabase.channel('public_prompts_broadcast');
+  await channel.send({ type: 'broadcast', event: 'changed', payload: {} });
+  await supabase.removeChannel(channel); // BREAKS receiver's subscription!
+}
+```
+
+**CORRECT APPROACH** (check if channel is already subscribed):
+```typescript
+// ✅ DO THIS - reuse existing subscription, only remove newly created channels
+async function broadcastChange() {
+  const channel = supabase.channel('public_prompts_broadcast');
+
+  // Check if this is the persistent subscription (state === 'joined')
+  const isExistingSubscription = channel.state === 'joined';
+
+  await channel.send({ type: 'broadcast', event: 'changed', payload: {} });
+
+  // Only remove if this was a newly created channel (not the persistent one)
+  if (!isExistingSubscription) {
+    await supabase.removeChannel(channel);
+  }
+}
+```
+
+**WHY THIS MATTERS**:
+- Persistent subscriptions (for receiving broadcasts) stay connected
+- One-off sends (for broadcasting changes) get cleaned up
+- No subscription churn, no console spam, no reconnection loops
+
+**ALTERNATIVE APPROACH** (use unique channel names for sending):
+```typescript
+// Also works - sender uses unique name, receiver uses fixed name
+// BUT: messages won't reach receiver unless they're on same channel name!
+// Only use this if sender doesn't need to receive, and receivers are on different channel
+const sendChannel = supabase.channel(`broadcast_send_${Date.now()}`);
+```
+
+**Real Example (2026-01-18)**: Spent hours debugging "subscription closed" console spam. Root cause: `broadcastPublicPromptChange()` was calling `removeChannel()` on the same channel instance used by the persistent subscription in `SupabaseAdapter.setupSubscription()`. Fixed by checking `channel.state === 'joined'` before removing.
 
 ### Time Tracking Architecture (2026-01-04):
 - **Frontend calculation pattern**: Compute derived values (time saved = timesUsed * multiplier) in components, not database
@@ -288,7 +355,7 @@ npx supabase functions delete my-function
 ## Project Commands
 ```bash
 npm install        # setup dependencies
-npm run dev        # start Vite dev server (port 5173)
+npm run dev        # start Vite dev server (port 2902)
 npm run build      # production build
 npm run build:dev  # development build
 npm run lint       # run ESLint
@@ -417,6 +484,12 @@ import { supabase } from '@/lib/supabaseClient';
 ### AnimatePresence Keys
 - Always provide explicit `key` props on `motion.div` children: `<motion.div key="backdrop" />`
 - Render auxiliary dialogs outside `AnimatePresence` blocks to avoid key conflicts
+
+### Dropdown Scroll Jitter (Radix/Floating UI)
+- **Symptom**: Popover/dropdown "bobbles" or lags behind trigger during fast scroll
+- **Root cause**: Radix components use Floating UI (JavaScript-based positioning) which can't update synchronously with browser scroll
+- **Fix**: Replace with pure CSS dropdown using `position: absolute` + `top-full` relative to a `position: relative` parent
+- **Example**: See `FilterSortControl.tsx` - uses React state for open/close, native event listeners for click-outside/Escape
 
 ## Lint & Tooling
 - Use `type Foo = Bar` instead of empty interfaces
