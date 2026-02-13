@@ -143,18 +143,43 @@ export const getCurrentUserId = async (): Promise<string | null> => {
 };
 
 /**
+ * Derive the localStorage key Supabase uses to persist auth sessions.
+ * Key format: sb-{project_ref}-auth-token, where project_ref is extracted
+ * from the Supabase URL (https://{project_ref}.supabase.co).
+ */
+const supabaseStorageKey = (() => {
+  try {
+    const ref = new URL(supabaseUrl).hostname.split('.')[0];
+    return `sb-${ref}-auth-token`;
+  } catch {
+    return 'sb-hupdhjdasqgfcabaiiwa-auth-token'; // fallback to known project ref
+  }
+})();
+
+/**
  * Synchronous check for persisted Supabase session in localStorage.
  * Used for optimistic UI (e.g. showing "Go to App" instantly) — NOT for security decisions.
  * The actual auth state is still resolved async by supabase.auth.getSession().
+ *
+ * Returns true if:
+ * - access_token exists and is not expired (definitely valid), OR
+ * - access_token is expired but refresh_token exists (Supabase will auto-refresh)
+ *
+ * Only returns false when no session exists at all, covering returning users
+ * who've been away for >1 hour (expired access_token but valid refresh_token).
  */
 export function hasPersistedSession(): boolean {
   try {
-    const stored = localStorage.getItem('sb-hupdhjdasqgfcabaiiwa-auth-token');
+    const stored = localStorage.getItem(supabaseStorageKey);
     if (!stored) return false;
     const parsed = JSON.parse(stored);
-    // Check that access_token exists and expiry is in the future
-    if (!parsed?.access_token || !parsed?.expires_at) return false;
-    return parsed.expires_at > Math.floor(Date.now() / 1000);
+    if (!parsed?.access_token) return false;
+    // If token is still valid, definitely authenticated
+    if (parsed.expires_at && parsed.expires_at > Math.floor(Date.now() / 1000)) {
+      return true;
+    }
+    // Token expired but refresh_token exists — Supabase will auto-refresh
+    return !!parsed.refresh_token;
   } catch {
     return false;
   }
