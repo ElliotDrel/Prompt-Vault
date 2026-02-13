@@ -141,3 +141,21 @@ export const getCurrentUserId = async (): Promise<string | null> => {
   const user = await getCurrentUser();
   return user?.id || null;
 };
+
+/**
+ * Synchronous check for persisted Supabase session in localStorage.
+ * Used for optimistic UI (e.g. showing "Go to App" instantly) — NOT for security decisions.
+ * The actual auth state is still resolved async by supabase.auth.getSession().
+ */
+export function hasPersistedSession(): boolean {
+  try {
+    const stored = localStorage.getItem('sb-hupdhjdasqgfcabaiiwa-auth-token');
+    if (!stored) return false;
+    const parsed = JSON.parse(stored);
+    // Check that access_token exists and expiry is in the future
+    if (!parsed?.access_token || !parsed?.expires_at) return false;
+    return parsed.expires_at > Math.floor(Date.now() / 1000);
+  } catch {
+    return false;
+  }
+}

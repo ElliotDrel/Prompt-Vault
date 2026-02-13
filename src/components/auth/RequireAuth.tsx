@@ -9,11 +9,17 @@ interface RequireAuthProps {
 }
 
 export function RequireAuth({ children, fallback }: RequireAuthProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, likelyAuthenticated } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
+  // Show loading state while checking authentication
   if (loading) {
+    if (likelyAuthenticated) {
+      // Session likely exists — show minimal placeholder matching dashboard background
+      // to avoid jarring spinner for returning users
+      return fallback || <div className="min-h-screen bg-gray-50" />;
+    }
+    // No session detected — show branded spinner for unknown auth state
     return (
       fallback || (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

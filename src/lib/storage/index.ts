@@ -3,22 +3,22 @@ import { SupabaseAdapter } from './supabaseAdapter';
 import { getCurrentUserId } from '@/lib/supabaseClient';
 
 /**
- * Factory function to create the appropriate storage adapter
- * Returns Supabase adapter for authenticated users
+ * Factory function to create the appropriate storage adapter.
+ * Returns Supabase adapter for authenticated users.
+ *
+ * @param userId - Optional pre-resolved userId from AuthContext.
+ *   When provided, skips redundant supabase.auth.getUser() network calls.
+ *   Falls back to async getCurrentUserId() if not provided (backward compat).
  */
-export async function createStorageAdapter(): Promise<StorageAdapter | null> {
+export async function createStorageAdapter(userId?: string): Promise<StorageAdapter | null> {
   try {
-    const userId = await getCurrentUserId();
+    // Use provided userId (from AuthContext) to skip redundant getUser() call
+    const resolvedUserId = userId ?? await getCurrentUserId();
 
-    if (userId) {
-      // User is authenticated, use Supabase
-      const adapter = new SupabaseAdapter();
-      const isReady = await adapter.isReady();
-
-      if (isReady) {
-        return adapter;
-      }
-      throw new Error('Supabase adapter not ready');
+    if (resolvedUserId) {
+      // User is authenticated — adapter is a stateless wrapper around
+      // Supabase client, so no additional readiness check is needed.
+      return new SupabaseAdapter();
     }
   } catch (error) {
     console.warn('Failed to initialize Supabase adapter:', error);
