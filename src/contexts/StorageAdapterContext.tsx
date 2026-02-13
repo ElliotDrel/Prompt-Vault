@@ -40,7 +40,9 @@ export function StorageAdapterProvider({ children }: { children: React.ReactNode
     setError(null);
     setAdapter(null);
 
-    createStorageAdapter()
+    // Pass userId to skip redundant supabase.auth.getUser() network calls —
+    // userId is already verified by AuthContext at this point (guarded above)
+    createStorageAdapter(userId!)
       .then((nextAdapter) => {
         if (!isMounted) {
           return;

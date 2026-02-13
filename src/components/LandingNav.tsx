@@ -4,11 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function LandingNav() {
-  const { user } = useAuth();
+  const { likelyAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleAuthClick = () => {
-    if (user) {
+    if (likelyAuthenticated) {
       navigate('/dashboard');
     } else {
       navigate('/auth');
@@ -27,7 +27,7 @@ export function LandingNav() {
 
           {/* Auth Button */}
           <Button onClick={handleAuthClick} className="text-sm font-medium">
-            {user ? 'Go to App' : 'Sign In / Sign Up'}
+            {likelyAuthenticated ? 'Go to App' : 'Sign In / Sign Up'}
           </Button>
         </div>
       </div>
