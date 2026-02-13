@@ -1,19 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function LandingNav() {
   const { likelyAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  const handleAuthClick = () => {
-    if (likelyAuthenticated) {
-      navigate('/dashboard');
-    } else {
-      navigate('/auth');
-    }
-  };
+  const authPath = likelyAuthenticated ? '/dashboard' : '/auth';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -26,9 +18,11 @@ export function LandingNav() {
           </Link>
 
           {/* Auth Button */}
-          <Button onClick={handleAuthClick} className="text-sm font-medium">
-            {likelyAuthenticated ? 'Go to App' : 'Sign In / Sign Up'}
-          </Button>
+          <Link to={authPath}>
+            <Button className="text-sm font-medium">
+              {likelyAuthenticated ? 'Go to App' : 'Sign In / Sign Up'}
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
