@@ -419,50 +419,52 @@ export function PromptView({
           </div>
 
           {/* Footer actions */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t">
-            {onDelete && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="text-destructive-foreground"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this prompt? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          {(onDelete || (showPinButton ?? true)) && (
+            <div className="flex justify-between items-center mt-8 pt-6 border-t">
+              {onDelete && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
                       Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this prompt? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
 
-{(showPinButton ?? true) && (
-              <Button
-                onClick={handlePin}
-                variant="outline"
-                className={`${
-                  prompt.isPinned
-                    ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
-                    : 'hover:bg-yellow-50'
-                }`}
-              >
-                <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
-                {prompt.isPinned ? 'Unpin' : 'Pin'}
-              </Button>
-            )}
-          </div>
+              {(showPinButton ?? true) && (
+                <Button
+                  onClick={handlePin}
+                  variant="outline"
+                  className={`${
+                    prompt.isPinned
+                      ? 'bg-yellow-100 border-yellow-400 text-yellow-700 hover:bg-yellow-200'
+                      : 'hover:bg-yellow-50'
+                  }`}
+                >
+                  <Pin className={`h-4 w-4 mr-2 ${prompt.isPinned ? 'fill-current' : ''}`} />
+                  {prompt.isPinned ? 'Unpin' : 'Pin'}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Version History Modal */}
