@@ -1,9 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Shield, CheckCircle2, ArrowRight, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LandingNav } from '@/components/LandingNav';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Landing() {
+  const navigate = useNavigate();
+  const { likelyAuthenticated } = useAuth();
+
+  const handleAuthClick = () => {
+    navigate(likelyAuthenticated ? '/dashboard' : '/auth');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <LandingNav />
@@ -21,12 +29,10 @@ export default function Landing() {
             Store, organize, and reuse your best AI prompts with intelligent variable handling.
             Never lose track of what works.
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="text-lg px-8 py-6">
-              Get Started
-              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Link>
+          <Button size="lg" className="text-lg px-8 py-6" onClick={handleAuthClick}>
+            Get Started
+            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+          </Button>
         </div>
       </section>
 
@@ -82,12 +88,10 @@ export default function Landing() {
           </div>
 
           <div className="text-center">
-            <Link to="/auth">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-white">
-                Try It Free
-                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-              </Button>
-            </Link>
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-white" onClick={handleAuthClick}>
+              Try It Free
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+            </Button>
           </div>
         </div>
       </section>
@@ -111,12 +115,10 @@ export default function Landing() {
           </div>
 
           <div className="text-center">
-            <Link to="/auth">
-              <Button size="lg" className="text-lg px-8 py-6">
-                Get Started
-                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-              </Button>
-            </Link>
+            <Button size="lg" className="text-lg px-8 py-6" onClick={handleAuthClick}>
+              Get Started
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+            </Button>
           </div>
         </div>
       </section>
@@ -130,12 +132,10 @@ export default function Landing() {
           <p className="text-lg text-gray-700 mb-8">
             Join users who've saved hours by organizing their AI prompts.
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="text-lg px-8 py-6">
-              Sign In / Sign Up
-              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-            </Button>
-          </Link>
+          <Button size="lg" className="text-lg px-8 py-6" onClick={handleAuthClick}>
+            Sign In / Sign Up
+            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+          </Button>
         </div>
       </section>
 
