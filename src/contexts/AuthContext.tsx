@@ -1,14 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
-import { supabase, hasPersistedSession } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  /** True if a non-expired session exists in localStorage (synchronous check) or auth has resolved with a user.
-   *  Use for optimistic UI only (e.g. button text), NOT for security gates. */
-  likelyAuthenticated: boolean;
   signInWithEmail: (email: string, redirectTo?: string) => Promise<{ error: AuthError | null }>;
   signInWithProvider: (
     provider: Provider,
@@ -24,9 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  // Synchronous localStorage check — computed once on mount for instant "Go to App" rendering
-  const [optimisticAuth] = useState(() => hasPersistedSession());
-  const likelyAuthenticated = loading ? optimisticAuth : !!user;
 
   useEffect(() => {
     // Get initial session
@@ -110,7 +104,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
-    likelyAuthenticated,
     signInWithEmail,
     signInWithProvider,
     signOut,
